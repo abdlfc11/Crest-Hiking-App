@@ -51,7 +51,7 @@ print("Translating nodes")
 WGS84_coords = translate_coords(BNG_extracted_node_coordinates) # making use of the function to generate WGS84 coords
 print("Nodes translated")
 
-with r.open("wales.tif") as elevation_raster: # opens the .tif file containing elevation data
+with r.open("Cumbria-Elevation-File.tif") as elevation_raster: # opens the .tif file containing elevation data
     print("opened elevation file")
     print(elevation_raster.crs)
     elev_samples = list(elevation_raster.sample(WGS84_coords)) # gains the elevation associated with each coordinate in the WGS84 coords
