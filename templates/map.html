@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEA Map Project</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+    <div id="login_screen" style="display: {{ none if logged_in else 'flex' }};">
+        <div id="login_items">
+            <div class="login_field">
+                <label id="login_validation_label"></label>
+            </div>
+            <div class="login_field">
+                <label class="entry-label" for="login_username_entry">Username</label>
+                <input type="text" id="login_username_entry" placeholder="enter username">
+            </div>
+                <div class="login_field">
+                <label class="entry-label" for="login_password_entry">Password</label>
+                <input type="password" id="login_password_entry" placeholder="enter password">
+                <i class="fa-solid fa-eye"></i>
+            </div>
+            <button id="login_button" class="generate-button">Login</button>
+        </div>
+        <div id="switch_to_register_container">
+            <label for="switch_to_register_button" id="switch_to_register_lable">Don't have an account ? Register below</label>
+            <button id="switch_to_register_button" class="generate-button">Register</button>
+        </div>
+    </div>
+
+    <div id="register_screen" style="display: none;">
+        <div id="register_go_back_button_container">
+            <button id="register_go_back_button">Go Back</button>
+        </div>
+        <div id="register_items">
+            <div class="register_field">
+                <label id="register_validation_label"></label>
+            </div>
+            <div class="register_field">
+                <label for="register_username_entry">Username</label>
+                <input type="text" id="register_username_entry" placeholder="enter username">
+            </div>
+            <div class="register_field">
+                <label for="register_password_entry1">Password</label>
+                <input type="password" id="register_password_entry1" placeholder="enter password">
+                <i id="register_eye" class="fa-solid fa-eye"></i>
+            </div>
+                <div class="register_field">
+                <label for="register_password_entry2">Enter Password again</label>
+                <input type="password" id="register_password_entry2" placeholder="enter password again">
+                <i id="register_eye" class="fa-solid fa-eye"></i>
+            </div>
+            <button type="button" id="register_button" class="generate-button">Register</button>
+        </div>
+    </div>
+
+    <div id="map_content" style="display: {{ block if logged_in else 'none'}};">
+
+        <div id="mode_toggle">
+            <div class="mode-toggle-container">
+                <button id="mode_auto" class="mode-button active">Auto</button>
+                <button id="mode_manual" class="mode-button">Manual</button>
+            </div>
+        </div>
+
+        <div id="start_end">
+            <div class="coords-header">
+                <span style="font-size:20px;cursor:pointer;" onclick="openNav()">&#9776;</span>
+                <span class="coords-title">Path Generation</span>
+                <button id="home_button" class="home-button">&#8635</button>
+                <button id="settings_button" class="settings-button" title="Settings" type="button"><i data-lucide="settings"></i></button>
+            </div>
+            <div class="coords-content" id="auto_mode_content">
+                    <div class="coord-row">
+                        <label for="search-entry" class="coord-label">Search for an Area</label>
+                        <div class="coord-input-group">
+                            <input type="text" id="search-entry" name="search-entry" placeholder="search here" class="coord-input">
+                            <button type="button" id="search-for-area-button" class="coord-button">Search</button>
+                        </div>
+                    </div>
+                    <div class="coord-row">
+                        <label for="start_point" class="coord-label">Start Coordinates</label>
+                        <div class="coord-input-group">
+                            <input type="text" id="start_point_entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start_points_list">
+                            <datalist id="start_points_list">
+                                {% for point in saved_points %}
+                                    <option value="{{ point.name }}"></option>
+                                {% endfor %}
+                            </datalist>
+                            <button type="button" id="set_start_by_centre" class="coord-button set-by-centre">Set by Centre</button>
+                        </div>
+                    </div>
+                    <div class="coord-row">
+                        <label for="end_point" class="coord-label">End Coordinates</label>
+                        <div class="coord-input-group">
+                            <input type="text" id="end_point_entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end_points_list">
+                            <datalist id="end_points_list">
+                                {% for point in saved_points %}
+                                    <option value="{{ point.name }}"></option>
+                                {% endfor %}
+                            </datalist>
+                            <button type="button" id="set_end_by_centre" class="coord-button set-by-centre">Set by Centre</button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="generate-button" id="generate_path_button">
+                        <span id="generate-path-button-text">Generate path</span>
+                        <span class="loader"></span>
+                    </button>
+
+                    <button type="button" class="generate-button" id="clear_route_button">Clear Path</button>
+                
+                {% if error %}
+                <div class="error-message">
+                    {{ error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="manual_mode_content" style="display: none;">
+            <div class="coords-header">
+                <span class="coords-title">Manual Route Creation</span>
+                <button id="home_button" class="home-button">&#8635</button>
+            </div>
+            <div class="coords-content">
+                <p class="manual-instruction">Click on the map to place points</p>
+                <button type="button" id="clear_manual_route" class="generate-button">Clear Route</button>
+            </div>
+        </div>
+
+        <div id="load_route" class="load-route">
+            <div class="coords-header">
+                <span class="coords-title">Load Route</span>
+            </div>
+            <div class="coords-content">
+                <div id="load-route-dropdown">
+                    <div class="load-route-selected" id="selected-route-display">Choose a route</div>
+                        <div class="load-route-list" id="route-list">
+                            {% for route in available_routes %}
+                                <div class="load-route-item" data-name="{{ route.name }}" data-type="{{ route.format }}">
+                                    <span class="load-route-name">{{ route.name }} ({{ route.format.upper() }})</span>
+                                    <span class="load-route-delete" title="Delete Route" data-name="{{ route.name }}" data-type="{{ route.format }}">X</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" id="selected-route-name" name="load_route_name">
+                        <input type="hidden" id="selected-route-type">
+                    </div>
+                    <button id="load-route-button" class="generate-button">Load Route</button>
+                <div id="load_message"></div>
+            </div>
+        </div>
+        
+        <div id="save_route" {% if not current_path %}style="display: none;"{% endif %}>
+            <div class="coords-header">
+                <span class="coords-title">Save Route</span>
+            </div>
+            <div class="coords-content">
+                <form id="saveRouteForm">
+                    <div class="coord-row">
+                        <label for="route_name" class="coord-label">Route Name:</label>
+                        <div class="coord-input-group">
+                            <input type="text" id="route_name" name="route_name" placeholder="Enter route name" required class="coord-input">
+                        </div>
+                    </div>
+                    <div class="coord-row">
+                        <label for="format" class="coord-label">Format:</label>
+                        <div class="coord-input-group">
+                            <select id="format" name="format" required class="coord-input">
+                                <option value="geojson">GeoJSON</option>
+                                <option value="gpx">GPX</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="generate-button">Save Route</button>
+                </form>
+                <div id="save_message"></div>
+            </div>
+        </div>
+
+        <div id="remove-point">
+            <button id="remove-point-button">remove</button>
+        </div>
+
+        <dialog id="delete-point-confirmation-dialog" class="confirmation-modal">
+            <div class="wrapper">
+                <div class="confirmation-modal-content">
+                    <div class="confirmation-modal-header">
+                        <h2>Delete Point</h2>
+                    </div>
+                    <div class="confirmation-modal-body">
+                        <p>Are you sure you want to remove this point:</p>
+                        <p><span id="point-name-display"></span>?</p>
+                    </div>
+                    <div class="confirmation-buttons">
+                        <button type="button" id="point-delete-exit-button">Exit</button>
+                        <button id="point-delete-delete-button">Delete Point</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
+        <dialog id="initial-point-click-dialog" class="confirmation-modal">
+            <div class="wrapper">
+                <div class="confirmation-modal-content">
+                    <div class="confirmation-modal-header">
+                        <h2><span id="initial-point-name-display"></span></h2>
+                    </div>
+                    <div class="confirmation-buttons">
+                        <button type="button" id="inital-point-modal-set-as-start-position">Set as Start</button>
+                        <button type="button" id="inital-point-modal-set-as-end-position">Set as End</button>
+                        <button type="button" id="initial-point-modal-show-delete-modal-button">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
+        <div id="settings_modal" class="settings-modal">
+            <div class="settings-modal-content">
+                <div class="settings-modal-header">
+                    <h2>Settings</h2>
+                    <button id="settings_close" class="settings-close-button">&times;</button>
+                </div>
+                <div class="settings-modal-body">
+                    <div class="setting-item">
+                        <label for="distance_unit_toggle" class="setting-label">
+                            <span>Distance Unit</span>
+                            <span class="setting-description">Kilometres / Miles</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="distance_unit_toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div id="bottom_settings_container">
+                        <div id="logout_button_container">
+                            <button class="generate-button" id="logout_button">Log out</button>
+                        </div>
+                        <div id="delete_user_button_container">
+                            <button id="delete_user_button">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if route_stats %}
+        <div id="route-stats">
+            <div class="stats-header">
+                <span class="stats-title">Route Information</span>
+            </div>
+            <div class="stats-content">
+                <div class="stat-row">
+                    <span class="stat-label">Distance:</span>
+                    <span class="stat-value" id="route_distance_display">{{ route_stats.total_distance }}km</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">ETA:</span>
+                    <span class="stat-value" id="route_eta_display">{{ route_stats.eta }}</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Elevation Change:</span>
+                  <span class="stat-value" id="route_elevation_change_display">{{ route_stats.elevation_change }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <img src="static/crosshair.png" id="crosshair">
+
+        <div id="map"></div>
+
+        <div id="user-error-popup-container">
+            <div id="user-error-popup-icon-container">
+                <span id="user-error-popup-icon">&#9888;</span>
+            </div>
+            <div id="user-error-popup-text-container">
+                <span id="user-error-popup-text"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="the-sidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="saved_routes">Saved Routes</a>
+    </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+    <script src="https://kit.fontawesome.com/63b2665416.js" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/map_jinja.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script>lucide.createIcons();</script>
+
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+# virtual environment
+venv/
+.venv/
+
+# python cache
+__pycache__/
+*.pyc
+
+# environment variables
+.env
+
+# OS junk
+.DS_Store
+
+# flask
+instance/
+
+# logs
+*.log
+
+# SQLite databases 
+*.db
+
+# old graph files and graph making files
+*.tif
+*.pbf
+*.gpkg
+*.pkl
+elevation_upgrade.py
+
+# graph testing files
+testing_stuff.py

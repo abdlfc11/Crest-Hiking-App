@@ -1,0 +1,129 @@
+body {
+  background-color: #c3d6e9;
+}
+
+#header {
+    padding-left: 30px;
+}
+
+#top-section {
+    display: flex;
+    justify-content: space-between;
+}
+
+#go-back-btn-container {
+    width: 150px;
+    padding-right: 30px;
+}
+
+#go-back-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: rgba(99, 102, 241, 0.677);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 5px 10px rgba(99, 102, 241, 0.2);
+    white-space: nowrap;
+}
+
+#go-back-btn:hover {
+    background-color: rgb(78, 81, 245);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+}
+
+#go-back-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+#all-routes-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 35px;
+    padding-top: 50px;
+    padding-left: 90px;
+    padding-right: 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.route-card {
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.771);
+    padding: 20px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.route-card:hover {
+    box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.route-header {
+    gap: 0px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    font: 30px;
+}
+
+.route-card-stats {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.route-card-bts {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.route-btn {
+    width: 100%;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    white-space: nowrap;
+}
+
+.route-btn:hover {
+    background: #1e40af;
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+}
+
+.route-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+.stat-labels {
+    color: rgb(123, 123, 123);
+}
+
+.stat-values {
+    font-weight: 500;
+}

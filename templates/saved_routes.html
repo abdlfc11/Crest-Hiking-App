@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saved Routes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/saved_routes.css') }}" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div id="save_route_dashboard">
+        <div id="top-section">
+            <div id="header">
+                <h1> Hi {{ session.get("username") }}, these are your saved routes</h1>
+            </div>
+            <div id="go-back-btn-container">
+                <button onclick="window.location.href = '/' " id="go-back-btn">Go Back</button>
+            </div>
+        </div>
+        <div id="all-routes-container">
+            {% for route in available_routes %}
+                <div class="route-card">
+                    <div class="route-card-header">
+                        <h3 class="route-card-name">{{ route.name }}</h2>
+                        <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%y")}}</span>
+                    </div>
+                    <div class="route-card-stats">
+                        <div class="stat-item">
+                            <span class="stat-labels">Distance:</span>
+                            <span class="stat-values">{{ route.distance }} km</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-labels">ETA:</span>
+                            <span class="stat-values">{{ route.ETA }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-labels">Elevation Change:</span>
+                            <span class="stat-values">{{ route.elevation_change }}</span>
+                        </div>
+                    </div>
+                    <div class="route-card-bts">
+                        <button class="route-btn route-btn-load">Load</button>
+                        <button class="route-btn route-btn-download-gpx">GPX</button>
+                        <button class="route-btn route-btn-download-geojson">GeoJSON</button>
+                        <button class="route-btn route-btn-delete">Delete</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+<script src="{{ url_for('static', filename='js/saved_routes.js') }}"></script>
