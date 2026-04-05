@@ -25,13 +25,7 @@ instance/
 *.tif
 *.pbf
 *.gpkg
-<<<<<<< HEAD
 *.pkl
-elevation_upgrade.py
-=======
-elevation_upgrade.py
-Pathfinding/path_downloader.py
->>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 
 # graph testing files
 testing_stuff.py

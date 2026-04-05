@@ -28,7 +28,7 @@ packaging==25.0
 pandas==2.3.3
 psycopg==3.3.3
 psycopg-binary==3.3.3
-psycopg2-binary==2.9.11git
+psycopg2-binary==2.9.11
 pyogrio==0.12.1
 pyparsing==3.3.2
 pyproj==3.7.2
