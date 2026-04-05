@@ -3,6 +3,7 @@ import heapq as h
 from scipy.spatial import KDTree
 import networkx as nx
 
+<<<<<<< HEAD
 _global_kdtree = None
 _global_node_list = None
 
@@ -15,6 +16,8 @@ def build_global_kdtree(graph):
     else:
         print("Warning, no nodes within graph")
 
+=======
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 class AStarRouteFinder:
     def __init__(self, graph=None, start_id=None, end_id=None, max_iterations=500000, min_slope=0.0):
         # core algorithm parameters
@@ -78,6 +81,7 @@ class AStarRouteFinder:
         # This calculates the Euclidean distance between two given points
         if node is None:
             node = self.start_id
+<<<<<<< HEAD
 
         # Extract x,y coordinates 
         x1, y1 = node[:2]
@@ -96,6 +100,13 @@ class AStarRouteFinder:
 
         return base_time + climb_penalty
     
+=======
+        # Extract x,y coordinates (ignore elevation if present)
+        x1, y1 = node[:2]
+        x2, y2 = self.end_id[:2]
+        euclidean_distance_metres = m.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+        return euclidean_distance_metres / 1.4
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 
 def snap_to_largest_component(graph, start_id, end_id):
 
@@ -114,6 +125,7 @@ def snap_to_largest_component(graph, start_id, end_id):
 
 
 def a_star(graph, start_xy, end_xy, min_slope=0.0):
+<<<<<<< HEAD
     if _global_kdtree is None:
         build_global_kdtree(graph)  # fallback, but better to call once at startup
 
@@ -148,12 +160,36 @@ def a_star(graph, start_xy, end_xy, min_slope=0.0):
         return None
 
     # snap nodes to run A*
+=======
+    # 1. Create the bounding box around the clicks
+    buffer = 1500
+    min_x, max_x = min(start_xy[0], end_xy[0]) - buffer, max(start_xy[0], end_xy[0]) + buffer
+    min_y, max_y = min(start_xy[1], end_xy[1]) - buffer, max(start_xy[1], end_xy[1]) + buffer
+
+    # clip the node grah
+    def filter_node(n):
+        return min_x <= n[0] <= max_x and min_y <= n[1] <= max_y
+    
+    # search_graph now only contains a few hundred / thousand nodes
+    search_graph = nx.subgraph_view(graph, filter_node=filter_node)
+
+    # snap nodes to node network within the clipped graph
+    nodes = list(search_graph.nodes())
+    if not nodes: return None
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
     tree = KDTree(nodes)
     snapped_start = nodes[tree.query(start_xy)[1]]
     snapped_end = nodes[tree.query(end_xy)[1]]
 
+<<<<<<< HEAD
     pathfinder = AStarRouteFinder(search_graph, snapped_start, snapped_end, min_slope=min_slope)
     path = pathfinder.find_path()
 
     return path, snapped_start, snapped_end
 
+=======
+    # run A* on the graph
+    pathfinder = AStarRouteFinder(search_graph, snapped_start, snapped_end, min_slope=min_slope)
+    path = pathfinder.find_path()
+    return path, snapped_start, snapped_end
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd

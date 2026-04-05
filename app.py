@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from pathfinder import a_star, snap_to_largest_component, build_global_kdtree  # responsible for path generation
+=======
+from pathfinder import a_star, snap_to_largest_component  # responsible for path generation
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 from flask import Flask, render_template, request, jsonify, session  # flask runs the local website
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select
@@ -18,6 +22,10 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 import networkx as nx
+<<<<<<< HEAD
+=======
+import threading # used to load the graph in the background so the user isn't abused with a 20 second wait time upon creating a path
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 
 
 # default map centre (BNG coordinates)
@@ -30,9 +38,12 @@ if os.environ.get("FLASK_ENV") == "development":
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+<<<<<<< HEAD
 # Global graph
 
 
+=======
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 # SQL_ALCHEMY SET UP
 
 # secret key for sessions
@@ -234,8 +245,11 @@ class NodeFinder:
             self._nodes_list = nodes_coords
             self._kdtree = KDTree(nodes_coords)
 
+<<<<<<< HEAD
             build_global_kdtree(self._graph)
 
+=======
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
             print(f"Graph initialised with {len(self._nodes_list)} reachable nodes.")
         
         return self._graph
@@ -381,6 +395,15 @@ class NodeFinder:
 
 service = NodeFinder()
 
+<<<<<<< HEAD
+=======
+def preload_graph():
+    service.load_graph()
+    print("Graph preloaded in background")
+
+threading.Thread(target=preload_graph, daemon=True).start()
+
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 # route which forms a path from the set of points the back-end receives as coordinates and returns it to the front-end
 @app.route("/calculate_path", methods=["POST"])
 @limiter.limit("4 per second")

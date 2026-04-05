@@ -7,7 +7,11 @@ import ast
 
 
 class PathDataProcessor:
+<<<<<<< HEAD
     def __init__(self, input_data_path="data/cumbria_full.osm.pbf", output_pickle_path="Pathfinding/new_path_graph.pkl", target_epsg=27700):
+=======
+    def __init__(self, input_data_path="data/wales_paths.osm.pbf", output_pickle_path="Pathfinding/wales_path_graph.pkl", target_epsg=27700):
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
         self.input_data_path = input_data_path
         self.output_pickle_path = output_pickle_path
         self.target_epsg = target_epsg

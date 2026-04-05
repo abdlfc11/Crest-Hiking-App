@@ -803,7 +803,11 @@ async function addManualPoint(x, y) {
   if (userClicks.length >= 3) {
 
     // sets the distance threshold (20 metres)
+<<<<<<< HEAD
     const threshold_distance = 100;
+=======
+    const threshold_distance = 50;
+>>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 
     // euclidean distance AKA pythag theorem
     const distance_x = end[0] - start[0];
