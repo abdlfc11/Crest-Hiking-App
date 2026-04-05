@@ -56,11 +56,9 @@ You can start the app using docker-compose, the exact command is shown below
 docker-compose up --build
 ```
 ### Accessing the App
-<<<<<<< HEAD
 The app should now be able to be accessed in your web browser at [](http://localhost:5000)
 =======
 The app should now be able to be accessed in your web browser at http://localhost:5000
->>>>>>> 3cb462cb2566903a31d8a106599d86f4e10bf9bd
 
 ### Choosing A Username and Password 
 Username and Password conditions are to be added to the login page as soon as possible but for now the conditions will be shown here
