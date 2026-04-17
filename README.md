@@ -1,11 +1,6 @@
 # Crest — Hiking Route Finder
 
 
-
-> Hosting is in process
----
-
-
 An open-source alternative to paid hiking apps, built for hikers who want to plan, save, and export routes without a subscription. Crest lets you generate optimal hiking routes within the county of Cumbria, save points of interest, and export your routes in standard formats compatible with GPS devices and popular mapping apps.
 ~~Manual route creation as well as the plotting of points across the entire world is supported~~.
 After the addition of snap to paths in manual routing on 1st April 2026, manual routing is no longer possible outside of Cumbria. 
@@ -14,11 +9,13 @@ After the addition of snap to paths in manual routing on 1st April 2026, manual 
 carry an OS map and compass, check weather conditions, and do not rely solely 
 on this app for navigation in the field. Never use routes that, upon your discretion, is above your skill level.
 
----
+## Why I built this app
 
-> Built as my A-level Computer Science NEA project, using a custom A\* pathfinding algorithm over a graph of just over 990,000 OSM nodes and over 2M edges.
+### Learning
+I built Crest to explore large-scale graph pathfinding with real-world geographic constraints, prior to this project my only experience in programming had been creating simple websites and easy to code things like quizzes and calculators in the CLI. This project gave me a taste of real world problems, such as the resources (like time and memory) limits, for example, when I saw difficulty in making a UK wide graph and had to downscale to Cumbria. 
 
----
+### My own enjoyment in Hiking
+I've always loved hiking, since a child I watched videos of mountaineers scale peaks such as Mont Blanc and Everest, fuelling my passion in hiking as I've grown older. However, due to my young age, I don't have the finances to purchase subscriptions for apps such as OS Maps and AllTrails which provide great features for hiking such as offline routes, meaning I often found myself having to take screenshots of routes as well as landmarks of routes I found on websites which reviewed routes. This was not conveniant and while it strengthened my navigation skills, I found it frustrating to constantly have to look at and decipher screenshots of old websites to navigate trails. 
 
 ## Setup
 
