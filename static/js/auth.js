@@ -51,7 +51,7 @@ export function login() {
     });
 } 
 
-// Function to handle user logout
+// Function to handle user logging out
 export function logout() {
   fetch(apiLogoutUrl, {
     method: "POST",
