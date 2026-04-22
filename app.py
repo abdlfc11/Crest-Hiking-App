@@ -101,27 +101,6 @@ def get_current_user():
         return None
     return User.query.filter_by(username=username).first()
 
-# DATA_API 
-@app.route("/api/config")
-def config():
-    
-    user = get_current_user()
-
-    if user is None:
-        saved_points = []
-    else:
-        saved_points = Point.query.filter_by(user_id=user.id).all()
-
-    return jsonify({
-        "map_centre" : default_centre,
-        "zoom" : 10,
-        "current_path" : None,
-        "saved_points" : [ {
-            "name" : p.name,
-            "coordinates" : json.loads(p.coordinates)
-        } for p in saved_points]
-    })
-
 # SAVED POINTS DASHBOARD
 @app.route("/saved_routes")
 def saved_routes():
@@ -855,6 +834,9 @@ def map_view():
 # route which resets all values within entries and returns the user to the main-menu of the application
 @app.route("/js/config.js")
 def map_jinja_js():
+
+    print("DEBUG STATEMENT : /js/config.js file reached")
+
     web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
     
     # gets list of available routes and points for the JavaScript

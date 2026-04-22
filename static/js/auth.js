@@ -1,4 +1,4 @@
-import { apiLoginUrl  } from "/js/config.js";
+
 
 const loginValidationLabel = document.getElementById("login_validation_label");
 const loginScreen = document.getElementById("login_screen");

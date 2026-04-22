@@ -4,9 +4,12 @@
 // BASIC ELEMENT REFS & STATE
 // ================
 
-import { mapInitialCenter } from "js/config.js";
-
 const map_style = document.getElementById("map")
+
+console.log("Map initial centre:", mapInitialCenter);
+
+let map = null;
+let tileLayer = null;
 
 const searchEntry = document.getElementById("search-entry");
 const searchForAreaButton = document.getElementById("search-for-area-button");
@@ -47,8 +50,11 @@ const manualModeContent = document.getElementById("manual_mode_content");
 
 
 // manual routing
-clearManualRouteButton = document.getElementById("clear_manual_route")
+const clearManualRouteButton = document.getElementById("clear_manual_route")
 
+// logging in and out
+const logoutButton = document.getElementById("logout_button");
+const loginButton = document.getElementById("login_button");
 
 // registering page
 const registerValidationLabel = document.getElementById("register_validation_label");
@@ -111,10 +117,17 @@ function initSettings() {
 }
 
 function initMap() {
-  map.on("click", coordinateDisplayHandler);
-  createMap();
   createTileLayer();
+  createMap();
   AddRouteLayer();
+  map.on("click", coordinateDisplayHandler);
+
+  map.once("rendercomplete", function () {
+    loadAndDisplaySavedPoints();
+    refreshRouteList();
+    updateLoadRouteVisibility();
+  });
+
 }
 
 function initSaveOrLoad() {
@@ -210,7 +223,7 @@ let appSettings = loadSettings();
 // create tile layer
 
 function createTileLayer() {
-  let tileLayer = new ol.layer.Tile({
+  tileLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
       url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
       attributions: "Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)",
@@ -220,7 +233,7 @@ function createTileLayer() {
 };
 
 function createMap() {
-  const map = new ol.Map({
+   map = new ol.Map({
     layers: [tileLayer],
     target: "map",
     controls: new ol.control.defaults.defaults({
@@ -1371,12 +1384,6 @@ function loadAndDisplaySavedPoints() {
       console.error("Error fetching saved point:", error);
     });
 }
-
-map.once("rendercomplete", function () {
-  loadAndDisplaySavedPoints();
-  refreshRouteList();
-  updateLoadRouteVisibility();
-});
 
 // ================
 // DELETE POINT MODAL & DROPDOWN SETUP
