@@ -4,6 +4,8 @@
 // BASIC ELEMENT REFS & STATE
 // ================
 
+import { mapInitialCenter } from "js/config.js";
+
 const map_style = document.getElementById("map")
 
 const searchEntry = document.getElementById("search-entry");
@@ -45,15 +47,8 @@ const manualModeContent = document.getElementById("manual_mode_content");
 
 
 // manual routing
+clearManualRouteButton = document.getElementById("clear_manual_route")
 
-// login page
-const loginValidationLabel = document.getElementById("login_validation_label");
-const loginScreen = document.getElementById("login_screen");
-const loginUsernameEntry = document.getElementById("login_username_entry");
-const loginPasswordEntry = document.getElementById("login_password_entry");
-const loginButton = document.getElementById("login_button");
-const logoutButton = document.getElementById("logout_button");
-const switchToRegisterButton = document.getElementById("switch_to_register_button");
 
 // registering page
 const registerValidationLabel = document.getElementById("register_validation_label");
@@ -87,6 +82,9 @@ const specialCharacters = [
 const mapContent = document.getElementById("map_content");
 
 const settingsModal = document.getElementById("settings_modal");
+const settingsButton = document.getElementById("settings_button");
+const settingsModalElement = document.getElementById("settings_modal");
+const settingsClose = document.getElementById("settings_close");
 
 const icons = document.querySelectorAll(".fa-eye");
 
@@ -103,6 +101,53 @@ const pointDeleteExitButton = document.getElementById("point-delete-exit-button"
 const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
 const pointDeleteModalNameDisplay = document.getElementById("point-name-display");
 const wrapper = document.querySelector(".wrapper")
+
+// ================
+// INITIALISING FUNCTIONS
+// ================
+
+function initSettings() {
+  
+}
+
+function initMap() {
+  map.on("click", coordinateDisplayHandler);
+  createMap();
+  createTileLayer();
+  AddRouteLayer();
+}
+
+function initSaveOrLoad() {
+  loadRouteButton.addEventListener("click", loadRoute);
+  saveRouteForm.addEventListener("submit", saveRoute);
+}
+
+function initRouting() {
+  searchForAreaButton.addEventListener("click", searchArea);
+  generatePathButton.addEventListener("click", calculatePath);
+  autoModeButton.addEventListener("click", switchToAutoMode);
+  manualModeButton.addEventListener("click", switchToManualMode);
+  clearManualRouteButton.addEventListener("click", clearManualRoute);
+}
+
+function initAuth() {
+  logoutButton.addEventListener("click", logout);
+  loginButton.addEventListener("click", login);
+  switchToRegisterButton.addEventListener("click", switchToRegistering);
+  registerButton.addEventListener("click", register);
+  registerGoBackButton.addEventListener("click", goBackToLoginFromRegister)
+  deleteAccountButton.addEventListener("click", deleteAccount);
+}
+
+function initApp() {
+  initMap();
+  initAuth();
+  initRouting();
+  initSaveOrLoad();
+}
+
+// call the function when all DOM elements have loaded
+document.addEventListener('DOMContentLoaded', initApp);
 
 // ================
 // DELETE ACCOUNT
@@ -149,8 +194,6 @@ function deleteAccount() {
   });
 }
 
-deleteAccountButton.addEventListener("click", deleteAccount);
-
 // ================
 // SETTINGS & MAP INITIALISATION
 // ================
@@ -165,47 +208,54 @@ function loadSettings() {
 let appSettings = loadSettings();
 
 // create tile layer
-let tileLayer = new ol.layer.Tile({
-  source: new ol.source.XYZ({
-    url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
-    attributions: "Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)",
-    maxZoom: 17,
-  }),
-});
+
+function createTileLayer() {
+  let tileLayer = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+      url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
+      attributions: "Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)",
+      maxZoom: 17,
+    }),
+  });
+};
+
+function createMap() {
+  const map = new ol.Map({
+    layers: [tileLayer],
+    target: "map",
+    controls: new ol.control.defaults.defaults({
+      attribution : false
+    }).extend([
+      new ol.control.Attribution({
+        collapsible : false
+      })
+    ]),
+    view: new ol.View({
+      projection: "EPSG:3857",
+      maxZoom: 17,
+      minZoom: 0,
+      center: mapInitialCenter,
+      zoom: mapInitialZoom,
+    }),
+  });
+}
 
 function getPathColor() {
   return "#2563eb"; // blue
 }
 
-const map = new ol.Map({
-  layers: [tileLayer],
-  target: "map",
-  controls: new ol.control.defaults.defaults({
-    attribution : false
-  }).extend([
-    new ol.control.Attribution({
-      collapsible : false
-    })
-  ]),
-  view: new ol.View({
-    projection: "EPSG:3857",
-    maxZoom: 17,
-    minZoom: 0,
-    center: mapInitialCenter,
-    zoom: mapInitialZoom,
-  }),
-});
-
-routeLayer = new ol.layer.Vector({
-  source: new ol.source.Vector(),
-  style: new ol.style.Style({
-    stroke: new ol.style.Stroke({
-      color: getPathColor(),
-      width: 5,
+function AddRouteLayer() {
+  routeLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    style: new ol.style.Style({
+      stroke: new ol.style.Stroke({
+        color: getPathColor(),
+        width: 5,
+      }),
     }),
-  }),
-});
-map.addLayer(routeLayer);
+  });
+  map.addLayer(routeLayer);
+}
 
 // slide-in navigation
 function openNav() {
@@ -349,8 +399,6 @@ function getSelectedPointStyle(name) {
   return baseStyle;
 }
 
-map.on("click", coordinateDisplayHandler);
-
 function saveNewPoint(coordinate, name) {
   const x = coordinate[0];
   const y = coordinate[1];
@@ -487,7 +535,7 @@ function refreshRouteList() {
     })
     .catch((error) => {
       console.error("Error fetching route list:", error);
-      document.getElementById("load_message").innerHTML = `<span style="color: red;">✗ Error fetching routes: ${error.message}</span>`;
+      document.getElementById("load_message").innerHTML = `<span style="color: red;"> Error fetching routes: ${error.message}</span>`;
     });
 }
 
@@ -538,190 +586,191 @@ function clearRoute() {
   currentPathData = null;
 }
 
-// handle save route form submission
+// SAVING A ROUTE
 const saveRouteForm = document.getElementById("saveRouteForm");
-if (saveRouteForm) {
-  saveRouteForm.addEventListener("submit", function (e) {
-    e.preventDefault();
 
-    const routeName = document.getElementById("route_name").value;
-    const format = document.getElementById("format").value;
-    const messageDiv = document.getElementById("save_message");
-    const distance = document.getElementById("route_distance_display").textContent;
-    const ETA = document.getElementById("route_eta_display").textContent;
-    console.log(ETA)
-    const elevation_change = document.getElementById("route_elevation_change_display").textContent;
-    console.log(elevation_change)
+function saveRoute(e) {
+  e.preventDefault();
 
+  const routeName = document.getElementById("route_name").value;
+  const format = document.getElementById("format").value;
+  const messageDiv = document.getElementById("save_message");
+  const distance = document.getElementById("route_distance_display").textContent;
+  const ETA = document.getElementById("route_eta_display").textContent;
+  console.log(ETA)
+  const elevation_change = document.getElementById("route_elevation_change_display").textContent;
+  console.log(elevation_change)
+
+  messageDiv.innerHTML =
+    '<span style="color: blue;">Saving route...</span>';
+
+  let pathCoordinates = [];
+  if (currentMode === "manual" && manualRoutePoints.length > 0) {
+    pathCoordinates = manualRoutePoints;
+  } else {
+    pathCoordinates = currentPathData || loadedRouteCoordinates || [];
+  }
+
+  if (pathCoordinates.length === 0) {
     messageDiv.innerHTML =
-      '<span style="color: blue;">Saving route...</span>';
+      '<span style="color: red;">No route data to save. Please create or load a route first.</span>';
+    return;
+  }
 
-    let pathCoordinates = [];
-    if (currentMode === "manual" && manualRoutePoints.length > 0) {
-      pathCoordinates = manualRoutePoints;
-    } else {
-      pathCoordinates = currentPathData || loadedRouteCoordinates || [];
-    }
+  console.log("Saving route:", {
+    route_name: routeName,
+    format: format,
+    coordinates_count: pathCoordinates.length,
+  });
 
-    if (pathCoordinates.length === 0) {
-      messageDiv.innerHTML =
-        '<span style="color: red;">No route data to save. Please create or load a route first.</span>';
-      return;
-    }
-
-    console.log("Saving route:", {
+  fetch(apiSaveRouteUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
       route_name: routeName,
       format: format,
-      coordinates_count: pathCoordinates.length,
-    });
-
-    fetch(apiSaveRouteUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        route_name: routeName,
-        format: format,
-        coordinates: pathCoordinates,
-        route_distance: distance,
-        route_ETA: ETA,
-        elevation_change: elevation_change
-      }),
+      coordinates: pathCoordinates,
+      route_distance: distance,
+      route_ETA: ETA,
+      elevation_change: elevation_change
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((errorData) => {
+          throw new Error(
+            errorData.message ||
+              `Server responded with status ${response.status}`,
+          );
+        });
+      }
+      return response.json();
     })
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then((errorData) => {
-            throw new Error(
-              errorData.message ||
-                `Server responded with status ${response.status}`,
-            );
-          });
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          messageDiv.innerHTML = `<span style="color: green;">✓ ${data.message}</span>`;
-          document.getElementById("route_name").value = "";
-          refreshRouteList();
-        } else {
-          messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;
-        }
-      })
-      .catch((error) => {
-        messageDiv.innerHTML = `<span style="color: red;">✗ Error saving route: ${error.message}</span>`;
-        console.error("Error saving route:", error);
-      });
-  });
+    .then((data) => {
+      if (data.success) {
+        messageDiv.innerHTML = `<span style="color: green;">✓ ${data.message}</span>`;
+        document.getElementById("route_name").value = "";
+        refreshRouteList();
+      } else {
+        messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;
+      }
+    })
+    .catch((error) => {
+      messageDiv.innerHTML = `<span style="color: red;">✗ Error saving route: ${error.message}</span>`;
+      console.error("Error saving route:", error);
+    });
 }
 
-loadRouteButton.addEventListener("click", function (e) {
-    e.preventDefault();
+// LOADING A ROUTE
 
-    const routeName = document.getElementById("selected-route-name").value;
-    const fileType = document.getElementById("selected-route-type").value;
-    const messageDiv = document.getElementById("load_message");
+function loadRoute(e) {
+  e.preventDefault();
 
-    if (!routeName) {
-      messageDiv.innerHTML =
-        '<span style="color: red;">Please select a route to load</span>';
-      return;
-    }
+  const routeName = document.getElementById("selected-route-name").value;
+  const fileType = document.getElementById("selected-route-type").value;
+  const messageDiv = document.getElementById("load_message");
 
+  if (!routeName) {
     messageDiv.innerHTML =
-      '<span style="color: blue;">Loading route...</span>';
+      '<span style="color: red;">Please select a route to load</span>';
+    return;
+  }
 
-    fetch(apiLoadRouteUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        route_name: routeName,
-        file_type: fileType,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          const vectorSource = routeLayer.getSource();
-          vectorSource.clear();
+  messageDiv.innerHTML =
+    '<span style="color: blue;">Loading route...</span>';
 
-          const format = new ol.format.GeoJSON();
-          const features = format.readFeatures(data.path_geojson, {
-            dataProjection: "EPSG:3857",
-            featureProjection: "EPSG:3857",
-          });
+  fetch(apiLoadRouteUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      route_name: routeName,
+      file_type: fileType,
+    }),
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.success) {
+      const vectorSource = routeLayer.getSource();
+      vectorSource.clear();
 
-          features.forEach((feature) => {
-            feature.setStyle(
-              new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                  color: "#2563eb",
-                  width: 5,
-                }),
-              }),
-            );
-          });
+      const format = new ol.format.GeoJSON();
+      const features = format.readFeatures(data.path_geojson, {
+        dataProjection: "EPSG:3857",
+        featureProjection: "EPSG:3857",
+      });
 
-          vectorSource.addFeatures(features);
-
-          const view = map.getView();
-          view.fit(vectorSource.getExtent(), {
-            size: map.getSize(),
-            padding: [50, 50, 50, 50],
-            duration: 1000,
-          });
-
-          if (data.route_stats) {
-            const statsHtml = `
-              <div id="route-stats">
-                <div class="stats-header">
-                  <span class="stats-title">Route Information</span>
-                </div>
-                <div class="stats-content">
-                  <div class="stat-row">
-                    <span class="stat-label">Distance:</span>
-                    <span class="stat-value">${formatDistance(parseFloat(data.route_stats.total_distance))}</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">ETA:</span>
-                    <span class="stat-value">${data.route_stats.eta}</span>
-                  </div>
-                  <div class="stat-row">
-                    <span class="stat-label">Elevation Change:</span>
-                    <span class="stat-value" id="route_elevation_change_display">${data.route_stats.elevation_change || "N/A"}</span>
-                  </div>
-                </div>
-              </div>
-            `;
-            const existingStats = document.getElementById("route-stats");
-            if (existingStats) existingStats.remove();
-            document.body.insertAdjacentHTML("beforeend", statsHtml);
-          }
-
-          loadedRouteCoordinates = data.coordinates;
-          currentPathData = data.coordinates;
-
-          const saveRouteDiv = document.getElementById("save_route");
-          if (saveRouteDiv) saveRouteDiv.style.display = "block";
-
-          updateLoadRouteVisibility();
-
-          showToast(data.message, "success");
-        } else {
-          showToast(`Failed to load route: ${data.message}`, "error");
-        }
-      })
-      .catch((error) => {
-        console.error("Error loading route:", error);
-        showToast(
-          "A network error occurred while loading the route.",
-          "error",
+      features.forEach((feature) => {
+        feature.setStyle(
+          new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: "#2563eb",
+              width: 5,
+            }),
+          }),
         );
       });
+
+      vectorSource.addFeatures(features);
+
+      const view = map.getView();
+      view.fit(vectorSource.getExtent(), {
+        size: map.getSize(),
+        padding: [50, 50, 50, 50],
+        duration: 1000,
+      });
+
+      if (data.route_stats) {
+        const statsHtml = `
+          <div id="route-stats">
+            <div class="stats-header">
+              <span class="stats-title">Route Information</span>
+            </div>
+            <div class="stats-content">
+              <div class="stat-row">
+                <span class="stat-label">Distance:</span>
+                <span class="stat-value">${formatDistance(parseFloat(data.route_stats.total_distance))}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">ETA:</span>
+                <span class="stat-value">${data.route_stats.eta}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Elevation Change:</span>
+                <span class="stat-value" id="route_elevation_change_display">${data.route_stats.elevation_change || "N/A"}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        const existingStats = document.getElementById("route-stats");
+        if (existingStats) existingStats.remove();
+        document.body.insertAdjacentHTML("beforeend", statsHtml);
+      }
+
+      loadedRouteCoordinates = data.coordinates;
+      currentPathData = data.coordinates;
+
+      const saveRouteDiv = document.getElementById("save_route");
+      if (saveRouteDiv) saveRouteDiv.style.display = "block";
+
+      updateLoadRouteVisibility();
+
+      showToast(data.message, "success");
+    } else {
+      showToast(`Failed to load route: ${data.message}`, "error");
+    }
+  })
+  .catch((error) => {
+    console.error("Error loading route:", error);
+    showToast(
+      "A network error occurred while loading the route.",
+      "error",
+    );
   });
+}
 
 // ================
 // MODE TOGGLE & MANUAL ROUTING
@@ -732,8 +781,7 @@ let manualRouteLayer = null;
 let manualRouteClickHandler = null;
 let lastClickedPoint = null
 
-autoModeButton.addEventListener("click", switchToAutoMode);
-manualModeButton.addEventListener("click", switchToManualMode);
+
 
 function switchToAutoMode() {
 
@@ -901,10 +949,6 @@ function clearManualRoute() {
 
   updateLoadRouteVisibility();
 }
-
-document
-  .getElementById("clear_manual_route")
-  .addEventListener("click", clearManualRoute);
 
 // ================
 // CALCULATIONS
@@ -1202,41 +1246,38 @@ function saveSettings(settings) {
   appSettings = settings;
 }
 
+function openSettingModal(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (settingsModalElement) {
+    settingsModalElement.classList.add("active");
+  }
+}
+
+function closeSettingModal(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (settingsModalElement) {
+    settingsModalElement.classList.remove("active");
+  }
+}
+
+function closeByClickingOutsideModal(e) {
+  if (e.target === this) {
+    this.classList.remove("active");
+  }
+}
+
 function initSettingsModal() {
-  const settingsButton = document.getElementById("settings_button");
-  const settingsModalElement = document.getElementById("settings_modal");
-  const settingsClose = document.getElementById("settings_close");
 
-  if (settingsButton) {
-    settingsButton.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (settingsModalElement) {
-        settingsModalElement.classList.add("active");
-      }
-    });
-  }
-
-  if (settingsClose) {
-    settingsClose.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (settingsModalElement) {
-        settingsModalElement.classList.remove("active");
-      }
-    });
-  }
+  settingsButton.addEventListener("click", openSettingModal);
+  settingsClose.addEventListener("click", closeSettingModal); 
 
   if (settingsModalElement) {
-    settingsModalElement.addEventListener("click", function (e) {
-      if (e.target === this) {
-        this.classList.remove("active");
-      }
-    });
+    settingsModalElement.addEventListener("click", closeByClickingOutsideModal);
 
-    const modalContent = settingsModalElement.querySelector(
-      ".settings-modal-content",
-    );
+    const modalContent = settingsModalElement.querySelector(".settings-modal-content");
+
     if (modalContent) {
       modalContent.addEventListener("click", function (e) {
         e.stopPropagation();
@@ -1251,27 +1292,29 @@ if (document.readyState === "loading") {
   initSettingsModal();
 }
 
+function toggleDistanceUnit() {
+  appSettings.distanceUnit = this.checked ? "miles" : "km";
+  saveSettings(appSettings);
+  updateManualRoute();
+
+  const routeStatsDiv = document.getElementById("route-stats");
+  if (routeStatsDiv) {
+    const routeDistanceDisplay =
+      routeStatsDiv.querySelector("#route_distance_display") ||
+      routeStatsDiv.querySelector(".stat-value:first-of-type");
+    if (routeDistanceDisplay) {
+      console.log(
+        "Distance unit changed, manual route updated. Initial auto route display requires server refresh to update.",
+      );
+    }
+  }
+}
+
 function initSettingsHandlers() {
   const distanceUnitToggle = document.getElementById("distance_unit_toggle");
   if (distanceUnitToggle) {
     distanceUnitToggle.checked = appSettings.distanceUnit === "miles";
-    distanceUnitToggle.addEventListener("change", function () {
-      appSettings.distanceUnit = this.checked ? "miles" : "km";
-      saveSettings(appSettings);
-      updateManualRoute();
-
-      const routeStatsDiv = document.getElementById("route-stats");
-      if (routeStatsDiv) {
-        const routeDistanceDisplay =
-          routeStatsDiv.querySelector("#route_distance_display") ||
-          routeStatsDiv.querySelector(".stat-value:first-of-type");
-        if (routeDistanceDisplay) {
-          console.log(
-            "Distance unit changed, manual route updated. Initial auto route display requires server refresh to update.",
-          );
-        }
-      }
-    });
+    distanceUnitToggle.addEventListener("change", toggleDistanceUnit);
   }
 
   const routeDistanceDisplay =
@@ -1426,8 +1469,6 @@ document.addEventListener("DOMContentLoaded", function () {
 // AUTHENTICATION (LOGIN / LOGOUT / REGISTER)
 // ================
 
-logoutButton.addEventListener("click", logout);
-
 function logout() {
   fetch(apiLogoutUrl, {
     method: "POST",
@@ -1448,8 +1489,6 @@ function logout() {
       }
     });
 }
-
-loginButton.addEventListener("click", login);
 
 function login() {
   const username = loginUsernameEntry.value;
@@ -1568,10 +1607,6 @@ function goBackToLoginFromRegister() {
   loginScreen.style.display = "flex";
 }
 
-switchToRegisterButton.addEventListener("click", switchToRegistering);
-registerButton.addEventListener("click", register);
-registerGoBackButton.addEventListener("click", goBackToLoginFromRegister)
-
 // ================
 // PASSWORD VISIBILITY ICONS
 // ================
@@ -1594,7 +1629,7 @@ icons.forEach((icon) => {
 // ROUTE GENERATION (AUTO MODE)
 // ================
 
-generatePathButton.addEventListener("click", calculatePath);
+
 
 function calculatePath() {
 
@@ -1704,8 +1739,6 @@ function calculatePath() {
 // ================
 // AREA SEARCH
 // ================
-
-searchForAreaButton.addEventListener("click", searchArea);
 
 function searchArea() {
   const area = searchEntry.value;

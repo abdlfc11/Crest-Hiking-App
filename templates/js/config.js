@@ -4,7 +4,7 @@
 
 // === MAP CONFIGURATION ===
 // Initial map center and zoom from the backend
-const mapInitialCenter = {{ map_centre | tojson }};
+export const mapInitialCenter = {{ map_centre | tojson }};
 const mapInitialZoom = {{ map_zoom | default(10) }};
 
 // Default "home" view center (currently same as initial center)
@@ -15,6 +15,7 @@ const defaultCenter = mapInitialCenter;
 const initialCurrentPath = {% if current_path %}{{ current_path | tojson }}{% else %}null{% endif %};
 
 // === INITIAL SAVED POINTS LOOKUP ===
+
 // Name -> "x, y" string mapping used for autocomplete
 const initialSavedPointsLookup = {};
 {% if saved_points %}
@@ -26,7 +27,7 @@ initialSavedPointsLookup["{{ point.name }}"] = "{{ point.coordinates[0] }}, {{ p
 // === API ENDPOINTS ===
 
 // Core endpoints
-const apiLoginUrl = "{{ url_for('login') }}";
+export const apiLoginUrl = "{{ url_for('login') }}";
 const apiLogoutUrl = "{{ url_for('logout') }}";
 const apiRegisterUrl = "{{ url_for('register') }}";
 

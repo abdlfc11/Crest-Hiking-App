@@ -29,3 +29,5 @@ instance/
 
 # graph testing files
 testing_stuff.py
+
+.wiki/

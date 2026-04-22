@@ -10,28 +10,6 @@
 </head>
 <body>
 
-    <div id="login_screen" style="display: {{ none if logged_in else 'flex' }};">
-        <div id="login_items">
-            <div class="login_field">
-                <label id="login_validation_label"></label>
-            </div>
-            <div class="login_field">
-                <label class="entry-label" for="login_username_entry">Username</label>
-                <input type="text" id="login_username_entry" placeholder="enter username">
-            </div>
-                <div class="login_field">
-                <label class="entry-label" for="login_password_entry">Password</label>
-                <input type="password" id="login_password_entry" placeholder="enter password">
-                <i class="fa-solid fa-eye"></i>
-            </div>
-            <button id="login_button" class="generate-button">Login</button>
-        </div>
-        <div id="switch_to_register_container">
-            <label for="switch_to_register_button" id="switch_to_register_lable">Don't have an account ? Register below</label>
-            <button id="switch_to_register_button" class="generate-button">Register</button>
-        </div>
-    </div>
-
     <div id="register_screen" style="display: none;">
         <div id="register_go_back_button_container">
             <button id="register_go_back_button">Go Back</button>
@@ -295,7 +273,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
     <script src="https://kit.fontawesome.com/63b2665416.js" crossorigin="anonymous"></script>
-    <script src="{{ url_for('static', filename='js/map_jinja.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/config.js') }}"></script>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script>lucide.createIcons();</script>
 

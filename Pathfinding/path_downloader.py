@@ -3,7 +3,6 @@ import pickle as pickle  # for saving/loading the graph later on
 from pyrosm import OSM
 from shapely.geometry import LineString, MultiLineString
 import json # used to parse Pyrosm OSM data 
-import ast
 
 
 class PathDataProcessor:

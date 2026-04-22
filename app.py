@@ -18,6 +18,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 import networkx as nx
+from datetime import timedelta
 
 
 # default map centre (BNG coordinates)
@@ -29,6 +30,8 @@ if os.environ.get("FLASK_ENV") == "development":
     app.debug = True
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+app.permanent_session_lifetime = timedelta(minutes=30)
 
 
 # SQL_ALCHEMY SET UP
@@ -98,6 +101,27 @@ def get_current_user():
         return None
     return User.query.filter_by(username=username).first()
 
+# DATA_API 
+@app.route("/api/config")
+def config():
+    
+    user = get_current_user()
+
+    if user is None:
+        saved_points = []
+    else:
+        saved_points = Point.query.filter_by(user_id=user.id).all()
+
+    return jsonify({
+        "map_centre" : default_centre,
+        "zoom" : 10,
+        "current_path" : None,
+        "saved_points" : [ {
+            "name" : p.name,
+            "coordinates" : json.loads(p.coordinates)
+        } for p in saved_points]
+    })
+
 # SAVED POINTS DASHBOARD
 @app.route("/saved_routes")
 def saved_routes():
@@ -120,7 +144,6 @@ def login():
     data = request.get_json()
     username = data.get("username", "").strip()
     password = data.get("password", "")
-
     user = User.query.filter_by(username=username).first()
 
     if user and check_password_hash(user.password_hashed, password):
@@ -785,8 +808,14 @@ def delete_route():
 
 # GENERAL MAP ROUTES
 
-# first route which loads upon the running of the application
+# first route 
 @app.route("/")
+@limiter.exempt
+def login_page():
+    return render_template("login.html")
+
+# After logging in
+@app.route("/map")
 @limiter.exempt
 def map_view():
     web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
@@ -821,8 +850,10 @@ def map_view():
                            saved_points=web_mercator_points,
                            logged_in = (user is not None))
 
+
+
 # route which resets all values within entries and returns the user to the main-menu of the application
-@app.route("/static/js/map_jinja.js")
+@app.route("/js/config.js")
 def map_jinja_js():
     web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
     
@@ -852,7 +883,7 @@ def map_jinja_js():
             print(f"Error in conversion: {e}")
             continue
     
-    response = app.make_response(render_template("js/map_jinja.js",
+    response = app.make_response(render_template("js/config.js",
                            map_centre = web_mercator_center,
                            map_zoom = 10,
                            current_path = current_path,
