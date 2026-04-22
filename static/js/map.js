@@ -4,6 +4,8 @@
 // BASIC ELEMENT REFS & STATE
 // ================
 
+import { logout, login } from "./auth.js";
+
 const map_style = document.getElementById("map")
 
 console.log("Map initial centre:", mapInitialCenter);
@@ -55,6 +57,7 @@ const clearManualRouteButton = document.getElementById("clear_manual_route")
 // logging in and out
 const logoutButton = document.getElementById("logout_button");
 const loginButton = document.getElementById("login_button");
+const loginScreen = document.getElementById("login-screen");
 
 // registering page
 const registerValidationLabel = document.getElementById("register_validation_label");
@@ -143,16 +146,48 @@ function initRouting() {
   clearManualRouteButton.addEventListener("click", clearManualRoute);
 }
 
+// AUTH INITIALISATION
+
+
+// main function for initialising auth
+
 function initAuth() {
+    if (document.getElementById('login-screen')) {
+      initLogin();
+    }
+
+    if (document.getElementById('register_screen')) {
+      initRegister();
+    }
+
+    if (document.getElementById('map_content')) {
+      initLogout();
+      initDeleteAccount();
+    }
+ }
+ 
+// functions used in auth init
+
+function initLogout() {
   logoutButton.addEventListener("click", logout);
-  loginButton.addEventListener("click", login);
-  switchToRegisterButton.addEventListener("click", switchToRegistering);
+}
+
+function initRegister() {
   registerButton.addEventListener("click", register);
   registerGoBackButton.addEventListener("click", goBackToLoginFromRegister)
+}
+
+function initDeleteAccount() {
   deleteAccountButton.addEventListener("click", deleteAccount);
 }
 
+function initLogin() {
+  loginButton.addEventListener("click", login);
+  switchToRegisterButton.addEventListener("click", switchToRegistering);
+}
+
 function initApp() {
+
   initMap();
   initAuth();
   initRouting();
@@ -1476,61 +1511,6 @@ document.addEventListener("DOMContentLoaded", function () {
 // AUTHENTICATION (LOGIN / LOGOUT / REGISTER)
 // ================
 
-function logout() {
-  fetch(apiLogoutUrl, {
-    method: "POST",
-    credentials: "same-origin",
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        mapContent.style.display = "none";
-        loginScreen.style.display = "flex";
-        settingsModal.classList.remove("active");
-        loginValidationLabel.innerText = data.message;
-        loginValidationLabel.style.color = "#0f7a52";
-        loginValidationLabel.style.opacity = "1";
-        setTimeout(() => {
-          loginValidationLabel.style.opacity = "0";
-        }, 3000);
-      }
-    });
-}
-
-function login() {
-  const username = loginUsernameEntry.value;
-  const password = loginPasswordEntry.value;
-  loginValidationLabel.style.color = "#ff4d4d";
-
-  fetch(apiLoginUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username: username, password: password }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        loginUsernameEntry.value = "";
-        loginPasswordEntry.value = "";
-        mapContent.style.display = "block";
-        loginScreen.style.display = "none";
-        loginValidationLabel.innerText = "";
-        map.updateSize();
-      } else {
-        loginValidationLabel.innerText = data.message;
-        loginValidationLabel.style.opacity = "1";
-        setTimeout(() => {
-          loginValidationLabel.style.opacity = "0";
-        }, 3000);
-      }
-    })
-    .catch((error) => {
-      console.error("Error", error);
-    });
-}
-
 function validateRegisterInput(username, p1, p2) {
   const thereIsSpecialCharacter = specialCharacters.some((word) =>
     p1.includes(word),
@@ -1551,8 +1531,7 @@ function validateRegisterInput(username, p1, p2) {
 }
 
 function switchToRegistering() {
-  loginScreen.style.display = "none";
-  registerScreen.style.display = "flex";
+  window.location.href = "/register";
 }
 
 function register() {
@@ -1797,7 +1776,6 @@ function homeButtonFunction() {
   startPointEntry.placeholder = "Coordinates";
   endPointEntry.placeholder = "Coordinates";
   generatePathButton.classList.remove('loading');
-  loginScreen.style.display = "none";
   mapContent.style.display = "block";
   clearManualRoute();
 
@@ -1854,7 +1832,7 @@ function homeButtonFunction() {
   updateLoadRouteVisibility();
 }
 
-homeButtons = document.querySelectorAll('.home-button');
+const homeButtons = document.querySelectorAll('.home-button');
 homeButtons.forEach(homeButton => {
   homeButton.addEventListener("click", homeButtonFunction);
   console.log("Home Button Clicked")

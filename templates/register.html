@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div id="register_screen" style="display: none;">
+        <div id="register_go_back_button_container">
+            <button id="register_go_back_button">Go Back</button>
+        </div>
+        <div id="register_items">
+        <div class="register_field">
+            <label id="register_validation_label"></label>
+        </div>
+        <div class="register_field">
+            <label for="register_username_entry">Username</label>
+            <input type="text" id="register_username_entry" placeholder="enter username">
+        </div>
+        <div class="register_field">
+            <label for="register_password_entry1">Password</label>
+            <input type="password" id="register_password_entry1" placeholder="enter password">
+            <i id="register_eye" class="fa-solid fa-eye"></i>
+        </div>
+            <div class="register_field">
+            <label for="register_password_entry2">Enter Password again</label>
+            <input type="password" id="register_password_entry2" placeholder="enter password again">
+            <i id="register_eye" class="fa-solid fa-eye"></i>
+        </div>
+        <button type="button" id="register_button" class="generate-button">Register</button>
+    </div>
+</body>
+<script type="module" src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script>
+    const registerURL = "{{ url_for('register') }}";
+</script>
+</html>
