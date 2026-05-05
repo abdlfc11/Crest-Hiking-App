@@ -18,7 +18,7 @@ initialSavedPointsLookup["{{ point.name }}"] = "{{ point.coordinates[0] }}, {{ p
 
 // === API ENDPOINTS ===
 const apiLogoutUrl = "{{ url_for('logout') }}";
-const apiRegisterUrl = "{{ url_for('register') }}";
+const apiRegisterUrl = "{{ url_for('registering') }}";
 const apiCalculatePathUrl = "{{ url_for('calculate_path') }}";
 const apiSearchAreaUrl = "{{ url_for('search_area') }}";
 const apiSavePointUrl = "{{ url_for('save_point') }}";

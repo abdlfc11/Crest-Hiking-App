@@ -131,6 +131,8 @@ def login():
         print(session)
         session.permanent = True  # Make session respect PERMANENT_SESSION_LIFETIME
         return jsonify({"success": True, "message": "Successfully logged in"})
+    if user is None:
+        return jsonify({"success": False, "message": "User does not exist"})
     else:
         return jsonify({"success": False, "message": "Username and/or Password are incorrect"})
 
@@ -142,9 +144,9 @@ def logout():
     return jsonify({"success": True, "message": f"Sucessfully logged out of {username}"})
     
 # REGISTERING 
-@app.route("/register", methods=["POST"])
+@app.route("/registering", methods=["POST"])
 @limiter.limit("10 per minute")
-def register():
+def registering():
     data = request.get_json()
     username = data.get("username", "").strip()
     p1 = data.get("password1", "")
@@ -792,6 +794,11 @@ def delete_route():
 @limiter.exempt
 def login_page():
     return render_template("login.html")
+
+@app.route("/register")
+@limiter.exempt
+def register_page():
+    return render_template("register.html")
 
 # After logging in
 @app.route("/map")

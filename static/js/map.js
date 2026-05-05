@@ -4,7 +4,7 @@
 // BASIC ELEMENT REFS & STATE
 // ================
 
-import { logout, login } from "./auth.js";
+import { logout, login, switchToRegistering } from "./auth.js";
 
 const map_style = document.getElementById("map")
 
@@ -59,16 +59,6 @@ const logoutButton = document.getElementById("logout_button");
 const loginButton = document.getElementById("login_button");
 const loginScreen = document.getElementById("login-screen");
 
-// registering page
-const registerValidationLabel = document.getElementById("register_validation_label");
-const registerButton = document.getElementById("register_button");
-const registerScreen = document.getElementById("register_screen");
-const registerPasswordEntry1 = document.getElementById("register_password_entry1");
-const registerPasswordEntry2 = document.getElementById("register_password_entry2");
-const registerUsernameEntry = document.getElementById("register_username_entry");
-const registerGoBackButton = document.getElementById("register_go_back_button");
-
-const deleteAccountButton = document.getElementById("delete_user_button");
 
 // saved routes dash
 const savedRoutesDashboard = document.getElementById("saved_route_dasboard");
@@ -77,16 +67,6 @@ const loadButtons = document.querySelectorAll(".route-btn-load");
 const downloadGPXButtons = document.querySelectorAll(".route-btn-download-gpx");
 const downloadGeoJSONButtons = document.querySelectorAll(".route-btn-download-geojson");
 const deleteButtons = document.querySelectorAll(".route-btn-delete");
-
-// this is self explanatory 
-const specialCharacters = [
-  "@", "#", "$", "%", "^",
-  "&", "*", "(", ")", "_",
-  "+", "-", "=", "[", "]",
-  "{", "}", "|", ";", ":",
-  ",", ".", "<", ">", "?",
-  "/",
-];
 
 const mapContent = document.getElementById("map_content");
 
@@ -162,7 +142,6 @@ function initAuth() {
 
     if (document.getElementById('map_content')) {
       initLogout();
-      initDeleteAccount();
     }
  }
  
@@ -177,9 +156,6 @@ function initRegister() {
   registerGoBackButton.addEventListener("click", goBackToLoginFromRegister)
 }
 
-function initDeleteAccount() {
-  deleteAccountButton.addEventListener("click", deleteAccount);
-}
 
 function initLogin() {
   loginButton.addEventListener("click", login);
@@ -197,50 +173,6 @@ function initApp() {
 // call the function when all DOM elements have loaded
 document.addEventListener('DOMContentLoaded', initApp);
 
-// ================
-// DELETE ACCOUNT
-// ================
-
-function deleteAccount() {
-
-  const userConfirmation = confirm("Are you sure you want to delete your account ? ") // ensures the user is sure they want to delete 
-
-  // if the user has not confirmed (clicked no)
-  if (!userConfirmation) {
-    return;
-  }
-
-  loginValidationLabel.style.color = "#0f7a52"
-  // else, carry on with the deletion process
-  fetch(apiDeleteAccountUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then((response) => response.json())
-  .then((data) => {
-    if (data.success) {
-      mapContent.style.display = "none";
-      loginScreen.style.display = "flex";
-      loginValidationLabel.innerText = "";
-      loginValidationLabel.innerText = data.message;
-      loginValidationLabel.style.opacity = "1";
-      setTimeout(() => {
-        loginValidationLabel.style.opacity = "0";
-      }, 3000);
-    }
-    else {
-      loginValidationLabel.style.opacity = "1";
-      setTimeout(() => {
-        loginValidationLabel.style.opacity = "0";
-      }, 3000);
-    }
-  })
-  .catch((error) => {
-    console.error("Error", error);
-  });
-}
 
 // ================
 // SETTINGS & MAP INITIALISATION
@@ -1511,29 +1443,6 @@ document.addEventListener("DOMContentLoaded", function () {
 // AUTHENTICATION (LOGIN / LOGOUT / REGISTER)
 // ================
 
-function validateRegisterInput(username, p1, p2) {
-  const thereIsSpecialCharacter = specialCharacters.some((word) =>
-    p1.includes(word),
-  );
-
-  if (username === "" || p1 === "" || p2 === "") {
-    return "All entries must be filled";
-  } else if (username.length <= 7) {
-    return "Username must be 8 or more characters";
-  } else if (p1 !== p2) {
-    return "Passwords must be the same";
-  } else if (p1.length <= 11) {
-    return "Passwords must have at least 12 characters";
-  } else if (!thereIsSpecialCharacter) {
-    return "Passwords must contain at least one special character";
-  }
-  return true;
-}
-
-function switchToRegistering() {
-  window.location.href = "/register";
-}
-
 function register() {
   const username = registerUsernameEntry.value;
   const password1 = registerPasswordEntry1.value;
@@ -1586,11 +1495,6 @@ function register() {
     .catch((error) => {
       console.error("Error", error);
     });
-}
-
-function goBackToLoginFromRegister() {
-  registerScreen.style.display = "none";
-  loginScreen.style.display = "flex";
 }
 
 // ================

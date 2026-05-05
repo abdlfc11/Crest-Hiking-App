@@ -1,0 +1,117 @@
+/* REGISTER SYSTEM */
+
+#register-validation-label {
+    color: #ff4d4d; 
+    transition: opacity 0.5s ease-in-out;
+    width: 100vw;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 0.5vh;
+    display: block; 
+    position: absolute;
+}
+
+#register {
+    position: absolute;
+    display: flex;
+    margin-top: 50vh;
+    transition-delay: 5s;
+}
+
+#register-screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#register-items-and-button {
+    gap: 2vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#register-go-back-button {
+    background-color: rgba(0, 0, 0, 0);
+    outline-style: solid;
+    outline-width: 0.1vh;
+    outline-color: rgba(37, 99, 235);
+    color: rgba(37, 99, 235);
+    width: 10vw;
+}
+
+#register-go-back-button-container {
+    display: flex;
+    width: 100%;
+    padding-left: 2vw;
+}
+
+#register-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1.8vh;
+    padding-top: 5vh;
+    border: none;
+    border-radius: 0.8vh;
+}
+
+#register-items i {
+    color: lightgray;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+#switch-to-register-button { 
+    padding-bottom: 1vh;
+    position: relative;
+    width: 20vw;
+}
+
+#register-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#register-button { 
+    height: 5vh;
+    width: 20vw;
+}
+
+.register-field {
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+}
+
+.register-field input {
+    width: 20vw;
+    height: 2vh;
+    padding: 0.5vh 0.8vw;
+    padding-left: 1vw;
+    border-radius: 1vh;
+    border: 0.1vh solid #cdcbcb;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.register-field input:hover {
+    border-radius: 1vh;
+    border: 0.1vh solid rgba(11, 92, 198, 0.4);
+    box-shadow: 0 0 0.8vh rgba(11, 92, 198, 0.4);
+}
+
+.register-field input:focus {
+    border-radius: 1vh;
+    border: 0.1vh solid rgba(11, 92, 198, 0.8);
+    box-shadow: 0 0 0.4vh rgba(11, 92, 198, 0.8), 0 0 2vh rgba(11, 92, 198, 0.8);
+}
+
+.register-field label {
+    width: 13vw;
+    pointer-events: none;
+}

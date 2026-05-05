@@ -99,27 +99,20 @@
 }
 
 #switch_to_register_button {
-    border: none;
-    outline: none;
-    background-color: rgb(217, 215, 215);
-    color: #FFFFFF;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+    background-color: rgba(0, 0, 0, 0);
+    outline-style: solid;
+    outline-width: 0.1vh;
+    outline-color: rgba(37, 99, 235);
+    color: rgba(37, 99, 235);
+    width: 75%;
 }
 
 #switch_to_register_button:hover {
-    outline: none;
-    background-color: rgb(159, 157, 157);
-    box-shadow: 0 0 5px rgba(179, 179, 179, 0.8), 0 0 5px rgba(179, 179, 179, 0.8);
     transform: translateY(-2px);
 }
 
 #switch_to_register_button:active {
-    outline: none;
-    background-color: rgb(180, 178, 178);
     transform: translateY(2px);
-    box-shadow: none;
 }
 
 #register_go_back_button_container {
