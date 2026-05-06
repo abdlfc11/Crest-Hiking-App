@@ -38,29 +38,29 @@
                     <div class="coord-row">
                         <label for="start_point" class="coord-label">Start Coordinates</label>
                         <div class="coord-input-group">
-                            <input type="text" id="start_point_entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start_points_list">
+                            <input type="text" id="start-point-entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start_points_list">
                             <datalist id="start_points_list">
                                 {% for point in saved_points %}
                                     <option value="{{ point.name }}"></option>
                                 {% endfor %}
                             </datalist>
-                            <button type="button" id="set_start_by_centre" class="coord-button set-by-centre">Set by Centre</button>
+                            <button type="button" id="set-start-coord-button" class="coord-button set-by-centre">Set by Centre</button>
                         </div>
                     </div>
                     <div class="coord-row">
                         <label for="end_point" class="coord-label">End Coordinates</label>
                         <div class="coord-input-group">
-                            <input type="text" id="end_point_entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end_points_list">
+                            <input type="text" id="end-point-entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end_points_list">
                             <datalist id="end_points_list">
                                 {% for point in saved_points %}
                                     <option value="{{ point.name }}"></option>
                                 {% endfor %}
                             </datalist>
-                            <button type="button" id="set_end_by_centre" class="coord-button set-by-centre">Set by Centre</button>
+                            <button type="button" id="set-end-coord-button" class="coord-button set-by-centre">Set by Centre</button>
                         </div>
                     </div>
 
-                    <button type="button" class="generate-button" id="generate_path_button">
+                    <button type="button" class="generate-button" id="generate-path-button">
                         <span id="generate-path-button-text">Generate path</span>
                         <span class="loader"></span>
                     </button>
@@ -248,6 +248,10 @@
     
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
     <script src="js/config.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/ui.js')}}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/utils.js')}}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/routing.js')}}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/layers.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script>lucide.createIcons();</script>
 

@@ -38,11 +38,11 @@ body {
 }
 
 /* if the loading class is attached to the generate path button */
-#generate_path_button.loading  #generate-path-button-text{
+#generate-path-button.loading  #generate-path-button-text{
     visibility: hidden;
 }
 
-#generate_path_button.loading .loader {
+#generate-path-button.loading .loader {
   display: inline-block; /* Show loader */
 }
 
@@ -537,7 +537,7 @@ body {
 }
 
 /* Generate Button */
-#generate_path_button {
+#generate-path-button {
     position: relative;
 }
 

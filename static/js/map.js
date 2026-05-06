@@ -5,19 +5,19 @@
 // ================
 
 import { logout, login, switchToRegistering } from "./auth.js";
+import { tileLayer, createTileLayer, AddRouteLayer } from "./layers.js";
+import { displayedPath, currentPathData, loadedRouteCoordinates, routeLayer, calculatePath } from "./routing.js";
+import { roundCoords } from "./utils.js";
+import { mapClickHandler } from "./ui.js";
 
 const map_style = document.getElementById("map")
 
 console.log("Map initial centre:", mapInitialCenter);
 
-let map = null;
-let tileLayer = null;
+export let map = null;
 
 const searchEntry = document.getElementById("search-entry");
 const searchForAreaButton = document.getElementById("search-for-area-button");
-
-const startPointEntry = document.getElementById("start_point_entry");
-const endPointEntry = document.getElementById("end_point_entry");
 
 // saving a route
 const selectedRouteName = document.getElementById("selected-route-name");
@@ -38,10 +38,6 @@ const loadRouteDiv = document.getElementById("load_route");
 // routes and points
 let savedPointsLayer = null;
 let selectedPoint = null;
-let loadedRouteCoordinates = null;
-let currentPathData = null;
-let displayedPath = null;
-let routeLayer = null; // layer for loaded routes
 
 // mode toggling
 const autoModeButton = document.getElementById("mode_auto");
@@ -79,8 +75,6 @@ const icons = document.querySelectorAll(".fa-eye");
 
 const slideInNavigationBar = document.getElementById("the-sidenav");
 
-const generatePathButton = document.getElementById("generate_path_button");
-
 const errorPopUp = document.getElementById('user-error-popup-container');
 const errorPopUpText = document.getElementById('user-error-popup-text');
 
@@ -103,7 +97,7 @@ function initMap() {
   createTileLayer();
   createMap();
   AddRouteLayer();
-  map.on("click", coordinateDisplayHandler);
+  map.on("click", mapClickHandler);
 
   map.once("rendercomplete", function () {
     loadAndDisplaySavedPoints();
@@ -120,7 +114,6 @@ function initSaveOrLoad() {
 
 function initRouting() {
   searchForAreaButton.addEventListener("click", searchArea);
-  generatePathButton.addEventListener("click", calculatePath);
   autoModeButton.addEventListener("click", switchToAutoMode);
   manualModeButton.addEventListener("click", switchToManualMode);
   clearManualRouteButton.addEventListener("click", clearManualRoute);
@@ -178,6 +171,12 @@ document.addEventListener('DOMContentLoaded', initApp);
 // SETTINGS & MAP INITIALISATION
 // ================
 
+// map getter
+
+export function getMap() {
+  return map;
+}
+
 function loadSettings() {
   const settings = {
     distanceUnit: localStorage.getItem("distanceUnit") || "km", // default km
@@ -187,17 +186,6 @@ function loadSettings() {
 
 let appSettings = loadSettings();
 
-// create tile layer
-
-function createTileLayer() {
-  tileLayer = new ol.layer.Tile({
-    source: new ol.source.XYZ({
-      url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
-      attributions: "Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)",
-      maxZoom: 17,
-    }),
-  });
-};
 
 function createMap() {
    map = new ol.Map({
@@ -218,23 +206,6 @@ function createMap() {
       zoom: mapInitialZoom,
     }),
   });
-}
-
-function getPathColor() {
-  return "#2563eb"; // blue
-}
-
-function AddRouteLayer() {
-  routeLayer = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: getPathColor(),
-        width: 5,
-      }),
-    }),
-  });
-  map.addLayer(routeLayer);
 }
 
 // slide-in navigation
@@ -298,51 +269,6 @@ function updateLoadRouteVisibility() {
 // ================
 
 let savedPointsLookup = { ...initialSavedPointsLookup };
-
-let coordinateDisplayHandler = function (event) {
-  if (currentMode !== "auto") return;
-
-  if (selectedPoint) {
-    selectedPoint.setStyle(getSavedPointStyle(selectedPoint.get("name")));
-    selectedPoint = null;
-  }
-
-  let featureClicked = false;
-  let newSelection = null;
-
-  map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
-    if (
-      layer === savedPointsLayer &&
-      feature.getGeometry() instanceof ol.geom.Point
-    ) {
-      newSelection = feature;
-      featureClicked = true;
-      return true;
-    }
-  });
-
-  if (newSelection) {
-    selectedPoint = newSelection;
-    const pointName = selectedPoint.get("name");
-
-    selectedPoint.setStyle(getSelectedPointStyle(pointName));
-    pointDeleteModalNameDisplay.textContent = pointName;
-
-    showPointDeleteDialog(true)
-
-  } else if (!featureClicked) {
-    const coordinate = event.coordinate;
-    const webMercatorReference = `${Math.round(coordinate[0])}, ${Math.round(
-      coordinate[1],
-    )}`;
-    const pointName = prompt(
-      `Do you want to save this coordinate: ${webMercatorReference}? Enter a name to save it:`,
-    );
-    if (pointName) {
-      saveNewPoint(coordinate, pointName);
-    }
-  }
-};
 
 function getSavedPointStyle(name) {
   return new ol.style.Style({
@@ -778,7 +704,7 @@ function switchToAutoMode() {
     manualRouteClickHandler = null;
   }
 
-  map.on("click", coordinateDisplayHandler);
+  map.on("click", mapClickHandler);
 
   
 
@@ -797,7 +723,7 @@ function switchToManualMode() {
   autoModeContent.style.display = "none";
   manualModeContent.style.display = "block";
 
-  map.un("click", coordinateDisplayHandler);
+  map.un("click", mapClickHandler);
 
   manualRouteClickHandler = function (event) {
     const coordinate = event.coordinate;
@@ -1521,111 +1447,6 @@ icons.forEach((icon) => {
 
 
 
-function calculatePath() {
-
-  if(endPointEntry.value === "" && startPointEntry.value === "") {
-    showError(startPointEntry, "Please enter coordinates");
-    showError(endPointEntry, "Please enter coordinates");
-    return
-  }
-  if (startPointEntry.value === "") {
-    showError(startPointEntry, "Please enter coordinates");
-    return;
-  }
-  if (endPointEntry.value === "") {
-    showError(endPointEntry, "Please enter coordinates");
-    return;
-  }
-
-  generatePathButton.disabled = true;
-  generatePathButton.classList.add("loading");
-
-  fetch(apiCalculatePathUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      start_point: startPointEntry.value,
-      end_point: endPointEntry.value,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-
-        if (displayedPath) {
-          map.removeLayer(displayedPath);
-          displayedPath = null;
-        }
-        
-        displayedPath = new ol.layer.Vector({
-          source: new ol.source.Vector({
-            features: new ol.format.GeoJSON().readFeatures(data.pathGeoJSON),
-          }),
-          style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-              color: getPathColor(),
-              width: 5,
-            }),
-          }),
-        });
-        map.addLayer(displayedPath);
-        currentPathData = data.coordinates;
-
-        generatePathButton.classList.remove("loader");
-
-        const pathSource = displayedPath.getSource();
-        const view = map.getView();
-
-        setTimeout(() => {
-          view.fit(pathSource.getExtent(), {
-            padding: [50, 350, 50, 300],
-            duration: 1200,
-          });
-        }, 100);
-
-        const saveRouteDiv = document.getElementById("save_route");
-        saveRouteDiv.style.display = "block";
-
-        if (data.route_stats) {
-          const statsHtml = `
-            <div id="route-stats">
-              <div class="stats-header">
-                <span class="stats-title">Route Information</span>
-              </div>
-              <div class="stats-content">
-                <div class="stat-row">
-                  <span class="stat-label" >Distance:</span>
-                  <span class="stat-value" id="route_distance_display">${formatDistance(parseFloat(data.route_stats.total_distance))}</span>
-                </div>
-                <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route_eta_display">${data.route_stats.eta}</span>
-                </div>
-                <div class="stat-row">
-                  <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route_elevation_change_display">${data.route_stats.elevation_change}</span>
-                </div>
-              </div>
-            </div>
-          `;
-          const existingStats = document.getElementById("route-stats");
-          if (existingStats) existingStats.remove();
-          document.body.insertAdjacentHTML("beforeend", statsHtml);
-        }
-
-        updateLoadRouteVisibility();
-      } else {
-        homeButtonFunction();
-        console.log("failure in forming a path with the error: ", data.error);
-      }
-    })
-    .catch((error) => console.error("Error", error))
-    .finally(() => {
-      generatePathButton.disabled = false;
-      generatePathButton.classList.remove("loading")
-    })
-}
-
 // ================
 // AREA SEARCH
 // ================
@@ -1807,13 +1628,3 @@ function showError(entry, message) {
 // ================
 
 document.addEventListener("DOMContentLoaded", toggleHandlers);
-
-document.getElementById("set_start_by_centre").onclick = function () {
-  const centre = map.getView().getCenter();
-  startPointEntry.value = `${Math.round(centre[0])}, ${Math.round(centre[1])}`;
-};
-
-document.getElementById("set_end_by_centre").onclick = function () {
-  const centre = map.getView().getCenter();
-  endPointEntry.value = `${Math.round(centre[0])}, ${Math.round(centre[1])}`;
-};
