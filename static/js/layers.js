@@ -1,7 +1,24 @@
-import { getMap } from "./map.js";
-import { routeLayer, setRouteLayer, getRouteLayer } from "./routing.js";
-
 export let tileLayer = null;
+export let routeLayer = null; // layer for loaded routes
+
+// helper functions 
+
+export function setRouteLayer(layer) {
+    routeLayer = layer;
+};
+
+export function getRouteLayer() {
+    return routeLayer;
+};
+
+export function getTileLayer() {
+  return tileLayer
+
+};
+
+export function setTileLayer(layer) {
+  tileLayer = layer;
+};
 
 // create tile layer
 
@@ -18,9 +35,7 @@ export function createTileLayer() {
   });
 };
 
-export function AddRouteLayer() {
-
-  const map = getMap() // gets the map from the map.js file
+export function createRouteLayer() {
 
   setRouteLayer(new ol.layer.Vector({
     source: new ol.source.Vector(),
@@ -31,7 +46,6 @@ export function AddRouteLayer() {
       }),
     }),
   }));
-  map.addLayer(getRouteLayer());
 }
 
 function getPathColor() {

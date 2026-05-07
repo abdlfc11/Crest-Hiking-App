@@ -322,7 +322,12 @@ body {
     transform: translateY(-1px);
 }
 
-.set-by-centre:active {
+.set-start-end-coord {
+    width: clamp(8rem, 8vw, 10rem);
+    font-size: clamp(0.8rem, 0.3vw, 2rem);
+}
+
+.set-start-end-coord:active {
     transform: translateY(0);
 }
 

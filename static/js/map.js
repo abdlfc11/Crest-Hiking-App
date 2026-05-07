@@ -5,10 +5,9 @@
 // ================
 
 import { logout, login, switchToRegistering } from "./auth.js";
-import { tileLayer, createTileLayer, AddRouteLayer } from "./layers.js";
-import { displayedPath, currentPathData, loadedRouteCoordinates, routeLayer, calculatePath } from "./routing.js";
+import { tileLayer, createTileLayer, createRouteLayer, getRouteLayer, setRouteLayer } from "./layers.js";
+import { displayedPath, currentPathData, loadedRouteCoordinates, calculatePath } from "./routing.js";
 import { roundCoords } from "./utils.js";
-import { mapClickHandler } from "./ui.js";
 
 const map_style = document.getElementById("map")
 
@@ -39,12 +38,7 @@ const loadRouteDiv = document.getElementById("load_route");
 let savedPointsLayer = null;
 let selectedPoint = null;
 
-// mode toggling
-const autoModeButton = document.getElementById("mode_auto");
-const manualModeButton = document.getElementById("mode_manual");
-let currentMode = "auto"; 
-const autoModeContent = document.getElementById("auto_mode_content");
-const manualModeContent = document.getElementById("manual_mode_content");
+
 
 
 // manual routing
@@ -64,7 +58,6 @@ const downloadGPXButtons = document.querySelectorAll(".route-btn-download-gpx");
 const downloadGeoJSONButtons = document.querySelectorAll(".route-btn-download-geojson");
 const deleteButtons = document.querySelectorAll(".route-btn-delete");
 
-const mapContent = document.getElementById("map_content");
 
 const settingsModal = document.getElementById("settings_modal");
 const settingsButton = document.getElementById("settings_button");
@@ -93,17 +86,10 @@ function initSettings() {
   
 }
 
-function initMap() {
+export function initMap() {
   createTileLayer();
   createMap();
-  AddRouteLayer();
-  map.on("click", mapClickHandler);
-
-  map.once("rendercomplete", function () {
-    loadAndDisplaySavedPoints();
-    refreshRouteList();
-    updateLoadRouteVisibility();
-  });
+  createRouteLayer();
 
 }
 
@@ -208,102 +194,20 @@ function createMap() {
   });
 }
 
-// slide-in navigation
-function openNav() {
-  slideInNavigationBar.style.width = "250px";
+export function onMapClick(handler) {
+  map.on('click', handler)
 }
 
-function closeNav() {
-  slideInNavigationBar.style.width = "0";
+export function onMapRenderComplete(handler) {
+  handler
 }
 
-// ================
-// UI VISIBILITY & MODE TOGGLING
-// ================
-
-function crosshairVisibility() {
-  const crosshair = document.getElementById("crosshair");
-  const manualToggle = document.getElementById("mode_manual");
-  const automaticToggle = document.getElementById("mode_auto");
-
-  if (manualToggle.classList.contains("active")) {
-    crosshair.style.display = "none";
-  }
-  if (automaticToggle.classList.contains("active")) {
-    crosshair.style.display = "block";
-  }
-}
-
-function toggleHandlers() {
-  const manualToggle = document.getElementById("mode_manual");
-  const automaticToggle = document.getElementById("mode_auto");
-
-  const handleToggles = (event) => {
-    manualToggle.classList.remove("active");
-    automaticToggle.classList.remove("active");
-    event.currentTarget.classList.add("active");
-    crosshairVisibility();
-  };
-
-  automaticToggle.addEventListener("mousedown", handleToggles);
-  manualToggle.addEventListener("mousedown", handleToggles);
-}
-
-function updateLoadRouteVisibility() {
-  const loadRouteDiv = document.getElementById("load_route");
-  if (!loadRouteDiv) return;
-
-  if (currentMode === "manual") {
-    loadRouteDiv.style.display = "none";
-  } else if (currentMode === "auto") {
-    const hasPath =
-      displayedPath !== null ||
-      (currentPathData && currentPathData.length > 0) ||
-      (loadedRouteCoordinates && loadedRouteCoordinates.length > 0);
-    loadRouteDiv.style.display = hasPath ? "none" : "block";
-  }
-}
 
 // ================
 // CLICK INTERACTION & SAVED POINTS
 // ================
 
 let savedPointsLookup = { ...initialSavedPointsLookup };
-
-function getSavedPointStyle(name) {
-  return new ol.style.Style({
-    image: new ol.style.Circle({
-      radius: 7,
-      fill: new ol.style.Fill({
-        color: "#8903ff",
-      }),
-      stroke: new ol.style.Stroke({
-        color: "white",
-        width: 3,
-      }),
-    }),
-    text: new ol.style.Text({
-      text: name,
-      font: "bold 12px sans-serif",
-      fill: new ol.style.Fill({
-        color: "black",
-      }),
-      stroke: new ol.style.Stroke({ color: '#fff', width: 3 }),
-      offsetY: -15,
-    }),
-  });
-}
-
-function getSelectedPointStyle(name) {
-  const baseStyle = getSavedPointStyle(name);
-  baseStyle.getImage().setStroke(
-    new ol.style.Stroke({
-      color: "blue",
-      width: 4,
-    }),
-  );
-  return baseStyle;
-}
 
 function saveNewPoint(coordinate, name) {
   const x = coordinate[0];
@@ -1102,48 +1006,6 @@ function updateManualRoute() {
 }
 
 // ================
-// SAVED POINTS UI SYNC
-// ================
-
-function rebuildSavedPointsUI(points) {
-  savedPointsLookup = {};
-  const startList = document.getElementById("start_points_list");
-  const endList = document.getElementById("end_points_list");
-  if (startList) startList.innerHTML = "";
-  if (endList) endList.innerHTML = "";
-
-  points.forEach((p) => {
-    savedPointsLookup[p.name] = `${p.coordinates[0]}, ${p.coordinates[1]}`;
-    if (startList)
-      startList.insertAdjacentHTML(
-        "beforeend",
-        `<option value="${p.name}"></option>`,
-      );
-    if (endList)
-      endList.insertAdjacentHTML(
-        "beforeend",
-        `<option value="${p.name}"></option>`,
-      );
-  });
-}
-
-const startPoint = document.getElementById("start_point");
-const endPoint = document.getElementById("end_point");
-
-function pointAutocomplete(inputPoint) {
-  if (!inputPoint) return;
-  inputPoint.addEventListener("input", () => {
-    const name = inputPoint.value.trim();
-    if (savedPointsLookup[name]) {
-      inputPoint.value = savedPointsLookup[name];
-    }
-  });
-}
-
-pointAutocomplete(startPoint);
-pointAutocomplete(endPoint);
-
-// ================
 // SETTINGS
 // ================
 
@@ -1237,45 +1099,6 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initSettingsHandlers);
 } else {
   initSettingsHandlers();
-}
-
-// ================
-// SAVED POINTS LOADING
-// ================
-
-function loadAndDisplaySavedPoints() {
-  if (savedPointsLayer) {
-    map.removeLayer(savedPointsLayer);
-  }
-
-  fetch(apiGetSavedPointsUrl)
-    .then((response) => response.json())
-    .then((data) => {
-      const features = [];
-      data.points.forEach((point) => {
-        const feature = new ol.Feature({
-          geometry: new ol.geom.Point(point.coordinates),
-          name: point.name,
-        });
-        features.push(feature);
-      });
-
-      rebuildSavedPointsUI(data.points);
-
-      savedPointsLayer = new ol.layer.Vector({
-        source: new ol.source.Vector({
-          features: features,
-        }),
-        style: function (feature) {
-          return getSavedPointStyle(feature.get("name"));
-        },
-      });
-
-      map.addLayer(savedPointsLayer);
-    })
-    .catch((error) => {
-      console.error("Error fetching saved point:", error);
-    });
 }
 
 // ================
@@ -1423,29 +1246,6 @@ function register() {
     });
 }
 
-// ================
-// PASSWORD VISIBILITY ICONS
-// ================
-
-icons.forEach((icon) => {
-  icon.addEventListener("click", (event) => {
-    const parent = event.currentTarget.parentElement;
-    const passwordInput = parent.querySelector(
-      'input[type="password"], input[type="text"]',
-    );
-
-    const isPassword = passwordInput.type === "password";
-    passwordInput.type = isPassword ? "text" : "password";
-
-    event.currentTarget.style.color = isPassword ? "#417affff" : "lightgray";
-  });
-});
-
-// ================
-// ROUTE GENERATION (AUTO MODE)
-// ================
-
-
 
 // ================
 // AREA SEARCH
@@ -1491,77 +1291,8 @@ function searchArea() {
     });
 }
 
-// ================
-// HOME & CLEAR ROUTE BUTTONS
-// ================
 
-function homeButtonFunction() {
-  endPointEntry.classList.remove('input-error');
-  startPointEntry.classList.remove('input-error');
-  startPointEntry.placeholder = "Coordinates";
-  endPointEntry.placeholder = "Coordinates";
-  generatePathButton.classList.remove('loading');
-  mapContent.style.display = "block";
-  clearManualRoute();
 
-  const layersToRemove = [];
-  map.getLayers().forEach((layer) => {
-    if (layer instanceof ol.layer.Vector) {
-      layersToRemove.push(layer);
-    }
-  });
-  layersToRemove.forEach((layer) => map.removeLayer(layer));
-
-  routeLayer = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: getPathColor(),
-        width: 5,
-      }),
-    }),
-  });
-  map.addLayer(routeLayer);
-
-  const existingStats = document.getElementById("route-stats");
-  if (existingStats) existingStats.remove();
-
-  const view = map.getView();
-  view.animate({
-    center: defaultCenter,
-    zoom: 10,
-    duration: 1000,
-  });
-
-  startPointEntry.value = "";
-  endPointEntry.value = "";
-  searchEntry.value = "";
-  selectedRouteDisplay.textContent = "Choose a route";
-  selectedRouteName.value = "";
-  selectedRouteType.value = "";
-  document.querySelectorAll(".load-route-item").forEach((item) => item.classList.remove("selected"));
-
-  const routeNameInput = document.getElementById("route_name");
-  if (routeNameInput) routeNameInput.value = "";
-
-  const messageDivs = document.querySelectorAll("#load_message, #save_message");
-  messageDivs.forEach((div) => (div.innerHTML = ""));
-
-  loadedRouteCoordinates = null;
-  currentPathData = null;
-  displayedPath = null;
-
-  const saveRouteDiv = document.getElementById("save_route");
-  if (saveRouteDiv) saveRouteDiv.style.display = "none";
-
-  updateLoadRouteVisibility();
-}
-
-const homeButtons = document.querySelectorAll('.home-button');
-homeButtons.forEach(homeButton => {
-  homeButton.addEventListener("click", homeButtonFunction);
-  console.log("Home Button Clicked")
-})
 
 function clearAutoRoute() {
   loadedRouteCoordinates = null;
@@ -1627,4 +1358,4 @@ function showError(entry, message) {
 // OTHER INIT
 // ================
 
-document.addEventListener("DOMContentLoaded", toggleHandlers);
+

@@ -4,24 +4,13 @@ import { map } from "./map.js";
 const startPointEntry = document.getElementById("start_point_entry");
 const endPointEntry = document.getElementById("end_point_entry");
 
-const generatePathButton = document.getElementById('generate-path-button')
-
 export let loadedRouteCoordinates = null;
 export let currentPathData = null;
 export let displayedPath = null;
-export let routeLayer = null; // layer for loaded routes
 
 // ###########
 // HELPER FUNCTIONS
 // ###########
-
-export function setRouteLayer(layer) {
-    routeLayer = layer;
-}
-
-export function getRouteLayer() {
-    return routeLayer;
-}
 
 // ###########
 // MAIN CALCULATE PATH FUNCTION
@@ -130,12 +119,4 @@ export function calculatePath() {
       generatePathButton.disabled = false;
       generatePathButton.classList.remove("loading")
     })
-}
-
-// ###########
-// ADDING EVENT LISTENERS 
-// ###########
-
-if (generatePathButton) {
-    generatePathButton.addEventListener('click', calculatePath)
 }

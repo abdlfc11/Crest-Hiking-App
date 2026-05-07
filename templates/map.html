@@ -15,16 +15,16 @@
 
         <div id="mode_toggle">
             <div class="mode-toggle-container">
-                <button id="mode_auto" class="mode-button active">Auto</button>
-                <button id="mode_manual" class="mode-button">Manual</button>
+                <button id="auto-mode-option" class="mode-button active">Auto</button>
+                <button id="manual-mode-option" class="mode-button">Manual</button>
             </div>
         </div>
 
         <div id="start_end">
             <div class="coords-header">
-                <span style="font-size:20px;cursor:pointer;" onclick="openNav()">&#9776;</span>
+                <span id="open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
                 <span class="coords-title">Path Generation</span>
-                <button id="home_button" class="home-button">&#8635</button>
+                <button id="auto-home-button" class="home-button">&#8635</button>
                 <button id="settings_button" class="settings-button" title="Settings" type="button"><i data-lucide="settings"></i></button>
             </div>
             <div class="coords-content" id="auto_mode_content">
@@ -44,7 +44,7 @@
                                     <option value="{{ point.name }}"></option>
                                 {% endfor %}
                             </datalist>
-                            <button type="button" id="set-start-coord-button" class="coord-button set-by-centre">Set by Centre</button>
+                            <button type="button" id="set-start-coord-button" class="coord-button set-start-end-coord">Set Start Point</button>
                         </div>
                     </div>
                     <div class="coord-row">
@@ -56,7 +56,7 @@
                                     <option value="{{ point.name }}"></option>
                                 {% endfor %}
                             </datalist>
-                            <button type="button" id="set-end-coord-button" class="coord-button set-by-centre">Set by Centre</button>
+                            <button type="button" id="set-end-coord-button" class="coord-button set-start-end-coord">Set End Point</button>
                         </div>
                     </div>
 
@@ -78,7 +78,7 @@
         <div id="manual_mode_content" style="display: none;">
             <div class="coords-header">
                 <span class="coords-title">Manual Route Creation</span>
-                <button id="home_button" class="home-button">&#8635</button>
+                <button id="manual-home-button" class="home-button">&#8635</button>
             </div>
             <div class="coords-content">
                 <p class="manual-instruction">Click on the map to place points</p>
@@ -224,7 +224,6 @@
         </div>
         {% endif %}
 
-        <img src="static/crosshair.png" id="crosshair">
 
         <div id="map"></div>
 
@@ -240,7 +239,7 @@
     </div>
 
     <div id="the-sidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
         <a href="saved_routes">Saved Routes</a>
     </div>
     </div>
