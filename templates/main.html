@@ -2,16 +2,23 @@
 <html>
 <head>
     <title>Crest</title>
-    <summary>Crest is a open-source, easy to use hiking route maker</summary>
+    <meta name="description" content="A free, open‑source hiking platform built by hikers for hikers. 
+    Crest is a work‑in‑progress project focused on simple, reliable route planning without the paywalls.">
     <link rel="stylesheet" href="static/css/main.css">
 </head>
 <body>
-<nav>
-    <ul>
-        <li>Login</li>
-        <li>Register</li>
-        <li>About</li>
-    </ul>
-</nav>
+    <nav id="navbar">
+        <ul id="about-navbar-list" class="navbar-list">
+            <h1 id="top-bar-text">Crest</h1>
+            <li class="navbar-item"><a href="#" class="navbar-link">About</a></li>
+        </ul>
+        <ul id="login-register-navbar-list" class="navbar-list">
+            <li class="navbar-item"><a href="/login-page" class="navbar-link">Login</a></li>
+            <li class="navbar-item"><a href="/register" class="navbar-link">Register</a></li>
+        </ul>
+    </nav>
+    <section id="hero-section">
+        <img src="static/hero-image.jpg" id="hero-image">
+    </section>
 </body>
 </html>

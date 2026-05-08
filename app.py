@@ -789,8 +789,13 @@ def delete_route():
 
 # GENERAL MAP ROUTES
 
-# first route 
 @app.route("/")
+@limiter.exempt
+def main_page():
+    return render_template("main.html")
+
+# first route 
+@app.route("/login-page")
 @limiter.exempt
 def login_page():
     return render_template("login.html")
