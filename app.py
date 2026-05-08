@@ -811,6 +811,7 @@ def map_view():
     if user is None:
         available_routes = []
         saved_points = []
+        return render_template("/login.html")
     else:
         available_routes = Route.query.filter_by(user_id=user.id).all()
         saved_points = Point.query.filter_by(user_id=user.id).all()

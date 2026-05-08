@@ -3,8 +3,8 @@
 // ###########
 
 import { roundCoords } from "./utils.js";
-import { calculatePath } from "./routing.js";
-import { getMap, onMapClick, onMapRenderComplete, initMap } from "./map.js";
+import { calculatePath, displayedPath, currentPathData, loadedRouteCoordinates } from "./routing.js";
+import { getMap, onMapClick, onMapRenderComplete, initMap, refreshRouteList } from "./map.js";
 import { loadAndDisplaySavedPoints } from "./saved_points/index.js";
 
 initMap();
@@ -29,13 +29,11 @@ const endCoordEntry = document.getElementById('end-point-entry');
 let clickMode = null;
 
 // nav bar
-
 const openNavButton = document.getElementById('open-nav-button');
-const closeNavButton = document.getElementById('close-nav-button')
-const navBar = document.getElementById('the-sidenav')
+const closeNavButton = document.getElementById('close-nav-button');
+const navBar = document.getElementById('the-sidenav');
 
 // mode toggling
-
 let currentMode = "auto";
 const autoModeOption = document.getElementById("auto-mode-option");
 const manualModeOption = document.getElementById("mode_manual"); 
@@ -43,12 +41,23 @@ const autoModeContent = document.getElementById("auto_mode_content");
 const manualModeContent = document.getElementById("manual_mode_content");
 
 // generating path btn
+const generatePathButton = document.getElementById('generate-path-button');
 
-const generatePathButton = document.getElementById('generate-path-button')
+// manual mode
+let manualRouteClickHandler = null;
 
 // home button 
 const autoHomeButton = document.getElementById('auto-home-button');
-const manualHomeButton = document.getElementById('manual-home-button')
+const manualHomeButton = document.getElementById('manual-home-button');
+
+// search for area button
+const searchForAreaButton = document.getElementById('search-for-area-button');
+
+// ###########
+// INITIAL SETTINGS
+// ###########
+
+mapStyling.style.cursor = "grab";
 
 
 // ###########
@@ -78,12 +87,20 @@ function setCoordEntry(DOMElement, event) {
     const RoundedCoordinates = roundCoords(coordinate, 0);
     DOMElement.value = `${RoundedCoordinates[0]}, ${RoundedCoordinates[1]}`;
     clickMode = null;
-    mapStyling.style.cursor = "default";
+    mapStyling.style.cursor = "grab";
 }
 
 // ###########
 // MAIN MAP CLICK FUNCTION
 // ###########
+
+
+function handleCursor() {
+  if (clickMode === "setStart" || clickMode === "setEnd") {
+    mapStyling.style.cursor = "crosshair"
+  }
+  mapStyling.style.cursor = "grab"
+}
 
 export function mapClickHandler(event) {  
 
@@ -160,6 +177,57 @@ function handleToggles (event) {
     event.currentTarget.classList.add("active");
 };
 
+// switch to automatic mode
+
+function switchToAutoMode() {
+
+  mapStyling.style.cursor = "grab";
+  currentMode = "auto";
+  autoModeOption.classList.add("active");
+  manualModeOption.classList.remove("active");
+
+  autoModeContent.style.display = "block";
+  manualModeContent.style.display = "none";
+
+  if (manualRouteClickHandler) {
+    map.un("click", manualRouteClickHandler);
+    manualRouteClickHandler = null;
+  }
+
+  map.on("click", mapClickHandler);
+
+  
+
+  clearManualRoute();
+  clearAutoRoute();
+
+  updateLoadRouteVisibility();
+}
+
+// switch to manual mode
+
+function switchToManualMode() {
+  map_style.style.cursor = "crosshair"
+  currentMode = "manual";
+  manualModeButton.classList.add("active");
+  autoModeButton.classList.remove("active");
+
+  autoModeContent.style.display = "none";
+  manualModeContent.style.display = "block";
+
+  map.un("click", mapClickHandler);
+
+  manualRouteClickHandler = function (event) {
+    const coordinate = event.coordinate;
+    addManualPoint(coordinate[0], coordinate[1]);
+  };
+  map.on("click", manualRouteClickHandler);
+
+  clearAutoRoute();
+
+  updateLoadRouteVisibility();
+}
+
 // ###########
 // LoadRouteVisibility 
 // ###########
@@ -184,6 +252,8 @@ function updateLoadRouteVisibility() {
 // ###########
 
 function homeButtonFunction() {
+
+  const map = getMap();
   endCoordEntry.classList.remove('input-error');
   startCoordEntry.classList.remove('input-error');
   startCoordEntry.placeholder = "Coordinates";
@@ -244,6 +314,53 @@ function homeButtonFunction() {
   updateLoadRouteVisibility();
 }
 
+// ###########
+// SEARCHING FOR AN AREA
+// ###########
+
+function searchArea() {
+  
+  const map = getMap();
+  
+  const area = searchEntry.value;
+
+  fetch(apiSearchAreaUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ search_input: area }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        const view = map.getView();
+        if (view.getZoom() >= 7) {
+          view.animate(
+            {
+              center: view.getCenter(),
+              duration: 1000,
+              zoom: 10,
+            },
+            () =>
+              view.animate({
+                center: data.coordinates,
+                duration: 1000,
+                zoom: 14,
+              }),
+          );
+        } else {
+          view.animate({
+            center: data.coordinates,
+            duration: 1000,
+            zoom: 14,
+          });
+        }
+      }
+    })
+    .catch((error) => {
+      console.log("Error: ", error);
+    });
+}
+
 // on map render complete
 function mapRenderComplete() {
     loadAndDisplaySavedPoints();
@@ -254,6 +371,10 @@ function mapRenderComplete() {
 // ###########
 // EVENT LISTENERS
 // ###########
+
+// map grabs
+mapStyling.addEventListener("mouseup", () => {mapStyling.style.cursor = "grab"})
+mapStyling.addEventListener("mousedown", () => {mapStyling.style.cursor = "grabbing"});
 
 // setting stard and end points
 addClickListner(setStartCoordButton, setStartCoord, "click");
@@ -266,8 +387,8 @@ addClickListner(closeNavButton, closeNav, "click")
 
 // mode toggles
 
-addClickListner(autoModeOption, handleToggles, "mousedown");
-addClickListner(manualModeOption, handleToggles, "mousedown");
+addClickListner(autoModeOption, handleToggles, "click");
+addClickListner(manualModeOption, handleToggles, "click");
 
 // calculating path
 
@@ -289,4 +410,4 @@ manualHomeButton.addEventListener("click", homeButtonFunction)
 
 // toggle handlers
 
-document.addEventListener("DOMContentLoaded", toggleHandlers);
+document.addEventListener("DOMContentLoaded", handleToggles);

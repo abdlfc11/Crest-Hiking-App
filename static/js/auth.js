@@ -85,7 +85,7 @@ function switchToLoginFromRegister() {
 }
 
 
-export function register() {
+function register() {
   const username = registerUsernameEntry.value;
   const password1 = registerPasswordEntry1.value;
   const password2 = registerPasswordEntry2.value;

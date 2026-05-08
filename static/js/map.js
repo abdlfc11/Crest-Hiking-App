@@ -11,8 +11,6 @@ import { roundCoords } from "./utils.js";
 
 const map_style = document.getElementById("map")
 
-console.log("Map initial centre:", mapInitialCenter);
-
 export let map = null;
 
 const searchEntry = document.getElementById("search-entry");
@@ -99,9 +97,6 @@ function initSaveOrLoad() {
 }
 
 function initRouting() {
-  searchForAreaButton.addEventListener("click", searchArea);
-  autoModeButton.addEventListener("click", switchToAutoMode);
-  manualModeButton.addEventListener("click", switchToManualMode);
   clearManualRouteButton.addEventListener("click", clearManualRoute);
 }
 
@@ -250,40 +245,6 @@ function saveNewPoint(coordinate, name) {
 }
 
 // ================
-// TOASTS
-// ================
-
-function showToast(message, type) {
-  const messageDiv = document.getElementById("load_message");
-  if (!messageDiv) return;
-
-  const colors = {
-    success: {
-      bg: "#d4edda",
-      border: "#c3e6cb",
-      text: "#155724",
-    },
-    error: {
-      bg: "#f8d7da",
-      border: "#f5c6cb",
-      text: "#721c24",
-    },
-    info: {
-      bg: "#d1ecf1",
-      border: "#bee5eb",
-      text: "#0c5460",
-    },
-  };
-
-  const color = colors[type] || colors.info;
-  messageDiv.innerHTML = `<span style="background: ${color.bg}; border: 1px solid ${color.border}; color: ${color.text}; padding: 4px 8px; border-radius: 4px; display: block;">${message}</span>`;
-
-  setTimeout(() => {
-    messageDiv.innerHTML = "";
-  }, 5000);
-}
-
-// ================
 // ROUTE LIST & SAVE/LOAD
 // ================
 
@@ -332,7 +293,7 @@ function refreshRouteListUI(routes) {
   });
 }
 
-function refreshRouteList() {
+export function refreshRouteList() {
   fetch(apiGetRoutesUrl)
     .then((response) => {
       if (!response.ok) {
@@ -590,55 +551,6 @@ let manualRoutePoints = [];
 let manualRouteLayer = null;
 let manualRouteClickHandler = null;
 let lastClickedPoint = null
-
-
-
-function switchToAutoMode() {
-
-  map_style.style.cursor = "default";
-  currentMode = "auto";
-  autoModeButton.classList.add("active");
-  manualModeButton.classList.remove("active");
-
-  autoModeContent.style.display = "block";
-  manualModeContent.style.display = "none";
-
-  if (manualRouteClickHandler) {
-    map.un("click", manualRouteClickHandler);
-    manualRouteClickHandler = null;
-  }
-
-  map.on("click", mapClickHandler);
-
-  
-
-  clearManualRoute();
-  clearAutoRoute();
-
-  updateLoadRouteVisibility();
-}
-
-function switchToManualMode() {
-  map_style.style.cursor = "crosshair"
-  currentMode = "manual";
-  manualModeButton.classList.add("active");
-  autoModeButton.classList.remove("active");
-
-  autoModeContent.style.display = "none";
-  manualModeContent.style.display = "block";
-
-  map.un("click", mapClickHandler);
-
-  manualRouteClickHandler = function (event) {
-    const coordinate = event.coordinate;
-    addManualPoint(coordinate[0], coordinate[1]);
-  };
-  map.on("click", manualRouteClickHandler);
-
-  clearAutoRoute();
-
-  updateLoadRouteVisibility();
-}
 
 async function addManualPoint(x, y) {
 
@@ -1188,112 +1100,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// ================
-// AUTHENTICATION (LOGIN / LOGOUT / REGISTER)
-// ================
-
-function register() {
-  const username = registerUsernameEntry.value;
-  const password1 = registerPasswordEntry1.value;
-  const password2 = registerPasswordEntry2.value;
-
-  const message = validateRegisterInput(username, password1, password2);
-
-  if (message !== true) {
-    registerValidationLabel.innerText = message;
-    registerValidationLabel.style.opacity = "1";
-    setTimeout(() => {
-      registerValidationLabel.style.opacity = "0";
-    }, 3000);
-    return;
-  }
-
-  fetch(apiRegisterUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username: username,
-      password1: password1,
-      password2: password2,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        registerUsernameEntry.value = "";
-        registerPasswordEntry1.value = "";
-        registerPasswordEntry2.value = "";
-        registerScreen.style.display = "none";
-        loginScreen.style.display = "flex";
-        loginValidationLabel.innerText = data.message;
-        loginValidationLabel.style.color = "#0f7a52";
-        loginValidationLabel.style.opacity = "1";
-        setTimeout(() => {
-          loginValidationLabel.style.opacity = "0";
-        }, 3000);
-      } else {
-        registerValidationLabel.innerText = data.message;
-        registerValidationLabel.style.opacity = "1";
-        setTimeout(() => {
-          registerValidationLabel.style.opacity = "0";
-        }, 3000);
-      }
-    })
-    .catch((error) => {
-      console.error("Error", error);
-    });
-}
-
-
-// ================
-// AREA SEARCH
-// ================
-
-function searchArea() {
-  const area = searchEntry.value;
-
-  fetch(apiSearchAreaUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ search_input: area }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        const view = map.getView();
-        if (view.getZoom() >= 7) {
-          view.animate(
-            {
-              center: view.getCenter(),
-              duration: 1000,
-              zoom: 10,
-            },
-            () =>
-              view.animate({
-                center: data.coordinates,
-                duration: 1000,
-                zoom: 14,
-              }),
-          );
-        } else {
-          view.animate({
-            center: data.coordinates,
-            duration: 1000,
-            zoom: 14,
-          });
-        }
-      }
-    })
-    .catch((error) => {
-      console.log("Error: ", error);
-    });
-}
-
-
-
-
 function clearAutoRoute() {
   loadedRouteCoordinates = null;
   currentPathData = null;
@@ -1353,9 +1159,3 @@ function showError(entry, message) {
     entry.placeholder = "Coordinates";
   }, {once : true });
 }
-
-// ================
-// OTHER INIT
-// ================
-
-
