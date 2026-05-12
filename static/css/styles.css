@@ -369,7 +369,7 @@ body {
     cursor: pointer;
     margin-top: 12px;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 2px 4px rgba(92, 93, 94, 0.2);
     white-space: nowrap;
 }
 

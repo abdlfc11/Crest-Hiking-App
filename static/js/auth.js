@@ -251,6 +251,6 @@ icons.forEach((icon) => {
     const isPassword = passwordInput.type === "password";
     passwordInput.type = isPassword ? "text" : "password";
 
-    event.currentTarget.style.color = isPassword ? "#417affff" : "lightgray";
+    event.currentTarget.style.color = isPassword ? "rgb(86, 87, 89)" : "lightgray";
   });
 });
