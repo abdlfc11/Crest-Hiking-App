@@ -358,6 +358,31 @@ body {
     box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
 
+.auth-button {
+    padding: 12px;
+    background: #3c3c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    white-space: nowrap;
+}
+
+.auth-button:hover {
+    background: #2c2c2c;
+    box-shadow: 0 4px 8px rgba(55, 55, 56, 0.3);
+    transform: translateY(-1px);
+}
+
+.auth-button:active {
+    transform: translateY(1px);
+}
+
 /* manual route creation */
 
 #manual_mode_content {

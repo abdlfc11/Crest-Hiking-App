@@ -10,7 +10,7 @@ const logoutButton = document.getElementById("logout_button");
 const switchToRegisterButton = document.getElementById("switch_to_register_button");
 
 // Registering elements
-const switchToLoginButton = document.getElementById("register-go-back-button")
+const switchToLoginButton = document.getElementById("register-switch-to-login-button")
 const registerButton = document.getElementById("register-button");
 const registerValidationLabel = document.getElementById("register-validation-label");
 const registerScreen = document.getElementById("register-screen");
@@ -81,7 +81,7 @@ function userFeedback(label, message, isSuccess) {
 
 
 function switchToLoginFromRegister() {
-  window.location.href = '/';
+  window.location.href = '/login-page';
 }
 
 

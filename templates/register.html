@@ -7,31 +7,35 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <div id="register-go-back-button-container">
-        <button id="register-go-back-button" class="generate-button">Go Back</button>
-    </div>
     <div id="register-screen">
-        <div id="register-items-and-button">
-            <div id="register-items">
-                <div class="register-field">
-                    <label id="register-validation-label"></label>
-                </div>
-                <div class="register-field">
-                    <label for="register-username-entry">Username</label>
-                    <input type="text" id="register-username-entry" placeholder="enter username">
-                </div>
-                <div class="register-field">
-                    <label for="register-password-entry1">Password</label>
-                    <input type="password" id="register-password-entry1" placeholder="enter password">
-                    <i id="register-eye" class="fa-solid fa-eye"></i>
-                </div>
-                <div class="register-field">
-                    <label for="register-password-entry2">Enter Password again</label>
-                    <input type="password" id="register-password-entry2" placeholder="enter password again">
-                    <i id="register-eye" class="fa-solid fa-eye"></i>
-                </div>
+        <div id="register-items">
+            <div class="login_field">
+                <label id="register-validation-label"></label>
             </div>
-            <button type="button" id="register-button" class="generate-button">Register</button>
+
+            <div class="login_field">
+                <input type="text" id="register-username-entry" placeholder=" ">
+                <label class="inner-entry-label" for="register-username-entry">Username</label>
+            </div>
+
+            <div class="login_field">
+                <input type="password" id="register-password-entry1" placeholder=" ">
+                <label class="inner-entry-label" for="register-password-entry1">Password</label>
+                <i class="fa-solid fa-eye"></i>
+            </div>
+
+            <div class="login_field">
+                <input type="password" id="register-password-entry2" placeholder=" ">
+                <label class="inner-entry-label" for="register-password-entry2">Confirm Password</label>
+                <i class="fa-solid fa-eye"></i>
+            </div>
+
+            <button id="register-button" class="auth-button">Register</button>
+        </div>
+
+        <div id="register_go_back_button_container">
+            <label for="register-switch-to-login-button">Already have an account?</label>
+            <button id="register-switch-to-login-button" class="auth-button">Login</button>
         </div>
     </div>
 </body>

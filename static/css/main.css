@@ -1,29 +1,42 @@
 
 /* MAIN SETTINGS */
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-    background-color: #eef5ee;
+    background-color: #FFFFFF;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* NAVBAR */
 
-#top-bar-text {
-    margin: 0;
-    padding-right: 10px;
+#navbar-logo-container {
+    max-width: 6vw;
+    max-height: auto;
+}
+
+#navbar-logo-image {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 #navbar {
     display: flex;
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(4px);
-    width: 99.2vw;
+    max-width: 99.2vw;
     justify-content: space-between;
     border-radius: 15px;
+    padding: 0.5rem 1rem;
+    box-shadow: 0px 2px 0px 0px rgba(122, 122, 122, 0.2);
 }
 
-#about-navbar-list {
-    gap: 10px;
+#left-nav-side {
+    display: flex;
 }
 
 .navbar-list {
@@ -65,7 +78,9 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding-left: 5px;
     padding-top: 5.5vh;
+    position: relative;
 }
 
 /* image */
@@ -76,6 +91,92 @@ body {
     object-fit: cover;
     display: block;
     border-radius: 25px;
+    filter: brightness(75%);
 }
 
+/* hero text */
 
+#hero-text-container {
+    position: absolute;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 70vw;
+    max-width: 60vw;
+    margin-bottom: 20rem;
+    margin-right: 20rem;
+}
+
+.hero-text {
+    color: white;
+    position: absolute;
+    font-size: clamp(2rem, 4vw, 5rem);
+}
+
+#bottom-hero-text {
+    margin-top: 11rem;
+}
+
+/* ABOUT SECTION */
+
+#about-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.about-group-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.about-group-header-button {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: clamp(1rem, 10px, 2rem);
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 2px 2px 0px rgba(122, 122, 122, 0.2);
+    border: 1px solid #bebdbd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1rem;
+}
+
+.about-group-header-button:hover {
+    background-color: #b8b7b7af;
+}
+
+.about-group-header-button svg {
+    transition: transform 0.4s ease;
+}
+
+.about-group {
+    display: flex;
+    align-items: center;
+    justify-self: flex-start;
+    flex-direction: column;
+    width: 40vw;
+}
+
+.about-group-text { 
+    max-height: 0px;
+    overflow: hidden;
+    transition: max-height 0.1s ease;
+}
+
+.about-group.open .about-group-text{
+    max-height: 500px;
+}
+
+.about-group.open svg {
+    transform: rotate(180deg);
+}
+
+.about-group-header {
+    margin: 0px;
+    align-self: flex-start;
+}
