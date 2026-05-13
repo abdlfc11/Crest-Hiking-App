@@ -100,7 +100,7 @@
 .login_field input:focus + .inner-entry-label,
 .login_field input:not(:placeholder-shown) + .inner-entry-label {
     font-size: .75rem;
-    transform: translateY(-1.8rem);
+    transform: translateY(-1.6rem);
     color: black;
 }
 

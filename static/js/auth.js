@@ -84,6 +84,10 @@ function switchToLoginFromRegister() {
   window.location.href = '/login-page';
 }
 
+export function switchToRegistering() {
+  window.location.href = "/register";
+}
+
 
 function register() {
   const username = registerUsernameEntry.value;
@@ -202,10 +206,6 @@ export function logout() {
         userFeedback(loginValidationLabel, data.message, true);
       }
     });
-}
-
-export function switchToRegistering() {
-  window.location.href = "/register";
 }
 
 // ###########

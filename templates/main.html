@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="static/css/main.css">
 </head>
 <body>
+    <!-- NAVBAR -->
     <nav id="navbar">
         <div id="left-nav-side" class="nav-sides">
             <div id="navbar-logo-container">
@@ -24,15 +25,26 @@
             </ul>
         </div>
     </nav>
+    <!-- HERO SECTION-->
     <section id="hero-section">
         <div id="hero-image"></div>
         <div id="hero-text-container">
             <h1 id="top-hero-text" class="hero-text">Find your trail,</h1>
             <h1 id="bottom-hero-text" class="hero-text">without the subscriptions</h1>
+
+            <!-- CTA button ( create a free account )-->
+            <button type="button" id="hero-create-account-button" onclick="switchToRegistering()">Create a free account</button>
+
         </div>
     </section>
+
+    <!-- ABOUT SECTION -->
     <section id="about-section">
+
+        <!-- main heading -->
         <h1 id="about-heading">About Crest</h1>
+
+        <!-- each question is here -->
         <div class="about-group-container">
             <article class="about-group">
                 <button class="about-group-header-button">
@@ -129,6 +141,7 @@
         </div>
     </section>
 
-    <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/main.js')}}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/auth.js')}}"></script>
 </body>
 </html>
