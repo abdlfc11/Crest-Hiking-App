@@ -77,7 +77,7 @@
     color: gray;
 }
 
-.login_field input {
+.login-field-input {
     width: 15rem;
     height: 2.3rem;
     padding: 5px 8px;
@@ -85,20 +85,20 @@
     border-radius: 7px;
     font-size: 1rem;
     border: 1px solid #cdcbcb;
-    transition: all 0.2s ease;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
 }
 
-.login_field input:hover {
+.login-field-input:hover {
     border: 1px solid rgba(41, 41, 42, 0.4);
 }
 
-.login_field input:focus {
+.login-field-input:focus {
     border: 1px solid rgba(17, 17, 18, 0.4);
 }
 
-.login_field input:focus + .inner-entry-label,
-.login_field input:not(:placeholder-shown) + .inner-entry-label {
+.login-field-input:focus + .inner-entry-label,
+.login-field-input:not(:placeholder-shown) + .inner-entry-label {
     font-size: .75rem;
     transform: translateY(-1.6rem);
     color: black;

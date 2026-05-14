@@ -3,9 +3,11 @@
 // ###########
 
 import { roundCoords } from "./utils.js";
-import { calculatePath, displayedPath, currentPathData, loadedRouteCoordinates } from "./routing.js";
+import { calculatePath } from "./routing/routing.js";
+import { routingStateObject } from "./routing/routingValues.js";
 import { getMap, onMapClick, onMapRenderComplete, initMap, refreshRouteList } from "./map.js";
-import { loadAndDisplaySavedPoints } from "./saved_points/index.js";
+import { loadAndDisplaySavedPoints, getSavedPointsLayer } from "./saved_points/index.js";
+import { getRouteLayer, getPathColour, routeLayer, setRouteLayer } from "./layers.js";
 
 initMap();
 
@@ -34,7 +36,6 @@ const closeNavButton = document.getElementById('close-nav-button');
 const navBar = document.getElementById('the-sidenav');
 
 // mode toggling
-let currentMode = "auto";
 const autoModeOption = document.getElementById("auto-mode-option");
 const manualModeOption = document.getElementById("mode_manual"); 
 const autoModeContent = document.getElementById("auto_mode_content");
@@ -112,7 +113,7 @@ export function mapClickHandler(event) {
         setCoordEntry(endCoordEntry, event)
     }
 
-    if (currentMode !== "auto") return;
+    if (routingStateObject.currentMode !== "auto") return;
 
     if (selectedPoint) {
         selectedPoint.setStyle(getSavedPointStyle(selectedPoint.get("name")));
@@ -182,7 +183,7 @@ function handleToggles (event) {
 function switchToAutoMode() {
 
   mapStyling.style.cursor = "grab";
-  currentMode = "auto";
+  routingStateObject.currentMode = "auto";
   autoModeOption.classList.add("active");
   manualModeOption.classList.remove("active");
 
@@ -208,7 +209,7 @@ function switchToAutoMode() {
 
 function switchToManualMode() {
   map_style.style.cursor = "crosshair"
-  currentMode = "manual";
+  routingStateObject.currentMode = "manual";
   manualModeButton.classList.add("active");
   autoModeButton.classList.remove("active");
 
@@ -217,7 +218,7 @@ function switchToManualMode() {
 
   map.un("click", mapClickHandler);
 
-  manualRouteClickHandler = function (event) {
+  routingStateObject.manualRouteClickHandler = function (event) {
     const coordinate = event.coordinate;
     addManualPoint(coordinate[0], coordinate[1]);
   };
@@ -236,13 +237,13 @@ function updateLoadRouteVisibility() {
   const loadRouteDiv = document.getElementById("load_route");
   if (!loadRouteDiv) return;
 
-  if (currentMode === "manual") {
+  if (routingStateObject.currentMode === "manual") {
     loadRouteDiv.style.display = "none";
-  } else if (currentMode === "auto") {
+  } else if (routingStateObject.currentMode === "auto") {
     const hasPath =
-      displayedPath !== null ||
-      (currentPathData && currentPathData.length > 0) ||
-      (loadedRouteCoordinates && loadedRouteCoordinates.length > 0);
+      routingStateObject.displayedPath !== null ||
+      (routingStateObject.currentPathData && routingStateObject.currentPathData.length > 0) ||
+      (routingStateObject.loadedRouteCoordinates && routingStateObject.loadedRouteCoordinates.length > 0);
     loadRouteDiv.style.display = hasPath ? "none" : "block";
   }
 }
@@ -251,9 +252,55 @@ function updateLoadRouteVisibility() {
 // HOME & CLEAR ROUTE BUTTONS
 // ###########
 
+function clearManualRoute() {
+  const map = getMap();
+  routingStateObject.userClicks = [];
+  routingStateObject.pathCoords = [];
+  routingStateObject.manualRoutePoints = [];
+  if (routingStateObject.manualRouteLayer) {
+    map.removeLayer(routingStateObject.manualRouteLayer);
+    routingStateObject.manualRouteLayer = null;
+  }
+
+  const existingStats = document.getElementById("route-stats");
+  if (existingStats) {
+    existingStats.remove();
+  }
+
+  const saveRouteDiv = document.getElementById("save_route");
+  if (saveRouteDiv && routingStateObject.currentMode === "manual") {
+    saveRouteDiv.style.display = "none";
+  }
+
+  routingStateObject.loadedRouteCoordinates = null;
+  routingStateObject.currentPathData = null;
+
+  if (routingStateObject.displayedPath) {
+    map.removeLayer(routingStateObject.displayedPath);
+    routingStateObject.displayedPath = null;
+  }
+
+  if (getRouteLayer()) {
+    const routeLayer = getRouteLayer()
+    routeLayer.getSource().clear();
+  }
+
+  map.getLayers().getArray().slice().forEach((layer) => {
+      if (layer instanceof ol.layer.Vector && layer !== getSavedPointsLayer()) {
+        if (layer.getSource()) {
+          layer.getSource().clear();
+        }
+      }
+    }
+  );
+
+  updateLoadRouteVisibility();
+}
+
 function homeButtonFunction() {
 
   const map = getMap();
+
   endCoordEntry.classList.remove('input-error');
   startCoordEntry.classList.remove('input-error');
   startCoordEntry.placeholder = "Coordinates";
@@ -269,15 +316,15 @@ function homeButtonFunction() {
   });
   layersToRemove.forEach((layer) => map.removeLayer(layer));
 
-  routeLayer = new ol.layer.Vector({
+  setRouteLayer(new ol.layer.Vector({
     source: new ol.source.Vector(),
     style: new ol.style.Style({
       stroke: new ol.style.Stroke({
-        color: getPathColor(),
+        color: getPathColour(),
         width: 5,
       }),
     }),
-  });
+  }));
   map.addLayer(routeLayer);
 
   const existingStats = document.getElementById("route-stats");
@@ -304,9 +351,9 @@ function homeButtonFunction() {
   const messageDivs = document.querySelectorAll("#load_message, #save_message");
   messageDivs.forEach((div) => (div.innerHTML = ""));
 
-  loadedRouteCoordinates = null;
-  currentPathData = null;
-  displayedPath = null;
+  routingStateObject.loadedRouteCoordinates = null;
+  routingStateObject.currentPathData = null;
+  routingStateObject.displayedPath = null;
 
   const saveRouteDiv = document.getElementById("save_route");
   if (saveRouteDiv) saveRouteDiv.style.display = "none";

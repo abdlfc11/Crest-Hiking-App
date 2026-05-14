@@ -6,8 +6,9 @@
 
 import { logout, login, switchToRegistering } from "./auth.js";
 import { tileLayer, createTileLayer, createRouteLayer, getRouteLayer, setRouteLayer } from "./layers.js";
-import { displayedPath, currentPathData, loadedRouteCoordinates, calculatePath } from "./routing.js";
+import { calculatePath } from "./routing/routing.js";
 import { roundCoords } from "./utils.js";
+import { routingStateObject } from "./routing/routingValues.js";
 
 const map_style = document.getElementById("map")
 
@@ -354,7 +355,7 @@ function clearRoute() {
   if (displayedPath) {
     displayedPath.clear();
   }
-  currentPathData = null;
+  routingStateObject.currentPathData = null;
 }
 
 // SAVING A ROUTE
@@ -379,7 +380,7 @@ function saveRoute(e) {
   if (currentMode === "manual" && manualRoutePoints.length > 0) {
     pathCoordinates = manualRoutePoints;
   } else {
-    pathCoordinates = currentPathData || loadedRouteCoordinates || [];
+    pathCoordinates = routingStateObject.currentPathData || loadedRouteCoordinates || [];
   }
 
   if (pathCoordinates.length === 0) {
@@ -522,7 +523,7 @@ function loadRoute(e) {
       }
 
       loadedRouteCoordinates = data.coordinates;
-      currentPathData = data.coordinates;
+      routingStateObject.currentPathData = data.coordinates;
 
       const saveRouteDiv = document.getElementById("save_route");
       if (saveRouteDiv) saveRouteDiv.style.display = "block";
@@ -547,69 +548,6 @@ function loadRoute(e) {
 // MODE TOGGLE & MANUAL ROUTING
 // ================
 
-let manualRoutePoints = [];
-let manualRouteLayer = null;
-let manualRouteClickHandler = null;
-let lastClickedPoint = null
-
-async function addManualPoint(x, y) {
-
-  let currentClick = [x, y];
-
-  if (userClicks.length === 0) {
-    userClicks.push(currentClick);
-    pathCoords.push(currentClick);
-    updateManualRoute();
-    return;
-  }
-
-  const lastClickedPoint = pathCoords[pathCoords.length - 1]; // get the last coordinate in the path
-  const start = userClicks[0]; // sets the first coord to the start variable
-
-  let finalClick = currentClick; // sets the final click variable to the coords of the current click
-  let end = currentClick; // sets end to the newly clicked point
-
-  // if the user has clicked and plotted more than three points
-  if (userClicks.length >= 3) {
-
-    // sets the distance threshold (20 metres)
-    const threshold_distance = 50;
-
-    // euclidean distance AKA pythag theorem
-    const distance_x = end[0] - start[0];
-    const distance_y = end[1] - start[1];
-    const distance = Math.sqrt((distance_x)**2 + (distance_y)**2);
-    
-    // if the distance is less than the threshold distance
-    if (distance < threshold_distance) {
-      finalClick = start;
-      console.log("Snapping to start");
-    }
-  }
-
-  if (!lastClickedPoint) {
-    console.error("No starting point found");
-    return;
-  }
-
-  const data = await getPathSegment(lastClickedPoint, finalClick); // calculate the segment between the new coord and last coord in the path
-
-  if (data && data.success) {
-
-    const newSegment = data.coordinates; 
-
-    pathCoords = pathCoords.concat(newSegment.slice(1)) // stitch the segment into the path (excepting the coord of the new segment to prevent duplicates)
-
-    userClicks.push(finalClick); // adds the final click to the path coord array
-
-    updateManualRoute();
-  }
-  else {
-    console.warn("Could not find a path to that location")
-  }
-
-}
-
 async function getPathSegment(start, end) {
   try {
     const response = await fetch("/calculate_path", {
@@ -623,53 +561,6 @@ async function getPathSegment(start, end) {
     console.log("Pathfinding error:", error);
     return {"success" : false};
   }
-}
-
-
-function clearManualRoute() {
-  userClicks = [];
-  pathCoords = [];
-  manualRoutePoints = [];
-  if (manualRouteLayer) {
-    map.removeLayer(manualRouteLayer);
-    manualRouteLayer = null;
-  }
-
-  const existingStats = document.getElementById("route-stats");
-  if (existingStats) {
-    existingStats.remove();
-  }
-
-  const saveRouteDiv = document.getElementById("save_route");
-  if (saveRouteDiv && currentMode === "manual") {
-    saveRouteDiv.style.display = "none";
-  }
-
-  loadedRouteCoordinates = null;
-  currentPathData = null;
-
-  if (displayedPath) {
-    map.removeLayer(displayedPath);
-    displayedPath = null;
-  }
-
-  if (routeLayer) {
-    routeLayer.getSource().clear();
-  }
-
-  map
-    .getLayers()
-    .getArray()
-    .slice()
-    .forEach((layer) => {
-      if (layer instanceof ol.layer.Vector && layer !== savedPointsLayer) {
-        if (layer.getSource()) {
-          layer.getSource().clear();
-        }
-      }
-    });
-
-  updateLoadRouteVisibility();
 }
 
 // ================
@@ -717,205 +608,6 @@ function formatDistance(distanceKm) {
 // ================
 // MANUAL ROUTE LAYER RENDERING
 // ================
-
-let userClicks = [] // stores all the clicks on the map 
-let pathCoords = [] // the coordinates of the path segments formed by the A* algorithm
-
-function createManualPointStyle(label, colour, radius=7.5) {
-  return new ol.style.Style({
-    image : new ol.style.Circle({
-      radius : radius,
-      fill : new ol.style.Fill({
-        color : colour
-      }),
-      stroke : new ol.style.Stroke({
-        color : "white",
-        width : 3
-      })
-    }),
-    text : label ? new ol.style.Text({
-      text : label,
-      font : "bold 12px sans-serif",
-      fill : new ol.style.Fill({
-        color : "black"
-      }),
-      stroke : new ol.style.Stroke({
-        color : "white",
-        width : 3
-      }),
-      offsetY : -15
-    }) : null
-  })
-}
-
-function updateManualRoute() {
-
-  // this removes the old map layer to make a fresh path
-  if (manualRouteLayer) {
-    map.removeLayer(manualRouteLayer);
-  }
-
-  // if there are no clicks then hide the stats div
-  if (userClicks.length === 0) {
-    const existingStats = document.getElementById("route-stats");
-    if (existingStats) {
-      existingStats.remove();
-    }
-
-
-    const saveRouteDiv = document.getElementById("save_route");
-    if (saveRouteDiv && currentMode === "manual") {
-      saveRouteDiv.style.display = "none";
-    }
-    return;
-  }
-
-  if (currentMode === "manual") {
-    const saveRouteDiv = document.getElementById("save_route");
-    if (saveRouteDiv) {
-      saveRouteDiv.style.display = "block";
-    }
-  }
-
-  const totalDistanceMeters = calculateTotalDistance(pathCoords);
-  const totalDistanceKm = totalDistanceMeters / 1000;
-  const distanceDisplay = formatDistance(totalDistanceKm);
-  const etaDisplay = calculateETA(totalDistanceKm);
-
-  // array used to hold both Point and LineString features
-  const features = [];
-
-  // creates point features where the user clicked
-  userClicks.forEach((point, index) => {
-    
-    // this defines the point feature (type is used to reference the type of feature later)
-    const feature = new ol.Feature({
-      geometry : new ol.geom.Point(point),
-      type : "point"
-    });
-
-    // adds the index to the feature to be used in the ID'ing of start and end points
-    feature.set("index", index);
-    
-    // feature then pushed into the array
-    features.push(feature);
-  })
-
-  // if there is more than one point then add LineString features between them
-  if (pathCoords.length > 1) {
-    features.push( new ol.Feature({
-      geometry : new ol.geom.LineString(pathCoords),
-      type : "line"
-    }));
-  }
-
-  // tolerance value to allow small coordinate differences
-  const tolerance = 0.000001;
-  let isEndSnappedToStart = false;
-  
-  // if there are enough points to make a round route
-  if (userClicks.length > 3) {
-    const start = userClicks[0];
-    const end = userClicks[userClicks.length - 1];
-    const dx = Math.abs(start[0] - end[0]);
-    const dy = Math.abs(start[1] - end[1]);
-    
-    // if the distances are close enough
-    if (dx < tolerance && dy < tolerance) {
-      // the two are snapped together
-      isEndSnappedToStart = true;
-    }
-  }
-
-  // used for the presentation of the path on the map
-  manualRouteLayer = new ol.layer.Vector({
-    source : new ol.source.Vector({
-      features : features
-    }),
-    style : function (feature) {
-      // so the function knows if the feature is a point of LineString 
-      const featureType = feature.get("type");
-      
-      // if the algorithm detects a point
-      if (featureType === "point") {
-
-        // index of the point in the pathCoords array is retrieved
-        const index = feature.get("index")
-
-        // boolean value to check if the point is the first in the pathCoords array
-        const isStart = index === 0;
-
-        // boolean value to check if the point is the last in the pathCoords array
-        const isEnd = index === userClicks.length - 1;
-        
-        // if the end point has snapped to the start coordinate
-        if (isEndSnappedToStart) {
-
-          // if the point is the first one in the pathCoords array then change its name to Start/End
-          if (isStart) {
-            return createManualPointStyle("Start/End", "#8145d4");
-          }
-
-          // if the point is the last one in the pathCoords array then ommit its name so it doesn't overlap with the start point
-          if (isEnd) {
-            return createManualPointStyle("", "#8145d4", 0); 
-          }
-        }
-        
-        // if the points AREN'T snapped and the point is the first one in the pathCoords array
-        if (isStart) {
-          return createManualPointStyle("Start", "#8145d4");
-        }
-        
-        // if the points AREN'T snapped and the point is the last one in the pathCoords array
-        if (isEnd) {
-          return createManualPointStyle("End", "#8145d4");
-        }
-
-        // if the points are in the middle (intermediary points)
-        return createManualPointStyle("", "#000", 6.5);
-      }
-
-      // style for the lines connecting points
-      return new ol.style.Style({
-        stroke : new ol.style.Stroke({
-          color : "#2563eb",
-          width : 5
-        })
-      });
-    }
-  });
-
-
-  map.addLayer(manualRouteLayer);
-
-  let statsDiv = document.getElementById("route-stats");
-  if (!statsDiv) {
-    statsDiv = document.createElement("div");
-    statsDiv.id = "route-stats";
-    document.body.appendChild(statsDiv);
-  }
-
-  statsDiv.innerHTML = `
-    <div class="stats-header">
-      <span class="stats-title">Route Information</span>
-    </div>
-    <div class="stats-content">
-      <div class="stat-row">
-        <span class="stat-label">Distance:</span>
-        <span class="stat-value" id="route_distance_display">${distanceDisplay}</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">ETA:</span>
-        <span class="stat-value" id="route_eta_display">${etaDisplay}</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Elevation Change:</span>
-        <span class="stat-value" id="route_elevation_change_display">N/A</span>
-      </div>
-    </div>
-  `;
-}
 
 // ================
 // SETTINGS
@@ -1102,7 +794,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function clearAutoRoute() {
   loadedRouteCoordinates = null;
-  currentPathData = null;
+  routingStateObject.currentPathData = null;
 
   if (displayedPath) {
     map.removeLayer(displayedPath);

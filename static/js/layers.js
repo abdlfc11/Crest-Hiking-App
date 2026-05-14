@@ -41,13 +41,13 @@ export function createRouteLayer() {
     source: new ol.source.Vector(),
     style: new ol.style.Style({
       stroke: new ol.style.Stroke({
-        color: getPathColor(),
+        color: getPathColour(),
         width: 5,
       }),
     }),
   }));
 }
 
-function getPathColor() {
+export function getPathColour() {
   return "#2563eb"; // blue
 }

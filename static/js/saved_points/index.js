@@ -3,6 +3,10 @@ import { getMap } from "../map.js";
 
 let savedPointsLayer = null;
 
+export function getSavedPointsLayer() {
+    return savedPointsLayer
+}
+
 function clearOldSavedPointsLayer() {
     if (savedPointsLayer) {
         
