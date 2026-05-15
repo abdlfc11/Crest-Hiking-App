@@ -35,7 +35,6 @@ const loadRouteDiv = document.getElementById("load_route");
 
 // routes and points
 let savedPointsLayer = null;
-let selectedPoint = null;
 
 
 
@@ -595,16 +594,6 @@ function calculateETA(distanceKm) {
   }
 }
 
-function formatDistance(distanceKm) {
-  if (!appSettings) return `${distanceKm.toFixed(2)}km`;
-
-  if (appSettings.distanceUnit === "miles") {
-    const distanceMiles = distanceKm * 0.621371;
-    return `${distanceMiles.toFixed(2)}mi`;
-  }
-  return `${distanceKm.toFixed(2)}km`;
-}
-
 // ================
 // MANUAL ROUTE LAYER RENDERING
 // ================
@@ -840,14 +829,3 @@ function clearAutoRoute() {
 
 const clearRouteButton = document.getElementById("clear_route_button");
 clearRouteButton.addEventListener("click", clearAutoRoute);
-
-// ERROR POPOP LOGIC
-function showError(entry, message) {
-  entry.placeholder = message;
-  entry.classList.add('input-error');
-
-  entry.addEventListener("input", () => {
-    entry.classList.remove('input-error')
-    entry.placeholder = "Coordinates";
-  }, {once : true });
-}

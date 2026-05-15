@@ -15,110 +15,39 @@ const endPointEntry = document.getElementById("end_point_entry");
 // MAIN CALCULATE PATH FUNCTION
 // ###########
 
-export function calculatePath() {
-
-  if(endPointEntry.value === "" && startPointEntry.value === "") {
-    showError(startPointEntry, "Please enter coordinates");
-    showError(endPointEntry, "Please enter coordinates");
-    return
-  }
-  if (startPointEntry.value === "") {
-    showError(startPointEntry, "Please enter coordinates");
-    return;
-  }
-  if (endPointEntry.value === "") {
-    showError(endPointEntry, "Please enter coordinates");
-    return;
-  }
-
-  generatePathButton.disabled = true;
-  generatePathButton.classList.add("loading");
-
-  fetch(apiCalculatePathUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      start_point: startPointEntry.value,
-      end_point: endPointEntry.value,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-
-        if (routingStateObject.displayedPath) {
-          map.removeLayer(routingStateObject.displayedPath);
-          routingStateObject.displayedPath = null;
-        }
-        
-        routingStateObject.displayedPath = new ol.layer.Vector({
-          source: new ol.source.Vector({
-            features: new ol.format.GeoJSON().readFeatures(data.pathGeoJSON),
-          }),
-          style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-              color: getPathColour(),
-              width: 5,
-            }),
-          }),
-        });
-        map.addLayer(routingStateObject.displayedPath);
-        routingStateObject.currentPathData = data.coordinates;
-
-        generatePathButton.classList.remove("loader");
-
-        const pathSource = routingStateObject.displayedPath.getSource();
-        const view = map.getView();
-
-        setTimeout(() => {
-          view.fit(pathSource.getExtent(), {
-            padding: [50, 350, 50, 300],
-            duration: 1200,
-          });
-        }, 100);
-
-        const saveRouteDiv = document.getElementById("save_route");
-        saveRouteDiv.style.display = "block";
-
-        if (data.route_stats) {
-          const statsHtml = `
-            <div id="route-stats">
-              <div class="stats-header">
-                <span class="stats-title">Route Information</span>
-              </div>
-              <div class="stats-content">
-                <div class="stat-row">
-                  <span class="stat-label" >Distance:</span>
-                  <span class="stat-value" id="route_distance_display">${formatDistance(parseFloat(data.route_stats.total_distance))}</span>
-                </div>
-                <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route_eta_display">${data.route_stats.eta}</span>
-                </div>
-                <div class="stat-row">
-                  <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route_elevation_change_display">${data.route_stats.elevation_change}</span>
-                </div>
-              </div>
-            </div>
-          `;
-          const existingStats = document.getElementById("route-stats");
-          if (existingStats) existingStats.remove();
-          document.body.insertAdjacentHTML("beforeend", statsHtml);
-        }
-
-        updateLoadRouteVisibility();
-      } else {
-        homeButtonFunction();
-        console.log("failure in forming a path with the error: ", data.error);
-      }
+export async function calculatePath(startPoint, endPoint) {
+  try {
+    const response = await fetch(apiCalculatePathUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        start_point: startPoint,
+        end_point: endPoint,
+      }),
     })
-    .catch((error) => console.error("Error", error))
-    .finally(() => {
-      generatePathButton.disabled = false;
-      generatePathButton.classList.remove("loading")
-    })
+
+
+    // checks if html status is between 200-299 and returns appropriate error if not
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (data.success) {
+      return data
+    }
+    else {
+      console.error("Path calculation failed")
+      throw new Error(data.message || "Path creation failed")
+    }
+  } 
+  catch (error) {
+    console.error("Error while calculating path", error)
+    throw error
+  }
 }
+
 
 // ###########
 // MANUAL ROUTING

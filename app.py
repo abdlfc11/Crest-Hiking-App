@@ -389,6 +389,7 @@ service = NodeFinder()
 def calculate_path():
     try:
         data = request.get_json()
+        print(data)
         # extracts and parses start point coordinates
         start_coords = data.get("start_point", "").strip()
         end_coords = data.get("end_point", "").strip()
