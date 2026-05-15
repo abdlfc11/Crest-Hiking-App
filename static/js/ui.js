@@ -15,11 +15,20 @@ initMap();
 // CONSTANTS / VARIABLES
 // ###########
 
-// map itself
+// default centre
+const defaultCentre = [-357428, 7256794]
+
+// map variable
+const map = getMap();
+
+// map element
 const mapStyling = document.getElementById("map");
 
 // map style
 const mapContent = document.getElementById("map_content");
+
+// searching for areas 
+const searchEntry = document.getElementById('search-entry');
 
 // setting start and end coordinates
 const setStartCoordButton = document.getElementById('set-start-coord-button');
@@ -53,6 +62,11 @@ const manualHomeButton = document.getElementById('manual-home-button');
 
 // search for area button
 const searchForAreaButton = document.getElementById('search-for-area-button');
+
+// load route modal
+const selectedRouteDisplay = document.getElementById('selected-route-display')
+const selectedRouteName = document.getElementById('selected-route-name')
+const selectedRouteType = document.getElementById('selected-route-type')
 
 // ###########
 // INITIAL SETTINGS
@@ -208,10 +222,10 @@ function switchToAutoMode() {
 // switch to manual mode
 
 function switchToManualMode() {
-  map_style.style.cursor = "crosshair"
+  mapStyling.style.cursor = "crosshair"
   routingStateObject.currentMode = "manual";
-  manualModeButton.classList.add("active");
-  autoModeButton.classList.remove("active");
+  manualModeOption.classList.add("active");
+  autoModeOption.classList.remove("active");
 
   autoModeContent.style.display = "none";
   manualModeContent.style.display = "block";
@@ -253,7 +267,6 @@ function updateLoadRouteVisibility() {
 // ###########
 
 function clearManualRoute() {
-  const map = getMap();
   routingStateObject.userClicks = [];
   routingStateObject.pathCoords = [];
   routingStateObject.manualRoutePoints = [];
@@ -299,7 +312,7 @@ function clearManualRoute() {
 
 function homeButtonFunction() {
 
-  const map = getMap();
+  console.log("map variable set")
 
   endCoordEntry.classList.remove('input-error');
   startCoordEntry.classList.remove('input-error');
@@ -308,6 +321,8 @@ function homeButtonFunction() {
   generatePathButton.classList.remove('loading');
   clearManualRoute();
 
+  console.log("emptied inputs")
+
   const layersToRemove = [];
   map.getLayers().forEach((layer) => {
     if (layer instanceof ol.layer.Vector) {
@@ -315,6 +330,8 @@ function homeButtonFunction() {
     }
   });
   layersToRemove.forEach((layer) => map.removeLayer(layer));
+
+  console.log("removed map layers")
 
   setRouteLayer(new ol.layer.Vector({
     source: new ol.source.Vector(),
@@ -327,15 +344,21 @@ function homeButtonFunction() {
   }));
   map.addLayer(routeLayer);
 
+  console.log("added the new route layer")
+
   const existingStats = document.getElementById("route-stats");
-  if (existingStats) existingStats.remove();
+  if (existingStats) {existingStats.remove()};
+
+  console.log("removed stats pop up")
 
   const view = map.getView();
   view.animate({
-    center: defaultCenter,
+    center: defaultCentre,
     zoom: 10,
     duration: 1000,
   });
+
+  console.log("moved map to centre")
 
   startCoordEntry.value = "";
   endCoordEntry.value = "";
@@ -366,8 +389,6 @@ function homeButtonFunction() {
 // ###########
 
 function searchArea() {
-  
-  const map = getMap();
   
   const area = searchEntry.value;
 
@@ -447,7 +468,7 @@ onMapClick(mapClickHandler);
 
 // map render complete handlers
 
-onMapRenderComplete(mapRenderComplete())
+onMapRenderComplete(mapRenderComplete)
 
 // home button function
 
