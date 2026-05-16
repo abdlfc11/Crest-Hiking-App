@@ -65,7 +65,7 @@
                         <span class="loader"></span>
                     </button>
 
-                    <button type="button" class="generate-button" id="clear_route_button">Clear Path</button>
+                    <button type="button" class="generate-button" id="clear-auto-route-button">Clear Path</button>
                 
                 {% if error %}
                 <div class="error-message">
@@ -244,9 +244,42 @@
     </div>
     </div>
 
-    
+    <script>
+        window.appConfig = {
+            // === MAP CONFIGURATION ===
+            mapInitialCenter: {{ map_centre | tojson }},
+            mapInitialZoom: {{ map_zoom | default(10) }},
+
+            // === INITIAL ROUTE STATE ===
+            initialCurrentPath: {% if current_path %}{{ current_path | tojson }}{% else %}null{% endif %},
+
+            // === INITIAL SAVED POINTS LOOKUP ===
+            initialSavedPointsLookup: {
+            {% if saved_points %}
+                {% for point in saved_points %}
+                "{{ point.name }}": "{{ point.coordinates[0] }}, {{ point.coordinates[1] }}",
+                {% endfor %}
+            {% endif %}
+            },
+
+            // === API ENDPOINTS ===
+            apiLogoutUrl: "{{ url_for('logout') }}",
+            apiRegisterUrl: "{{ url_for('registering') }}",
+            apiCalculatePathUrl: "{{ url_for('calculate_path') }}",
+            apiSearchAreaUrl: "{{ url_for('search_area') }}",
+            apiSavePointUrl: "{{ url_for('save_point') }}",
+            apiGetSavedPointsUrl: "{{ url_for('get_saved_points') }}",
+            apiDeletePointUrl: "{{ url_for('delete_point') }}",
+            apiLoadRouteUrl: "{{ url_for('load_route') }}",
+            apiGetRoutesUrl: "{{ url_for('get_routes') }}",
+            apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
+            apiSaveRouteUrl: "{{ url_for('save_route') }}",
+            apiDeleteAccountUrl: "{{ url_for('delete_account') }}"
+        };
+    </script>
+
+<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script></script>
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
-    <script src="js/config.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/ui.js')}}"></script>
     <script type="module" src="{{ url_for('static', filename='js/utils.js')}}"></script>
     <script type="module" src="{{ url_for('static', filename='js/routing/routing.js')}}"></script>

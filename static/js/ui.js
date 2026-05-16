@@ -2,18 +2,15 @@
 // IMPORTS 
 // ###########
 
-import { roundCoords } from "./utils.js";
+import { roundCoords, createManualPointStyle } from "./utils.js";
 import { calculatePath } from "./routing/routing.js";
-import { routingStateObject } from "./routing/routingValues.js";
 import { getMap, onMapClick, onMapRenderComplete, initMap, refreshRouteList } from "./map.js";
 import { loadAndDisplaySavedPoints, getSavedPointsLayer } from "./saved_points/index.js";
 import { getRouteLayer, getPathColour, routeLayer, setRouteLayer } from "./layers.js";
 
 initMap();
 
-// ###########
-// CONSTANTS / VARIABLES
-// ###########
+// #region CONSTANTS / VARS
 
 // #region VALUES 
 
@@ -46,6 +43,15 @@ const manualHomeButton = document.getElementById('manual-home-button');
 // generating path btn
 const generatePathButton = document.getElementById('generate-path-button');
 
+// deleting points
+const pointDeleteDeleteButton = document.getElementById("point-delete-delete-button");
+const pointDeleteExitButton = document.getElementById("point-delete-exit-button");
+
+// clearing route
+
+const clearAutoRouteButton = document.getElementById('clear-auto-route-button')// auto mode
+
+
 // #endregion
 
 // #region MAP ITEMS
@@ -70,38 +76,79 @@ const searchEntry = document.getElementById('search-entry');
 const startCoordEntry = document.getElementById('start-point-entry');
 const endCoordEntry = document.getElementById('end-point-entry');
 
+// route name entry
+const routeNameEntry = document.getElementById("route_name");
+
 // #endregion
 
-let clickMode = null;
+//#region SETTINGS
+let appSettings = loadSettings();
+const settingsModal = document.getElementById("settings_modal");
+const settingsButton = document.getElementById("settings_button");
+const settingsModalElement = document.getElementById("settings_modal");
+const settingsClose = document.getElementById("settings_close");
+//#endregion
 
+//#region NAVBAR ELEMENT
 const navBar = document.getElementById('the-sidenav');
+//#endregion
 
-// mode toggling
+//#region ROUTING MODE TOGGLING
 const autoModeContent = document.getElementById("auto_mode_content");
 const manualModeContent = document.getElementById("manual_mode_content");
+let clickMode = null;
+//#endregion
 
-// manual mode
-let manualRouteClickHandler = null;
-
-// load route modal
+// #region LOAD ROUTE ELEMENTS
 const selectedRouteDisplay = document.getElementById('selected-route-display')
 const selectedRouteName = document.getElementById('selected-route-name')
 const selectedRouteType = document.getElementById('selected-route-type')
+// #endregion
 
-// path associated variables
+// #region ROUTING UI ELEMENTS
+
+// arrays 
+let userClicks = [];
+let pathCoords = [];
+let manualRoutePoints = [];
+
+// route layers
+let manualRouteLayer = null;
+
+// strings / handlers / nums
+let manualRouteClickHandler = null; 
+let lastClickedPoint = null;
+let loadedRouteCoordinates = null;
+let currentPathData = null;
 let displayedPath = null;
 
+// current state
+let currentMode = "auto";
 
-// ###########
-// INITIAL SETTINGS
-// ###########
+// #endregion
+
+//#region CLICKING-ASSOCIATED VALUES
+let selectedPoint = null;
+//#endregion
+
+//#region DELETING POINT ELEMENTS
+const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
+const pointDeleteModalNameDisplay = document.getElementById("point-name-display");
+const wrapper = document.querySelector(".wrapper")
+//#endregion
+
+//#region SAVING AND LOADING DIVS
+const saveRouteDiv = document.getElementById("save_route");
+const loadRouteDiv = document.getElementById("load_route");
+//#endregion
+
+// #endregion
 
 mapStyling.style.cursor = "grab";
 
+// #region FUNCTIONS
 
-// ###########
-// HELPER FUNCTIONS
-// ###########
+// #region HELPER FUNCTIONS
 
 // formating distance between different units
 function formatDistance(distanceKm) {
@@ -151,9 +198,117 @@ function setCoordEntry(DOMElement, event) {
     mapStyling.style.cursor = "grab";
 }
 
-// ###########
-// MAIN MAP CLICK FUNCTION
-// ###########
+// #endregion
+
+//#region SETTINGS
+
+// loading settings upon running of app
+function loadSettings() {
+  const settings = {
+    distanceUnit: localStorage.getItem("distanceUnit") || "km", // km is default
+  };
+  return settings;
+}
+
+// ================
+// SETTINGS
+// ================
+
+function saveSettings(settings) {
+  localStorage.setItem("distanceUnit", settings.distanceUnit);
+  appSettings = settings;
+}
+
+function openSettingModal(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (settingsModalElement) {
+    settingsModalElement.classList.add("active");
+  }
+}
+
+function closeSettingModal(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (settingsModalElement) {
+    settingsModalElement.classList.remove("active");
+  }
+}
+
+function closeByClickingOutsideModal(e) {
+  if (e.target === this) {
+    this.classList.remove("active");
+  }
+}
+
+function initSettingsModal() {
+
+  settingsButton.addEventListener("click", openSettingModal);
+  settingsClose.addEventListener("click", closeSettingModal); 
+
+  if (settingsModalElement) {
+    settingsModalElement.addEventListener("click", closeByClickingOutsideModal);
+
+    const modalContent = settingsModalElement.querySelector(".settings-modal-content");
+
+    if (modalContent) {
+      modalContent.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+    }
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSettingsModal);
+} else {
+  initSettingsModal();
+}
+
+function toggleDistanceUnit() {
+  appSettings.distanceUnit = this.checked ? "miles" : "km";
+  saveSettings(appSettings);
+  updateManualRoute();
+
+  const routeStatsDiv = document.getElementById("route-stats");
+  if (routeStatsDiv) {
+    const routeDistanceDisplay =
+      routeStatsDiv.querySelector("#route_distance_display") ||
+      routeStatsDiv.querySelector(".stat-value:first-of-type");
+    if (routeDistanceDisplay) {
+      console.log(
+        "Distance unit changed, manual route updated. Initial auto route display requires server refresh to update.",
+      );
+    }
+  }
+}
+
+function initSettingsHandlers() {
+  const distanceUnitToggle = document.getElementById("distance_unit_toggle");
+  if (distanceUnitToggle) {
+    distanceUnitToggle.checked = appSettings.distanceUnit === "miles";
+    distanceUnitToggle.addEventListener("change", toggleDistanceUnit);
+  }
+
+  const routeDistanceDisplay =
+    document.getElementById("route_distance_display");
+  if (routeDistanceDisplay) {
+    const currentDistance = parseFloat(
+      routeDistanceDisplay.textContent.replace(/[^\d.]/g, ""),
+    );
+    routeDistanceDisplay.textContent = formatDistance(currentDistance);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSettingsHandlers);
+} else {
+  initSettingsHandlers();
+}
+
+//#endregion
+
+// #region MAIN MAP CLICK FUNCTION/S
 
 
 function handleCursor() {
@@ -184,15 +339,13 @@ export function mapClickHandler(event) {
     let newSelection = null;
 
     map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
-        if (
-        layer === savedPointsLayer &&
-        feature.getGeometry() instanceof ol.geom.Point
-        ) {
-        newSelection = feature;
-        featureClicked = true;
-        return true;
+        if (layer === savedPointsLayer && feature.getGeometry() instanceof ol.geom.Point) {
+          newSelection = feature;
+          featureClicked = true;
+          return true;
         }
-    });
+      }
+    );
 
     if (newSelection) {
         selectedPoint = newSelection;
@@ -216,9 +369,9 @@ export function mapClickHandler(event) {
     }
 };
 
-// ###########
-// NAV BAR FUNCTIONS
-// ###########
+// #endregion
+
+// #region NAV BAR FUNCTIONS
 
 function openNav() {
   navBar.style.width = "250px";
@@ -228,9 +381,9 @@ function closeNav() {
   navBar.style.width = "0";
 }
 
-// ###########
-// SWITCHING BETWEEN AUTO AND MANUAL MODE
-// ###########
+// #endregion
+
+// #region SWITCHING BETWEEN AUTO AND MANUAL ROUTING MODES
 
 function handleToggles (event) {
     manualModeOption.classList.remove("active");
@@ -278,7 +431,7 @@ function switchToManualMode() {
 
   map.un("click", mapClickHandler);
 
-  routingStateObject.manualRouteClickHandler = function (event) {
+  manualRouteClickHandler = function (event) {
     const coordinate = event.coordinate;
     addManualPoint(coordinate[0], coordinate[1]);
   };
@@ -289,9 +442,9 @@ function switchToManualMode() {
   updateLoadRouteVisibility();
 }
 
-// ###########
-// LoadRouteVisibility 
-// ###########
+// #endregion
+
+// #region UPDATING LOAD ROUTE DIV VISIBILITY
 
 function updateLoadRouteVisibility() {
   const loadRouteDiv = document.getElementById("load_route");
@@ -307,10 +460,52 @@ function updateLoadRouteVisibility() {
     loadRouteDiv.style.display = hasPath ? "none" : "block";
   }
 }
+// #endregion
 
-// ###########
-// HOME & CLEAR ROUTE BUTTONS
-// ###########
+// #region CLEARING AUTO/MANUAL PATHS
+
+function clearAutoRoute() {
+  loadedRouteCoordinates = null;
+  currentPathData = null;
+
+  if (displayedPath) {
+    map.removeLayer(displayedPath);
+    displayedPath = null;
+  }
+
+  if (routeLayer) {
+    routeLayer.getSource().clear();
+  }
+
+  if (currentMode === "manual") {
+    clearManualRoute();
+  }
+
+  map.getLayers().getArray().slice().forEach((layer) => {
+      if (layer instanceof ol.layer.Vector && layer !== savedPointsLayer) {
+        if (layer.getSource()) {
+          layer.getSource().clear();
+        } 
+      }
+    } 
+  );
+
+  const existingStats = document.getElementById("route-stats");
+  if (existingStats) existingStats.remove();
+
+  startPointEntry.value = "";
+  endPointEntry.value = "";
+  selectedRouteName.value = "";
+  selectedRouteType.value = "";
+  selectedRouteDisplay.textContent = "Choose a route";
+
+  
+  if (routeNameEntry) routeNameEntry.value = "";
+  if (saveRouteDiv) saveRouteDiv.style.display = "none";
+  if (loadRouteDiv) loadRouteDiv.style.display = "block";
+
+  updateLoadRouteVisibility();
+}
 
 function clearManualRoute() {
   routingStateObject.userClicks = [];
@@ -355,6 +550,10 @@ function clearManualRoute() {
 
   updateLoadRouteVisibility();
 }
+
+// #endregion
+
+// #region HOME BUTTON FUNCTION
 
 function homeButtonFunction() {
 
@@ -414,8 +613,8 @@ function homeButtonFunction() {
   selectedRouteType.value = "";
   document.querySelectorAll(".load-route-item").forEach((item) => item.classList.remove("selected"));
 
-  const routeNameInput = document.getElementById("route_name");
-  if (routeNameInput) routeNameInput.value = "";
+  const routeNameEntry = document.getElementById("route_name");
+  if (routeNameEntry) routeNameEntry.value = "";
 
   const messageDivs = document.querySelectorAll("#load_message, #save_message");
   messageDivs.forEach((div) => (div.innerHTML = ""));
@@ -429,16 +628,17 @@ function homeButtonFunction() {
 
   updateLoadRouteVisibility();
 }
+// #endregion
 
-// ###########
-// SEARCHING FOR AN AREA
-// ###########
+// #region SEARCHING FOR AREA
 
 function searchArea() {
   
   const area = searchEntry.value;
 
-  fetch(apiSearchAreaUrl, {
+  const url = window.appConfig.apiSearchAreaUrl;
+
+  fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ search_input: area }),
@@ -474,18 +674,17 @@ function searchArea() {
       console.log("Error: ", error);
     });
 }
+// #endregion
 
-// on map render complete
+// #region MAP RENDERING
 function mapRenderComplete() {
     loadAndDisplaySavedPoints();
     refreshRouteList();
     updateLoadRouteVisibility();
 }
+// #endregion
 
-// ###########
-// PATH GENERATION 
-// ###########
-
+// #region PATH GENERATION
 
 // handler for the generate route pipeline
 async function handleAutoRouteGeneration() {
@@ -614,46 +813,55 @@ function setStatDisplay(routeStats) {
   document.body.insertAdjacentHTML("beforeend", statsHtml);
 }
 
-// ###########
-// EVENT LISTENERS
-// ###########
+// #endregion
 
-// map grabs
+// #endregion
+
+// #region EVENT LISTENERS
+
+// #region map grabs
 mapStyling.addEventListener("mouseup", () => {mapStyling.style.cursor = "grab"})
 mapStyling.addEventListener("mousedown", () => {mapStyling.style.cursor = "grabbing"});
+// #endregion
 
-// setting stard and end points
+// #region setting stard and end points
 addClickListner(setStartCoordButton, setStartCoord, "click");
 addClickListner(setEndCoordButton, setEndCoord, "click");
+// #endregion
 
-// navbar clicks
-
+// #region navbar clicks
 addClickListner(openNavButton, openNav, "click");
 addClickListner(closeNavButton, closeNav, "click")
+// #endregion
 
-// mode toggles
-
+// #region mode toggles
 addClickListner(autoModeOption, handleToggles, "click");
 addClickListner(manualModeOption, handleToggles, "click");
+// #endregion
 
-// calculating path
-
+// #region calculating path
 addClickListner(generatePathButton, handleAutoRouteGeneration, "click");
+// #endregion
 
-// map click handler function
-
+// #region map click handler function
 onMapClick(mapClickHandler);
+// #endregion
 
-// map render complete handlers
-
+// #region map render complete handlers
 onMapRenderComplete(mapRenderComplete)
+// #endregion
 
-// home button function
-
-
+// #region home button function
 autoHomeButton.addEventListener("click", homeButtonFunction)
 manualHomeButton.addEventListener("click", homeButtonFunction)
+// #endregion
 
-// toggle handlers
-
+// #region routing mode toggle handlers
 document.addEventListener("DOMContentLoaded", handleToggles);
+// #endregion
+
+//#region CLEARING ROUTES
+clearAutoRouteButton.addEventListener("click", clearAutoRoute);
+//#endregion
+
+// #endregion

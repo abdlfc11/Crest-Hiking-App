@@ -8,36 +8,23 @@ import { logout, login, switchToRegistering } from "./auth.js";
 import { tileLayer, createTileLayer, createRouteLayer, getRouteLayer, setRouteLayer } from "./layers.js";
 import { calculatePath } from "./routing/routing.js";
 import { roundCoords } from "./utils.js";
-import { routingStateObject } from "./routing/routingValues.js";
 
 const map_style = document.getElementById("map")
 
 export let map = null;
 
-const searchEntry = document.getElementById("search-entry");
-const searchForAreaButton = document.getElementById("search-for-area-button");
-
 // saving a route
 const selectedRouteName = document.getElementById("selected-route-name");
 const selectedRouteType = document.getElementById("selected-route-type");
 const selectedRouteDisplay = document.getElementById("selected-route-display");
-const routeNameInput = document.getElementById("route_name");
+const saveRouteForm = document.getElementById("saveRouteForm");
+
 
 // loading
 const loadMessage = document.getElementById("load_message");
 const loadRouteButton = document.getElementById("load-route-button");
 const routeList = document.getElementById("route-list");
 const loadRouteDropdown = document.getElementById("load-route-dropdown");
-
-// saving and loading divs (the containers)
-const saveRouteDiv = document.getElementById("save_route");
-const loadRouteDiv = document.getElementById("load_route");
-
-// routes and points
-let savedPointsLayer = null;
-
-
-
 
 // manual routing
 const clearManualRouteButton = document.getElementById("clear_manual_route")
@@ -55,12 +42,6 @@ const loadButtons = document.querySelectorAll(".route-btn-load");
 const downloadGPXButtons = document.querySelectorAll(".route-btn-download-gpx");
 const downloadGeoJSONButtons = document.querySelectorAll(".route-btn-download-geojson");
 const deleteButtons = document.querySelectorAll(".route-btn-delete");
-
-
-const settingsModal = document.getElementById("settings_modal");
-const settingsButton = document.getElementById("settings_button");
-const settingsModalElement = document.getElementById("settings_modal");
-const settingsClose = document.getElementById("settings_close");
 
 const icons = document.querySelectorAll(".fa-eye");
 
@@ -92,12 +73,13 @@ export function initMap() {
 }
 
 function initSaveOrLoad() {
-  loadRouteButton.addEventListener("click", loadRoute);
-  saveRouteForm.addEventListener("submit", saveRoute);
-}
-
-function initRouting() {
-  clearManualRouteButton.addEventListener("click", clearManualRoute);
+  if (loadRouteButton) {
+    loadRouteButton.addEventListener("click", loadRoute);
+  }
+  
+  if (saveRouteForm) {
+    saveRouteForm.addEventListener("submit", saveRoute);
+  }
 }
 
 // AUTH INITIALISATION
@@ -140,7 +122,6 @@ function initApp() {
 
   initMap();
   initAuth();
-  initRouting();
   initSaveOrLoad();
 }
 
@@ -158,15 +139,6 @@ export function getMap() {
   return map;
 }
 
-function loadSettings() {
-  const settings = {
-    distanceUnit: localStorage.getItem("distanceUnit") || "km", // default km
-  };
-  return settings;
-}
-
-let appSettings = loadSettings();
-
 
 function createMap() {
    map = new ol.Map({
@@ -183,8 +155,8 @@ function createMap() {
       projection: "EPSG:3857",
       maxZoom: 17,
       minZoom: 0,
-      center: mapInitialCenter,
-      zoom: mapInitialZoom,
+      center: window.appConfig.mapInitialCenter,
+      zoom: window.appConfig.mapInitialZoom,
     }),
   });
 }
@@ -202,13 +174,16 @@ export function onMapRenderComplete(handler) {
 // CLICK INTERACTION & SAVED POINTS
 // ================
 
-let savedPointsLookup = { ...initialSavedPointsLookup };
+let savedPointsLookup = { ...window.appConfig.initialSavedPointsLookup };
 
 function saveNewPoint(coordinate, name) {
+
+  const url = window.appConfig.apiSavePointUrl
+
   const x = coordinate[0];
   const y = coordinate[1];
 
-  fetch(apiSavePointUrl, {
+  fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -294,7 +269,10 @@ function refreshRouteListUI(routes) {
 }
 
 export function refreshRouteList() {
-  fetch(apiGetRoutesUrl)
+
+  const url = window.appConfig.apiGetRoutesUrl
+
+  fetch(url)
     .then((response) => {
       if (!response.ok) {
         throw new Error(`Server responded with status ${response.status}`);
@@ -322,7 +300,9 @@ function handleRouteDeletion(routeName, fileType) {
   const messageDiv = document.getElementById("load_message");
   messageDiv.innerHTML = '<span style="color: blue;">Deleting route...</span>';
 
-  fetch(apiDeleteRouteUrl, {
+  const url = window.appConfig.apiDeleteRouteUrl
+
+  fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -356,9 +336,6 @@ function clearRoute() {
   }
   routingStateObject.currentPathData = null;
 }
-
-// SAVING A ROUTE
-const saveRouteForm = document.getElementById("saveRouteForm");
 
 function saveRoute(e) {
   e.preventDefault();
@@ -394,7 +371,9 @@ function saveRoute(e) {
     coordinates_count: pathCoordinates.length,
   });
 
-  fetch(apiSaveRouteUrl, {
+  const url = window.appConfig.apiSaveRouteUrl
+
+  fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -449,10 +428,11 @@ function loadRoute(e) {
     return;
   }
 
-  messageDiv.innerHTML =
-    '<span style="color: blue;">Loading route...</span>';
+  messageDiv.innerHTML = '<span style="color: blue;">Loading route...</span>';
+  
+  const url = window.appConfig.apiLoadRouteUrl
 
-  fetch(apiLoadRouteUrl, {
+  fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -547,21 +527,6 @@ function loadRoute(e) {
 // MODE TOGGLE & MANUAL ROUTING
 // ================
 
-async function getPathSegment(start, end) {
-  try {
-    const response = await fetch("/calculate_path", {
-      "method" : "POST",
-      "headers" : { "Content-Type" : "application/json "},
-      "body" : JSON.stringify({ start_point : `${start[0]}, ${start[1]}`, end_point : `${end[0]}, ${end[1]}`})
-    });
-    return await response.json();
-  }
-  catch (error) {
-    console.log("Pathfinding error:", error);
-    return {"success" : false};
-  }
-}
-
 // ================
 // CALCULATIONS
 // ================
@@ -594,105 +559,6 @@ function calculateETA(distanceKm) {
   }
 }
 
-// ================
-// MANUAL ROUTE LAYER RENDERING
-// ================
-
-// ================
-// SETTINGS
-// ================
-
-function saveSettings(settings) {
-  localStorage.setItem("distanceUnit", settings.distanceUnit);
-  appSettings = settings;
-}
-
-function openSettingModal(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  if (settingsModalElement) {
-    settingsModalElement.classList.add("active");
-  }
-}
-
-function closeSettingModal(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  if (settingsModalElement) {
-    settingsModalElement.classList.remove("active");
-  }
-}
-
-function closeByClickingOutsideModal(e) {
-  if (e.target === this) {
-    this.classList.remove("active");
-  }
-}
-
-function initSettingsModal() {
-
-  settingsButton.addEventListener("click", openSettingModal);
-  settingsClose.addEventListener("click", closeSettingModal); 
-
-  if (settingsModalElement) {
-    settingsModalElement.addEventListener("click", closeByClickingOutsideModal);
-
-    const modalContent = settingsModalElement.querySelector(".settings-modal-content");
-
-    if (modalContent) {
-      modalContent.addEventListener("click", function (e) {
-        e.stopPropagation();
-      });
-    }
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initSettingsModal);
-} else {
-  initSettingsModal();
-}
-
-function toggleDistanceUnit() {
-  appSettings.distanceUnit = this.checked ? "miles" : "km";
-  saveSettings(appSettings);
-  updateManualRoute();
-
-  const routeStatsDiv = document.getElementById("route-stats");
-  if (routeStatsDiv) {
-    const routeDistanceDisplay =
-      routeStatsDiv.querySelector("#route_distance_display") ||
-      routeStatsDiv.querySelector(".stat-value:first-of-type");
-    if (routeDistanceDisplay) {
-      console.log(
-        "Distance unit changed, manual route updated. Initial auto route display requires server refresh to update.",
-      );
-    }
-  }
-}
-
-function initSettingsHandlers() {
-  const distanceUnitToggle = document.getElementById("distance_unit_toggle");
-  if (distanceUnitToggle) {
-    distanceUnitToggle.checked = appSettings.distanceUnit === "miles";
-    distanceUnitToggle.addEventListener("change", toggleDistanceUnit);
-  }
-
-  const routeDistanceDisplay =
-    document.getElementById("route_distance_display");
-  if (routeDistanceDisplay) {
-    const currentDistance = parseFloat(
-      routeDistanceDisplay.textContent.replace(/[^\d.]/g, ""),
-    );
-    routeDistanceDisplay.textContent = formatDistance(currentDistance);
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initSettingsHandlers);
-} else {
-  initSettingsHandlers();
-}
 
 // ================
 // DELETE POINT MODAL & DROPDOWN SETUP
@@ -735,7 +601,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const pointName = selectedPoint.get("name");
 
-      fetch(apiDeletePointUrl, {
+      const url = window.appConfig.apiDeletePointUrl
+
+      fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -781,51 +649,4 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-function clearAutoRoute() {
-  loadedRouteCoordinates = null;
-  routingStateObject.currentPathData = null;
 
-  if (displayedPath) {
-    map.removeLayer(displayedPath);
-    displayedPath = null;
-  }
-
-  if (routeLayer) {
-    routeLayer.getSource().clear();
-  }
-
-  if (currentMode === "manual") {
-    clearManualRoute();
-  }
-
-  map
-    .getLayers()
-    .getArray()
-    .slice()
-    .forEach((layer) => {
-      if (layer instanceof ol.layer.Vector && layer !== savedPointsLayer) {
-        if (layer.getSource()) {
-          layer.getSource().clear();
-        }
-      }
-    });
-
-  const existingStats = document.getElementById("route-stats");
-  if (existingStats) existingStats.remove();
-
-  startPointEntry.value = "";
-  endPointEntry.value = "";
-  selectedRouteName.value = "";
-  selectedRouteType.value = "";
-  selectedRouteDisplay.textContent = "Choose a route";
-
-  
-  if (routeNameInput) routeNameInput.value = "";
-  if (saveRouteDiv) saveRouteDiv.style.display = "none";
-  if (loadRouteDiv) loadRouteDiv.style.display = "block";
-
-  updateLoadRouteVisibility();
-}
-
-const clearRouteButton = document.getElementById("clear_route_button");
-clearRouteButton.addEventListener("click", clearAutoRoute);

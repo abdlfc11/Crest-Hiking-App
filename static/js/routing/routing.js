@@ -1,10 +1,6 @@
 
 import { getMap, map } from "../map.js"; 
-import { routingStateObject } from "./routingValues.js";
 import { getPathColour } from "../layers.js";
-
-const startPointEntry = document.getElementById("start_point_entry");
-const endPointEntry = document.getElementById("end_point_entry");
 
 // ###########
 // HELPER FUNCTIONS
@@ -16,8 +12,11 @@ const endPointEntry = document.getElementById("end_point_entry");
 // ###########
 
 export async function calculatePath(startPoint, endPoint) {
+
+  const url = window.appConfig.apiCalculatePathUrl
+
   try {
-    const response = await fetch(apiCalculatePathUrl, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -52,6 +51,37 @@ export async function calculatePath(startPoint, endPoint) {
 // ###########
 // MANUAL ROUTING
 // ###########
+
+// getting the path segment
+export async function getPathSegment(start, end) {
+
+  const url = window.appConfig.apiCalculatePathUrl
+
+  try {
+    const response = await fetch(url, {
+      "method" : "POST", 
+      "headers" : { "Content-Type" : "application/json"},
+      "body" : JSON.stringify({ start_point : `${start[0]}, ${start[1]}`, end_point : `${end[0]}, ${end[1]}`}) // NOTE : data is being sent back to flask here
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (data.success) {
+      return data
+    }
+    else {
+      console.error("Manual routing calculation failed")
+      throw new Error(data.message || "Error whilst calculating manual path segment")
+    }
+  }
+  catch (error) {
+    throw error
+  }
+}
 
 
 // adding a point on the map
@@ -111,37 +141,6 @@ async function addManualPoint(x, y) {
     console.warn("Could not find a path to that location")
   }
 
-}
-
-
-// manually plotted points styling 
-
-
-function createManualPointStyle(label, colour, radius=7.5) {
-  return new ol.style.Style({
-    image : new ol.style.Circle({
-      radius : radius,
-      fill : new ol.style.Fill({
-        color : colour
-      }),
-      stroke : new ol.style.Stroke({
-        color : "white",
-        width : 3
-      })
-    }),
-    text : label ? new ol.style.Text({
-      text : label,
-      font : "bold 12px sans-serif",
-      fill : new ol.style.Fill({
-        color : "black"
-      }),
-      stroke : new ol.style.Stroke({
-        color : "white",
-        width : 3
-      }),
-      offsetY : -15
-    }) : null
-  })
 }
 
 
