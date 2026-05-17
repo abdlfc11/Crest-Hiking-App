@@ -1,10 +1,7 @@
-import {
-  getCurrentMode,
-  getCurrentPathData,
-  getLoadedRouteCoordinates,
-  manualRouteState,
-} from "./routeState.js";
+import { getCurrentMode, getCurrentPathData, getLoadedRouteCoordinates, manualRouteState } from "./routeState.js";
 import { refreshRouteList } from "./loadRoute.js";
+import { defaultCentre, homeButtonFunction } from "../ui.js";
+import { getMap } from "../map.js";
 
 let saveRouteForm = null;
 
@@ -18,6 +15,7 @@ export function initSaveRoute() {
 function handleSaveRoute(e) {
   e.preventDefault();
 
+  const map = getMap();
   const routeName = document.getElementById("route-name")?.value;
   const format = document.getElementById("route-format")?.value;
   const messageDiv = document.getElementById("save-message");
@@ -77,6 +75,7 @@ function handleSaveRoute(e) {
         const routeNameInput = document.getElementById("route-name");
         if (routeNameInput) routeNameInput.value = "";
         refreshRouteList();
+        homeButtonFunction();
       } else {
         messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;
       }

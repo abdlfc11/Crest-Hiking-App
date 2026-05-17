@@ -99,3 +99,15 @@ export function showToast(message, type = "info") {
     container.style.display = "none";
   }, 4000);
 }
+
+export function moveMapToPosition(map, position = [-357428, 7256794], duration = 1200, zoom = 10) {
+  if (!map) {
+    console.warn("No map, returning");
+    return;
+  }
+  map.getView().animate({
+    center: position,
+    zoom: zoom,
+    duration: duration
+  })
+};

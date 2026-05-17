@@ -26,6 +26,8 @@ export async function calculatePath(startPoint, endPoint) {
   throw new Error(data.message || "Path creation failed");
 }
 
+window.calculatePath = calculatePath; // To test the calculation of paths i.e how long it takes
+
 export async function getPathSegment(start, end) {
   const url = window.appConfig.apiCalculatePathUrl;
 
