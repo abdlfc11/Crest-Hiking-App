@@ -4,6 +4,7 @@ import {
   formatDistance,
   calculateTotalDistance,
   calculateEta,
+  moveMapToPosition
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -40,7 +41,7 @@ import {
 } from "./routes/routeState.js";
 import { setOnDistanceUnitChange } from "./settings.js";
 
-const defaultCentre = [-357428, 7256794];
+export const defaultCentre = [-357428, 7256794];
 
 const searchForAreaButton = document.getElementById("search-for-area-button");
 const autoModeOption = document.getElementById("auto-mode-option");
@@ -68,9 +69,7 @@ const selectedRouteName = document.getElementById("selected-route-name");
 const selectedRouteType = document.getElementById("selected-route-type");
 const saveRouteDiv = document.getElementById("save-route");
 const loadRouteDiv = document.getElementById("load-route");
-const deletePointConfirmationDialog = document.getElementById(
-  "delete-point-confirmation-dialog",
-);
+const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
 const pointDeleteModalNameDisplay = document.getElementById("point-name-display");
 const pointDeleteDeleteButton = document.getElementById("point-delete-delete-button");
 const pointDeleteExitButton = document.getElementById("point-delete-exit-button");
@@ -300,7 +299,7 @@ export function clearManualRoute() {
   updateLoadRouteVisibility();
 }
 
-function homeButtonFunction() {
+export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
 
@@ -334,12 +333,7 @@ function homeButtonFunction() {
 
   document.getElementById("route-stats")?.remove();
 
-  map.getView().animate({
-    center: defaultCentre,
-    zoom: 10,
-    duration: 1000,
-  });
-
+  moveMapToPosition(map)
   if (startCoordEntry) startCoordEntry.value = "";
   if (endCoordEntry) endCoordEntry.value = "";
   if (searchEntry) searchEntry.value = "";

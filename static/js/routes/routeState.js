@@ -1,4 +1,4 @@
-/** Shared route path / mode state for save, load, and map display. */
+// Shared route path / mode state for save, load, and map display. 
 
 let currentPathData = null;
 let loadedRouteCoordinates = null;

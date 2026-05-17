@@ -46,37 +46,15 @@ body {
   display: inline-block; /* Show loader */
 }
 
-/* Make sure the map container is rock solid */
+/* map container */
 #map {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100vh;
-    z-index: 1;                    /* important */
-    background: #f8f9fa;           /* helps with rendering */
-    overflow: hidden;
-}
-
-/* Force OpenLayers canvas to be on top */
-.ol-layer {
-    z-index: 10 !important;
-}
-
-.ol-vectorlayer, .ol-layer-canvas {
-    z-index: 999 !important;
-}
-
-/* Disable any pointer-events that might block interaction/rendering */
-#map, .ol-viewport, .ol-overlaycontainer {
-    pointer-events: auto !important;
-}
-
-/* Make sure body/html allow full height */
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
+    z-index: 1;                    
+    background: #f8f9fa; 
     overflow: hidden;
 }
 
