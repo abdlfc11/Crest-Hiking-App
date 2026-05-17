@@ -11,23 +11,23 @@
 </head>
 <body>
 
-    <div id="map_content">
+    <div id="map-content">
 
-        <div id="mode_toggle">
+        <div id="mode-toggle">
             <div class="mode-toggle-container">
                 <button id="auto-mode-option" class="mode-button active">Auto</button>
                 <button id="manual-mode-option" class="mode-button">Manual</button>
             </div>
         </div>
 
-        <div id="start_end">
+        <div id="start-end">
             <div class="coords-header">
                 <span id="open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
                 <span class="coords-title">Path Generation</span>
                 <button id="auto-home-button" class="home-button">&#8635</button>
-                <button id="settings_button" class="settings-button" title="Settings" type="button"><i data-lucide="settings"></i></button>
+                <button id="settings-button" class="settings-button" title="Settings" type="button"><i data-lucide="settings"></i></button>
             </div>
-            <div class="coords-content" id="auto_mode_content">
+            <div class="coords-content" id="auto-mode-content">
                     <div class="coord-row">
                         <label for="search-entry" class="coord-label">Search for an Area</label>
                         <div class="coord-input-group">
@@ -36,10 +36,10 @@
                         </div>
                     </div>
                     <div class="coord-row">
-                        <label for="start_point" class="coord-label">Start Coordinates</label>
+                        <label for="start-point-entry" class="coord-label">Start Coordinates</label>
                         <div class="coord-input-group">
-                            <input type="text" id="start-point-entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start_points_list">
-                            <datalist id="start_points_list">
+                            <input type="text" id="start-point-entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start-points-list">
+                            <datalist id="start-points-list">
                                 {% for point in saved_points %}
                                     <option value="{{ point.name }}"></option>
                                 {% endfor %}
@@ -48,10 +48,10 @@
                         </div>
                     </div>
                     <div class="coord-row">
-                        <label for="end_point" class="coord-label">End Coordinates</label>
+                        <label for="end-point-entry" class="coord-label">End Coordinates</label>
                         <div class="coord-input-group">
-                            <input type="text" id="end-point-entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end_points_list">
-                            <datalist id="end_points_list">
+                            <input type="text" id="end-point-entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end-points-list">
+                            <datalist id="end-points-list">
                                 {% for point in saved_points %}
                                     <option value="{{ point.name }}"></option>
                                 {% endfor %}
@@ -75,18 +75,18 @@
             </div>
         </div>
 
-        <div id="manual_mode_content" style="display: none;">
+        <div id="manual-mode-content" style="display: none;">
             <div class="coords-header">
                 <span class="coords-title">Manual Route Creation</span>
                 <button id="manual-home-button" class="home-button">&#8635</button>
             </div>
             <div class="coords-content">
                 <p class="manual-instruction">Click on the map to place points</p>
-                <button type="button" id="clear_manual_route" class="generate-button">Clear Route</button>
+                <button type="button" id="clear-manual-route" class="generate-button">Clear Route</button>
             </div>
         </div>
 
-        <div id="load_route" class="load-route">
+        <div id="load-route" class="load-route">
             <div class="coords-header">
                 <span class="coords-title">Load Route</span>
             </div>
@@ -105,26 +105,26 @@
                         <input type="hidden" id="selected-route-type">
                     </div>
                     <button id="load-route-button" class="generate-button">Load Route</button>
-                <div id="load_message"></div>
+                <div id="load-message"></div>
             </div>
         </div>
         
-        <div id="save_route" {% if not current_path %}style="display: none;"{% endif %}>
+        <div id="save-route" {% if not current_path %}style="display: none;"{% endif %}>
             <div class="coords-header">
                 <span class="coords-title">Save Route</span>
             </div>
             <div class="coords-content">
-                <form id="saveRouteForm">
+                <form id="save-route-form">
                     <div class="coord-row">
-                        <label for="route_name" class="coord-label">Route Name:</label>
+                        <label for="route-name" class="coord-label">Route Name:</label>
                         <div class="coord-input-group">
-                            <input type="text" id="route_name" name="route_name" placeholder="Enter route name" required class="coord-input">
+                            <input type="text" id="route-name" name="route_name" placeholder="Enter route name" required class="coord-input">
                         </div>
                     </div>
                     <div class="coord-row">
-                        <label for="format" class="coord-label">Format:</label>
+                        <label for="route-format" class="coord-label">Format:</label>
                         <div class="coord-input-group">
-                            <select id="format" name="format" required class="coord-input">
+                            <select id="route-format" name="format" required class="coord-input">
                                 <option value="geojson">GeoJSON</option>
                                 <option value="gpx">GPX</option>
                             </select>
@@ -132,7 +132,7 @@
                     </div>
                     <button type="submit" class="generate-button">Save Route</button>
                 </form>
-                <div id="save_message"></div>
+                <div id="save-message"></div>
             </div>
         </div>
 
@@ -173,28 +173,28 @@
             </div>
         </dialog>
 
-        <div id="settings_modal" class="settings-modal">
+        <div id="settings-modal" class="settings-modal">
             <div class="settings-modal-content">
                 <div class="settings-modal-header">
                     <h2>Settings</h2>
-                    <button id="settings_close" class="settings-close-button">&times;</button>
+                    <button id="settings-close" class="settings-close-button">&times;</button>
                 </div>
                 <div class="settings-modal-body">
                     <div class="setting-item">
-                        <label for="distance_unit_toggle" class="setting-label">
+                        <label for="distance-unit-toggle" class="setting-label">
                             <span>Distance Unit</span>
                             <span class="setting-description">Kilometres / Miles</span>
                         </label>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="distance_unit_toggle">
+                            <input type="checkbox" id="distance-unit-toggle">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
-                    <div id="bottom_settings_container">
-                        <div id="logout_button_container">
-                            <button class="generate-button" id="logout_button">Log out</button>
+                    <div id="bottom-settings-container">
+                        <div id="logout-button-container">
+                            <button class="generate-button" id="logout-button">Log out</button>
                         </div>
-                        <div id="delete-user-button_container">
+                        <div id="delete-user-button-container">
                             <button id="delete-user-button">Delete Account</button>
                         </div>
                     </div>
@@ -210,15 +210,15 @@
             <div class="stats-content">
                 <div class="stat-row">
                     <span class="stat-label">Distance:</span>
-                    <span class="stat-value" id="route_distance_display">{{ route_stats.total_distance }}km</span>
+                    <span class="stat-value" id="route-distance-display">{{ route_stats.total_distance }}km</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">ETA:</span>
-                    <span class="stat-value" id="route_eta_display">{{ route_stats.eta }}</span>
+                    <span class="stat-value" id="route-eta-display">{{ route_stats.eta }}</span>
                 </div>
                 <div class="stat-row">
                   <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route_elevation_change_display">{{ route_stats.elevation_change }}</span>
+                  <span class="stat-value" id="route-elevation-change-display">{{ route_stats.elevation_change }}</span>
                 </div>
             </div>
         </div>
@@ -242,18 +242,12 @@
         <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
         <a href="saved_routes">Saved Routes</a>
     </div>
-    </div>
 
     <script>
         window.appConfig = {
-            // === MAP CONFIGURATION ===
             mapInitialCenter: {{ map_centre | tojson }},
             mapInitialZoom: {{ map_zoom | default(10) }},
-
-            // === INITIAL ROUTE STATE ===
             initialCurrentPath: {% if current_path %}{{ current_path | tojson }}{% else %}null{% endif %},
-
-            // === INITIAL SAVED POINTS LOOKUP ===
             initialSavedPointsLookup: {
             {% if saved_points %}
                 {% for point in saved_points %}
@@ -261,8 +255,7 @@
                 {% endfor %}
             {% endif %}
             },
-
-            // === API ENDPOINTS ===
+            apiLoginUrl: "{{ url_for('login') }}",
             apiLogoutUrl: "{{ url_for('logout') }}",
             apiRegisterUrl: "{{ url_for('registering') }}",
             apiCalculatePathUrl: "{{ url_for('calculate_path') }}",
@@ -278,16 +271,9 @@
         };
     </script>
 
-<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script></script>
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
-    <script type="module" src="{{ url_for('static', filename='js/ui.js')}}"></script>
-    <script type="module" src="{{ url_for('static', filename='js/utils.js')}}"></script>
-    <script type="module" src="{{ url_for('static', filename='js/routing/routing.js')}}"></script>
-    <script type="module" src="{{ url_for('static', filename='js/routing/routingValues.js')}}"></script>
-    <script type="module" src="{{ url_for('static', filename='js/layers.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script>lucide.createIcons();</script>
-
 
 </body>
 </html>

@@ -1,1 +1,5 @@
-export { loadAndDisplaySavedPoints, getSavedPointsLayer } from "./savedPoints.js"
+export {
+  loadAndDisplaySavedPoints,
+  getSavedPointsLayer,
+  saveNewPoint,
+} from "./savedPoints.js";
