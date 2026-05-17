@@ -184,6 +184,7 @@ function handleLoadRoute(e) {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
+        loadMessage.innerHTML = '<span style="color: blue;"></span>';
         displayLoadedRouteOnMap(data);
         setLoadedRouteCoordinates(data.coordinates);
         setCurrentPathData(data.coordinates);
@@ -231,11 +232,26 @@ function displayLoadedRouteOnMap(data) {
 
   vectorSource.addFeatures(features);
 
-  map.getView().fit(vectorSource.getExtent(), {
-    size: map.getSize(),
-    padding: [50, 50, 50, 50],
-    duration: 1000,
-  });
+  const view = map.getView();
+  if (view.getZoom() >= 6) {
+    view.animate(
+      { center: view.getCenter(),
+        duration: 1000,
+        zoom: 10 
+      },
+      () => view.fit(vectorSource.getExtent(), {
+              size: map.getSize(),
+              padding: [150, 150, 150, 150],
+              duration: 1000,
+            }),
+    );
+  } else {
+    map.getView().fit(vectorSource.getExtent(), {
+      size: map.getSize(),
+      padding: [50, 50, 50, 50],
+      duration: 1000,
+    });
+  }
 
   if (!data.route_stats) return;
 
