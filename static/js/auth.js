@@ -6,7 +6,7 @@ const loginScreen = document.getElementById("login-screen");
 const loginUsernameEntry = document.getElementById("login_username_entry");
 const loginPasswordEntry = document.getElementById("login_password_entry");
 const loginButton = document.getElementById("login_button");
-const logoutButton = document.getElementById("logout_button");
+const logoutButton = document.getElementById("logout-button");
 const switchToRegisterButton = document.getElementById("switch_to_register_button");
 
 // Registering elements
@@ -166,6 +166,7 @@ function validateRegisterInput(username, p1, p2) {
 
 // Function to handle user login
 export function login() {
+
   const username = loginUsernameEntry.value;
   const password = loginPasswordEntry.value;
   loginValidationLabel.style.color = "#ff4d4d";
@@ -194,7 +195,10 @@ export function login() {
 
 // Function to handle user logging out
 export function logout() {
-  fetch(apiLogoutUrl, {
+
+  const url = window.appConfig.apiLogoutUrl
+
+  fetch(url, {
     method: "POST",
     credentials: "same-origin",
   })
@@ -221,8 +225,10 @@ function deleteAccount() {
     return;
   }
 
+  const url = window.appConfig.apiDeleteAccountUrl
+
   // else, carry on with the deletion process
-  fetch(apiDeleteAccountUrl, {
+  fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

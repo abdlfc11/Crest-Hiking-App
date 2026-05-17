@@ -391,8 +391,8 @@ def calculate_path():
         data = request.get_json()
         print(data)
         # extracts and parses start point coordinates
-        start_coords = data.get("start_point", "").strip()
-        end_coords = data.get("end_point", "").strip()
+        start_coords = data.get("start_point", "")
+        end_coords = data.get("end_point", "")
 
         graph = service.load_graph()
 
@@ -401,37 +401,25 @@ def calculate_path():
         if not start_coords or not end_coords:
             raise ValueError("Start and end coordinates are required")
 
-        # parses coordinates, handling spaces after commas
-        start_parts = [p.strip() for p in start_coords.split(",")]
-        end_parts = [p.strip() for p in end_coords.split(",")]
-
-        if len(start_parts) != 2 or len(end_parts) != 2:
+        if len(start_coords) != 2 or len(end_coords) != 2:
             raise ValueError("Coordinates must be in format 'x, y'")
 
         # forms variables containing each value of the start and end coordinates with suffixes removed so that they can be used in input validaton
-        start_coords_x = start_coords.split()[0].removesuffix(",")
-        start_coords_y = start_coords.split()[1].removesuffix(",")
+        start_coords_x = start_coords[0]
+        start_coords_y = start_coords[1]
 
         # debug statement to ensure that start_coords_x and y are in the required format 
         print(start_coords_x, start_coords_y)
 
-        end_coords_x = end_coords.split()[0].removesuffix(",")
-        end_coords_y = end_coords.split()[1].removesuffix(",")
+        end_coords_x = end_coords[0]
+        end_coords_y = end_coords[1]
 
-        try:
-            start_coords_x = float(start_coords_x)
-            start_coords_y = float(start_coords_y)
-        except:
-            raise ValueError("The start coordinates must be valid numbers")
-
-        try:
-            end_coords_x = float(end_coords_x)
-            end_coords_y = float(end_coords_y)
-        except:
-            raise ValueError("The end coordinates must be valid numbers")
+        all_coords = start_coords + end_coords
+        if not all(isinstance(num, (int, float)) for num in all_coords):
+            raise ValueError("Coordinates must be valid numbers")
         
-        s_e, s_n = map(float, start_parts) # start_easting, start_northing
-        e_e, e_n = map(float, end_parts) # start_easting, start_northing
+        s_e, s_n = start_coords_x, start_coords_y # start_easting, start_northing
+        e_e, e_n = end_coords_x, end_coords_y # start_easting, start_northing
         
         # conversion calculations
         if abs(s_e) > 1000000 or abs(s_n) > 1000000: # values that are likely to be web mercator
