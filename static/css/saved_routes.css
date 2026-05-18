@@ -21,8 +21,8 @@ body {
     background: rgba(255, 255, 255, 0.2); 
 
     /* this blurs whatever is behind the div */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); /* for safari support */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); /* for safari support */
 
     /* for a 'shimmer' border */
     border-right: 1px solid rgba(255, 255, 255, 0.3);
