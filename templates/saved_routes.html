@@ -5,66 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Saved Routes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/saved_routes.css') }}" />
 </head>
 <body>
-    <div id="saved-routes-dashboard">
-
-        <div id="top-section">
-            <div id="dashboard-header">
-                <h1>Hi {{ session.get("username") }}, these are your saved routes</h1>
-            </div>
-            <div id="go-back-button-container">
-                <button type="button" id="go-back-button">Go Back</button>
-            </div>
-        </div>
-
-        <div id="all-routes-container">
-            {% if available_routes %}
-                {% for route in available_routes %}
-                <div class="route-card" data-route-name="{{ route.name }}" data-route-type="{{ route.format }}" >
-                    <div class="route-card-header">
-                        <h3 class="route-card-name">{{ route.name }}</h3>
-                        <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%y") }}</span>
-                    </div>
-                    <div class="route-card-stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Distance:</span>
-                            <span class="stat-value">{{ route.distance }} km</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">ETA:</span>
-                            <span class="stat-value">{{ route.ETA }}</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Elevation Change:</span>
-                            <span class="stat-value">{{ route.elevation_change }}</span>
-                        </div>
-                    </div>
-                    <div class="route-card-actions">
-                        <button type="button" class="route-btn route-btn-load">Load</button>
-                        <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
-                        <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
-                        <button type="button" class="route-btn route-btn-delete">Delete</button>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p id="no-routes-message" class="no-routes-message">No saved routes yet.</p>
-            {% endif %}
-        </div>
-
-    </div>
 
     <script>
-        window.appConfig = {
-            apiGetRoutesUrl: "{{ url_for('get_routes') }}",
-            apiLoadRouteUrl: "{{ url_for('load_route') }}",
-            apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
-            apiSaveRouteUrl: "{{ url_for('save_route') }}",
-            mapPageUrl: "{{ url_for('map_view') }}"
-        };
     </script>
-    <script type="module" src="{{ url_for('static', filename='js/saved_routes.js') }}"></script>
 </body>
 </html>
