@@ -62,7 +62,7 @@ async function onDeleteClick(event) {
   try {
     const response = await deleteRoute(route.routeName, route.routeType);
     if (response.success) {
-      event.currentTarget.closest(".route-card")?.remove();
+     routeCard.remove();
     }
   } catch (error) {
     console.error("Delete route failed:", error);
