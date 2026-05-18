@@ -992,9 +992,10 @@ select.coord-input:focus {
   display: block;
   transition: 0.3s;
   width: max-content;
+  cursor: pointer;
 }
 
-.sidenav a:hover {
+.sidenav a:hover, .closebtn {
   color: #000000;
 }
 
@@ -1005,6 +1006,8 @@ select.coord-input:focus {
   font-size: 36px;
   margin-left: 50px;
 }
+
+
 
 /* nav limits for smaller devices and provides responsiveness to tab resise*/
 @media screen and (max-height: 450px) {

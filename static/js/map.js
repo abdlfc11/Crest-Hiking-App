@@ -1,4 +1,4 @@
-// Map creation, layers, and shared map accessors.
+
 
 export let map = null;
 export let tileLayer = null;

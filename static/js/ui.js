@@ -42,7 +42,6 @@ import {
   manualRouteState,
 } from "./routes/routeState.js";
 import { setOnDistanceUnitChange } from "./settings.js";
-import { consumePendingRouteForMap } from "./routes/index.js";
 import { displayLoadedRouteOnMap } from "./routes/loadRoute.js";
 
 export const defaultCentre = [-357428, 7256794];
@@ -78,6 +77,10 @@ const pointDeleteModalNameDisplay = document.getElementById("point-name-display"
 const pointDeleteDeleteButton = document.getElementById("point-delete-delete-button");
 const pointDeleteExitButton = document.getElementById("point-delete-exit-button");
 const dialogWrapper = deletePointConfirmationDialog?.querySelector(".wrapper");
+
+const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
+const closeSavedRoutesDashButton = document.getElementById('saved-routes-dash-go-back-button');
+const savedRoutesDashContent = document.getElementById('saved-routes-dashboard')
 
 let clickMode = null;
 let manualRouteLayer = null;
@@ -178,8 +181,15 @@ function openNav() {
   navBar.style.width = "250px";
 }
 
-function closeNav() {
+export function closeNav() {
   navBar.style.width = "0";
+}
+function openSavedRoutesDash() {
+  savedRoutesDashContent.style.width = "100vw";
+}
+
+export function closeSavedRoutesDash() {
+  savedRoutesDashContent.style.width = "0";
 }
 
 function handleToggles(event) {
@@ -399,13 +409,6 @@ function searchArea() {
 }
 
 async function mapRenderComplete() {
-  const pending = consumePendingRouteForMap();
-  if (pending) {
-    const data = await loadRoute(pending.name, pending.type);
-    displayLoadedRouteOnMap(data);
-    setLoadedRouteCoordinates(data.coordinates)
-    setCurrentPathData(data.coordinates)
-  }
 
   loadAndDisplaySavedPoints();
   refreshRouteList();
@@ -691,6 +694,8 @@ export function initUi() {
   addClickListener(setEndCoordButton, setEndCoord, "click");
   addClickListener(openNavButton, openNav, "click");
   addClickListener(closeNavButton, closeNav, "click");
+  addClickListener(openSavedRoutesDashButton, openSavedRoutesDash, "click")
+  addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click")
   addClickListener(autoModeOption, handleToggles, "click");
   addClickListener(manualModeOption, handleToggles, "click");
   addClickListener(autoModeOption, switchToAutoMode, "click");

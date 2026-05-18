@@ -1,4 +1,5 @@
 import { getAppSettings } from "./settingsState.js";
+import { addClickListener } from "./ui.js";
 
 // function to round coordinates to a given decimal point
 export function roundCoords (coordArray, decimals) {

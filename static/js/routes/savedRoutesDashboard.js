@@ -3,23 +3,25 @@
  * Event listeners are wired; implement the TODO handlers to call routeApi.js.
  */
 
-import { deleteRoute, setPendingRouteForMap } from "./routeApi.js";
+import { deleteRoute, loadRoute } from "./routeApi.js";
+import { addClickListener, closeNav, closeSavedRoutesDash,  } from "../ui.js"
+import { displayLoadedRouteOnMap } from "./loadRoute.js";
+import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
 
-// import { deleteRoute, loadRoute, downloadRoute, setPendingRouteForMap } from "./routeApi.js";
+// import { deleteRoute, loadRoute, downloadRoute, } from "./routeApi.js";
 
 let allRoutesContainer = null;
 
 /**
  * Read route name + format from the nearest .route-card.
- * @param {Element} element
+ * @param {Element} routeCardElement
  * @returns {{ routeName: string, routeType: string } | null}
  */
-export function getRouteFromCard(element) {
-  const card = element.closest(".route-card");
-  if (!card) return null;
+export function getRouteFromCard(routeCardElement) {
+  if (!routeCardElement) return null;
 
-  const routeName = card.dataset.routeName;
-  const routeType = card.dataset.routeType;
+  const routeName = routeCardElement.dataset.routeName;
+  const routeType = routeCardElement.dataset.routeType;
   if (!routeName || !routeType) return null;
 
   return { routeName, routeType };
@@ -28,17 +30,17 @@ export function getRouteFromCard(element) {
 /**
  * @param {MouseEvent} event
  */
-function onLoadClick(event) {
-  const route = getRouteFromCard(event.currentTarget);
+async function onLoadClick(event) {
+  const routeCard = event.target.closest('.route-card');
+  const route = getRouteFromCard(routeCard);
   if (!route) return;
 
-  // TODO: setPendingRouteForMap(route) then window.location.href = "/map"
-
-  setPendingRouteForMap({
-    name: route.routeName,
-    type: route.routeType
-  });
-  window.location.href = "/map";
+  await closeSavedRoutesDash();
+  await closeNav();
+  const data = await loadRoute(route.routeName, route.routeType);
+  await displayLoadedRouteOnMap(data);
+  await setLoadedRouteCoordinates(data.coordinates);
+  await setCurrentPathData(data.coordinates);
 
   //   OR call loadRoute() and handle response here
   event.preventDefault();
@@ -48,7 +50,8 @@ function onLoadClick(event) {
  * @param {MouseEvent} event
  */
 async function onDeleteClick(event) {
-  const route = getRouteFromCard(event.currentTarget);
+  const routeCard = event.target.closest(".route-card")
+  const route = getRouteFromCard(routeCard);
   if (!route) return;
 
   const check = confirm(`Are you sure you want to delete the route: ${route.routeName} (${route.routeType.toUpperCase()})?`);
@@ -74,7 +77,8 @@ async function onDeleteClick(event) {
  * @param {"gpx" | "geojson"} format
  */
 function onDownloadClick(event, format) {
-  const route = getRouteFromCard(event.currentTarget);
+  const routeCard = event.target.closest(".route-card")
+  const route = getRouteFromCard(routeCard);
   if (!route) return;
 
   // TODO: await downloadRoute(route.routeName, format) and trigger a file download
@@ -84,23 +88,23 @@ function onDownloadClick(event, format) {
 function bindRouteCardButtons() {
   if (!allRoutesContainer) return;
 
-  allRoutesContainer.querySelectorAll(".route-btn-load").forEach((button) => {
-    button.addEventListener("click", onLoadClick);
-  });
+  allRoutesContainer.addEventListener('click', (e) => {
+    const targetButton = e.target;
 
-  allRoutesContainer.querySelectorAll(".route-btn-delete").forEach((button) => {
-    button.addEventListener("click", onDeleteClick);
-  });
+    if (targetButton.classList.contains('route-btn-delete')) {
+      onDeleteClick(e)
+    }
+    if (targetButton.classList.contains('route-btn-load')) {
+      onLoadClick(e)
+    }
+    if (targetButton.classList.contains('route-btn-download-gpx')) {
+      onDownloadClick(e, "gpx")
+    }
+    if (targetButton.classList.contains('route-btn-download-geojson')) {
+      onDownloadClick(e, "gpx")
+    }
 
-  allRoutesContainer.querySelectorAll(".route-btn-download-gpx").forEach((button) => {
-    button.addEventListener("click", (e) => onDownloadClick(e, "gpx"));
-  });
-
-  allRoutesContainer
-    .querySelectorAll(".route-btn-download-geojson")
-    .forEach((button) => {
-      button.addEventListener("click", (e) => onDownloadClick(e, "geojson"));
-    });
+  })
 }
 
 function bindNavigation() {
@@ -117,3 +121,5 @@ export function initSavedRoutesDashboard() {
   bindNavigation();
   bindRouteCardButtons();
 }
+
+addClickListener(document, initSavedRoutesDashboard, "DOMContentLoaded")

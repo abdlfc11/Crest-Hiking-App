@@ -2,6 +2,67 @@ body {
   background-color: #c3d6e9;
 }
 
+#saved-routes-dashboard {
+    z-index: 999;
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    background-color: #ffffff;
+    overflow: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+
+    /* glassmorphism effect */
+
+    /* Transparent white or black */
+    background: rgba(255, 255, 255, 0.2); 
+
+    /* this blurs whatever is behind the div */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* for safari support */
+
+    /* for a 'shimmer' border */
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+
+    /* subtle shadow */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+#saved-routes-dashboard .inner-content {
+    
+    min-width: 100vw; 
+    min-height: 100vh;
+    box-sizing: border-box; 
+    padding: 0 20px; 
+}
+
+#saved-routes-dashboard a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+  width: max-content;
+  cursor: pointer;
+}
+
+#saved-routes-dashboard a:hover, .closebtn {
+  color: #000000;
+}
+
+#saved-routes-dashboard .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+
 #dashboard-header {
     padding-left: 30px;
 }
