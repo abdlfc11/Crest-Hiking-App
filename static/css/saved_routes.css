@@ -2,7 +2,7 @@ body {
   background-color: #c3d6e9;
 }
 
-#header {
+#dashboard-header {
     padding-left: 30px;
 }
 
@@ -11,12 +11,12 @@ body {
     justify-content: space-between;
 }
 
-#go-back-btn-container {
+#go-back-button-container {
     width: 150px;
     padding-right: 30px;
 }
 
-#go-back-btn {
+#go-back-button {
     width: 100%;
     padding: 12px;
     background-color: rgba(99, 102, 241, 0.677);
@@ -32,13 +32,13 @@ body {
     white-space: nowrap;
 }
 
-#go-back-btn:hover {
+#go-back-button:hover {
     background-color: rgb(78, 81, 245);
     box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
     transform: translateY(-1px);
 }
 
-#go-back-btn:active {
+#go-back-button:active {
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
@@ -87,7 +87,7 @@ body {
     gap: 5px;
 }
 
-.route-card-bts {
+.route-card-actions {
     display: flex;
     flex-direction: row;
     gap: 5px;
@@ -120,10 +120,17 @@ body {
     box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
 
-.stat-labels {
+.stat-label {
     color: rgb(123, 123, 123);
 }
 
-.stat-values {
+.stat-value {
     font-weight: 500;
+}
+
+.no-routes-message {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    color: #475569;
+    font-size: 1rem;
 }

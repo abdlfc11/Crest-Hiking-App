@@ -1,6 +1,5 @@
-// VARIABLES 
+import { initSavedRoutesDashboard } from "./routes/savedRoutesDashboard.js";
 
-// buttons
-
-
-// BUTTON LOGIC
+document.addEventListener("DOMContentLoaded", () => {
+  initSavedRoutesDashboard();
+});

@@ -28,6 +28,7 @@ import {
   initSaveRoute,
   initLoadRoute,
   refreshRouteList,
+  loadRoute,
 } from "./routes/index.js";
 import {
   getCurrentMode,
@@ -35,11 +36,14 @@ import {
   getCurrentPathData,
   setCurrentPathData,
   getLoadedRouteCoordinates,
+  setLoadedRouteCoordinates,
   clearPathState,
   clearManualRouteState,
   manualRouteState,
 } from "./routes/routeState.js";
 import { setOnDistanceUnitChange } from "./settings.js";
+import { consumePendingRouteForMap } from "./routes/index.js";
+import { displayLoadedRouteOnMap } from "./routes/loadRoute.js";
 
 export const defaultCentre = [-357428, 7256794];
 
@@ -118,6 +122,10 @@ export function mapClickHandler(event) {
   const map = getMap();
   if (!map) return;
 
+  if (clickMode) {
+    mapElement.style.cursor = "crosshair"
+  }
+
   if (clickMode === "setStart") {
     setCoordEntry(startCoordEntry, event);
     return;
@@ -126,6 +134,7 @@ export function mapClickHandler(event) {
     setCoordEntry(endCoordEntry, event);
     return;
   }
+
   if (getCurrentMode() !== "auto") return;
 
   if (selectedPoint) {
@@ -389,7 +398,15 @@ function searchArea() {
     .catch((error) => console.log("Error: ", error));
 }
 
-function mapRenderComplete() {
+async function mapRenderComplete() {
+  const pending = consumePendingRouteForMap();
+  if (pending) {
+    const data = await loadRoute(pending.name, pending.type);
+    displayLoadedRouteOnMap(data);
+    setLoadedRouteCoordinates(data.coordinates)
+    setCurrentPathData(data.coordinates)
+  }
+
   loadAndDisplaySavedPoints();
   refreshRouteList();
   updateLoadRouteVisibility();
@@ -690,9 +707,14 @@ export function initUi() {
   manualHomeButton?.addEventListener("click", homeButtonFunction);
 
   mapElement?.addEventListener("mouseup", () => {
-    mapElement.style.cursor = "grab";
+    if (!clickMode) {
+      mapElement.style.cursor = "grab";
+    }
+    else {
+      mapElement.style.cursor = "crosshair";
+    }
   });
   mapElement?.addEventListener("mousedown", () => {
-    mapElement.style.cursor = "grabbing";
+      mapElement.style.cursor = "grabbing";
   });
 }

@@ -679,7 +679,7 @@ def load_route():
         return jsonify({
             "success": True, 
             "message": f"Route '{route_name}' loaded successfully",
-            "path_geojson": path_geojson,
+            "pathGeoJSON": path_geojson,
             "map_centre": midpoint,
             "coordinates": web_mercator_coordinates,
             "route_stats": route_stats
@@ -732,7 +732,7 @@ def get_routes():
             "filename": f"{route.name}.{route.format}"
         })
     
-    return jsonify({"routes": routes_list})
+    return jsonify({"routes": routes_list, "success": True})
 
 # route which deletes a saved point that is passed into the back-end from the front-end
 @app.route("/delete_point", methods=['POST'])

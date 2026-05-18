@@ -1,9 +1,8 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
 import { formatDistance, showToast } from "../utils.js";
-import {
-  setCurrentPathData,
-  setLoadedRouteCoordinates,
-} from "./routeState.js";
+import { setCurrentPathData, setLoadedRouteCoordinates } from "./routeState.js";
+import { deleteRoute, loadRoute, fetchRoutes } from "./routeApi.js";
+
 
 let routeList = null;
 let selectedRouteDisplay = null;
@@ -97,27 +96,20 @@ function refreshRouteListUI(routes) {
   });
 }
 
-export function refreshRouteList() {
-  fetch(window.appConfig.apiGetRoutesUrl)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      refreshRouteListUI(data.routes);
-    })
-    .catch((error) => {
-      console.error("Error fetching route list:", error);
-      const messageEl = document.getElementById("load-message");
-      if (messageEl) {
-        messageEl.innerHTML = `<span style="color: red;"> Error fetching routes: ${error.message}</span>`;
-      }
-    });
+export async function refreshRouteList() {
+  try {
+    const data = await fetchRoutes();
+    refreshRouteListUI(data.routes);
+  } catch (error) {
+    console.error("Error fetching route list:", error);
+    const messageElement = document.getElementById("load-message");
+    if (messageElement) {
+      messageElement.innerHTML = `<span style="color: red;"> Error fetching routes: ${error.message}</span>`;
+    }
+  }
 }
 
-function handleRouteDeletion(routeName, fileType) {
+async function handleRouteDeletion(routeName, fileType) {
   if (
     !confirm(
       `Are you sure you want to delete the route: ${routeName} (${fileType.toUpperCase()})?`,
@@ -131,33 +123,21 @@ function handleRouteDeletion(routeName, fileType) {
     messageDiv.innerHTML = '<span style="color: blue;">Deleting route...</span>';
   }
 
-  fetch(window.appConfig.apiDeleteRouteUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      route_name: routeName,
-      file_type: fileType,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (!messageDiv) return;
-      if (data.success) {
-        messageDiv.innerHTML = `<span style="color: green;">✓ ${data.message}</span>`;
-        refreshRouteList();
-      } else {
-        messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;
-      }
-    })
-    .catch((error) => {
-      if (messageDiv) {
-        messageDiv.innerHTML = `<span style="color: red;">✗ Error deleting route: ${error.message}</span>`;
-      }
-      console.error("Error deleting route:", error);
-    });
-}
+  const data = await deleteRoute(routeName, fileType);
 
-function handleLoadRoute(e) {
+  
+  if (!messageDiv) return;
+  if (data.success) {
+    messageDiv.innerHTML = `<span style="color: green;">✓ ${data.message}</span>`;
+    refreshRouteList();
+  } else {
+    messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;
+  }
+}
+  
+    
+
+async function handleLoadRoute(e) {
   e.preventDefault();
 
   const routeName = selectedRouteName?.value;
@@ -173,39 +153,30 @@ function handleLoadRoute(e) {
 
   loadMessage.innerHTML = '<span style="color: blue;">Loading route...</span>';
 
-  fetch(window.appConfig.apiLoadRouteUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      route_name: routeName,
-      file_type: fileType,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        loadMessage.innerHTML = '<span style="color: blue;"></span>';
-        displayLoadedRouteOnMap(data);
-        setLoadedRouteCoordinates(data.coordinates);
-        setCurrentPathData(data.coordinates);
+  try {
+    const data = await loadRoute(routeName, fileType);
 
-        const saveRouteDiv = document.getElementById("save-route");
-        if (saveRouteDiv) saveRouteDiv.style.display = "block";
+    if (data.success) {
+      displayLoadedRouteOnMap(data);
+      setLoadedRouteCoordinates(data.coordinates);
+      setCurrentPathData(data.coordinates);
 
-        updateLoadRouteVisibilityCallback?.();
-        onRouteLoaded?.(data);
-        showToast(data.message, "success");
-      } else {
-        showToast(`Failed to load route: ${data.message}`, "error");
-      }
-    })
-    .catch((error) => {
-      console.error("Error loading route:", error);
-      showToast("A network error occurred while loading the route.", "error");
-    });
+      const saveRouteDiv = document.getElementById("save-route");
+      if (saveRouteDiv) saveRouteDiv.style.display = "block";
+
+      updateLoadRouteVisibilityCallback?.();
+      onRouteLoaded?.(data);
+      showToast(data.message, "success");
+    } else {
+      showToast(`Failed to load route: ${data.message}`, "error");
+    }
+  } catch (error) {
+    console.error("Error loading route:", error);
+    showToast("A network error occurred while loading the route.", "error");
+  }
 }
 
-function displayLoadedRouteOnMap(data) {
+export function displayLoadedRouteOnMap(data) {
   const map = getMap();
   const routeLayer = getRouteLayer();
   if (!map || !routeLayer) return;
@@ -214,7 +185,7 @@ function displayLoadedRouteOnMap(data) {
   vectorSource.clear();
 
   const format = new ol.format.GeoJSON();
-  const features = format.readFeatures(data.path_geojson, {
+  const features = format.readFeatures(data.pathGeoJSON, {
     dataProjection: "EPSG:3857",
     featureProjection: "EPSG:3857",
   });
@@ -241,7 +212,7 @@ function displayLoadedRouteOnMap(data) {
       },
       () => view.fit(vectorSource.getExtent(), {
               size: map.getSize(),
-              padding: [150, 150, 150, 150],
+              padding: [50, 100, 100, 430],
               duration: 1000,
             }),
     );
