@@ -1,7 +1,7 @@
 from pathfinder import a_star, snap_to_largest_component, build_global_kdtree  # responsible for path generation
-from flask import Flask, render_template, request, jsonify, session  # flask runs the local website
+from flask import Flask, render_template, request, jsonify, session, send_file  # flask runs the local website
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import select
+from sqlalchemy import select, func, cast, JSON, TEXT
 import pickle as pkl  # responsible for loading the graph file saved in a pickle file
 import time
 from pyproj import Transformer  # responsible for coordinate system conversions
@@ -19,6 +19,10 @@ from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 import networkx as nx
 from datetime import timedelta
+import gpxpy
+import gpxpy.gpx
+import io
+
 
 
 # default map centre (BNG coordinates)
@@ -110,7 +114,7 @@ def saved_routes():
 
 # STRFTIME FILTER
 @app.template_filter("strftime")
-def strftime_filter(date, format):
+def strftime_filter(date, format: str):
     if isinstance(date, str):
         date = datetime.isoformat(date)
     return date.strftime(format)
@@ -218,6 +222,7 @@ class NodeFinder:
         self._bng_to_web_mercator = Transformer.from_crs("EPSG:27700", "EPSG:3857", always_xy=True)
         self._bng_to_wgs84 = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
         self._wgs84_to_web_mercator = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
+        self._web_mercator_to_wgs84 = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 
     def load_graph(self):
         # loads the graph only when needed (lazy loading)
@@ -261,6 +266,11 @@ class NodeFinder:
     def convert_wgs84_to_web_mercator(self, wgs84_lon, wgs84_lat):
         x, y = self._wgs84_to_web_mercator.transform(wgs84_lon, wgs84_lat)
         return x, y
+    
+    def convert_web_mercator_to_wgs84(self, x: float, y: float):
+        lon, lat = self._web_mercator_to_wgs84.transform(x, y)
+        return lon, lat  
+
 
     def euclidean_distance(self, node, target_lat, target_lon):
         # calculates distance between the target and current node using pythagoras
@@ -382,6 +392,83 @@ class NodeFinder:
         return map_center, map_zoom
 
 service = NodeFinder()
+
+# Create once at module level
+transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
+
+def parse_elevation(elevation_string: str):
+    if not elevation_string:
+        return None
+    try:
+        return float(elevation_string.replace('m', '').strip())
+    except:
+        return None
+
+# helper function used in creation of gpx / geojson files which converts hrs and minutes to 
+def parse_eta_to_seconds(eta_string: str):
+    if not eta_string:
+        return None
+    try:
+        hours = minutes = 0
+        if 'h' in eta_string:
+            hours = int(eta_string.split('h')[0].strip())
+        if 'm' in eta_string:
+            minutes_part = eta_string.split('h')[-1] if 'h' in eta_string else eta_string
+            minutes = int(minutes_part.replace('m', '').strip())
+        return hours * 3600 + minutes * 60
+    except:
+        return None
+
+def generate_geojson(route):
+   # this gets the raw coords text
+    query = select(Route.coordinates).where(Route.id == route.id)
+    raw_coordinates_str = db.session.scalar(query)
+    
+    # check to ensure that the coords are retrieved
+    if not raw_coordinates_str:
+        return None
+
+    # converts the raw coords into a list
+    raw_coords = json.loads(raw_coordinates_str)
+    
+    # changes every coord into lon/lat
+    corrected_coords = []
+    for x, y in raw_coords:
+        lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+        corrected_coords.append([lon, lat])
+        
+    # constructs the geojson dict
+    geojson_feature = {
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": corrected_coords
+        },
+        "properties": {
+            "route_id": route.id
+        }
+    }
+    
+    # returns as JSON string
+    return json.dumps(geojson_feature)
+
+def generate_gpx(route):
+    gpx = gpxpy.gpx.GPX() # initialises container
+    track = gpxpy.gpx.GPXTrack(name=route.name) # creates a track (the entire route) and adds it to the container (next line)
+    gpx.tracks.append(track) 
+    segment = gpxpy.gpx.GPXTrackSegment() # creates a segment (one connected part of a route) and adds it to the container (next line)
+    track.segments.append(segment)
+
+    coords = json.loads(route.coordinates)
+
+    for x, y in coords: # loops through each coord in one sub array in the coords array
+        lon, lat = service.convert_web_mercator_to_wgs84(x, y) # converts to lat and lon (needed for gpx)
+        segment.points.append(gpxpy.gpx.GPXTrackPoint(
+            latitude=lat,
+            longitude=lon
+        ))
+
+    return gpx.to_xml()
 
 # route which forms a path from the set of points the back-end receives as coordinates and returns it to the front-end
 @app.route("/calculate_path", methods=["POST"])
@@ -734,6 +821,61 @@ def get_routes():
     
     return jsonify({"routes": routes_list, "success": True})
 
+@app.route("/download_route", methods=["POST"])
+def download_route():
+    data = request.get_json(silent=True) or {} # silent to prevent errors and return None
+    
+    route_name = data.get('route_name', "").strip()
+    file_type = data.get('route_type').lower()
+
+    # ensures that routes have a name (defensive programming since it is almost impossible a route doesn't have a name due to design of app)
+    if not route_name:
+        return jsonify({"success": False, "message": "Route name is required"}), 400
+
+    # ensures that routes have a file type (also impossible since download occurs through either a gpx or a geojson button)
+    if file_type not in ["gpx", "geojson"]:
+        return jsonify({"success": False, "message": "Invalid file type. Use 'gpx' or 'geojson'"}), 400
+
+    user = get_current_user()
+    # ensures that a user is logged in
+    if not user:
+        return jsonify({"success": False, "message": "You must be logged in"}), 401
+
+    # both name and user id used to ensure only the specific user's route is deleted 
+    route = Route.query.filter_by(name=route_name, user_id=user.id).first()
+    
+    # ensures that a route is found before attempting to convert
+    if not route:
+        return jsonify({"success": False, "message": "Route not found or you don't own it"}), 404
+
+    print(route.coordinates)
+
+    try:
+        if file_type == "gpx":
+            content = generate_gpx(route)
+            mimetype = 'application/gpx+xml'
+            extension = 'gpx'
+        else:
+            content = generate_geojson(route)
+            mimetype = 'application/geo+json'
+            extension = 'geojson'
+
+        safe_name = "".join(
+            char if char.isalnum() or char in " -_()" else "_" 
+            for char in route.name
+        )
+
+        return send_file(
+            io.BytesIO(content.encode('utf-8')),
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=f"{safe_name}.{extension}"
+        )
+
+    except Exception as e:
+        print(f"Error whilst downloading {route_name}:", e)
+        return jsonify({"success": False, "message": "Failed to generate file"}), 500
+
 # route which deletes a saved point that is passed into the back-end from the front-end
 @app.route("/delete_point", methods=['POST'])
 @limiter.limit("110 per minute")
@@ -761,13 +903,14 @@ def delete_point():
 def delete_route():
     data = request.get_json()
     route_name = data.get("route_name")
+    user = get_current_user()
 
     if not route_name:
         return jsonify({"success": False, "message": "Route name is missing"}), 400
 
     try:
 
-        route = Route.query.filter_by(name=route_name).first()
+        route = Route.query.filter_by(name=route_name, user_id=user.id).first()
         db.session.delete(route)
         db.session.commit()
 
