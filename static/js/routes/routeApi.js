@@ -95,7 +95,23 @@ export async function loadRoute(routeName, fileType) {
  * @returns {Promise<Blob>}
  */
 export async function downloadRoute(routeName, format) {
-  // TODO: call a download endpoint when you add one on the backend, e.g.
-  // GET `/download_route?name=${encodeURIComponent(routeName)}&format=${format}`
-  throw new Error("downloadRoute is not implemented yet");
+
+  const url = window.appConfig.apiDownloadRouteUrl
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      route_name: routeName,
+      route_type: format
+    })
+  })
+
+  if (!response.ok) {
+    console.log(response.message || "no message from backend")
+    throw new Error(`HTTP Error, ${response.status}`)
+  }
+  return response
 }
+
+window.downloadRoute = downloadRoute
