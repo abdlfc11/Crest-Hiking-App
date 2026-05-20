@@ -1,5 +1,4 @@
 export { initSaveRoute } from "./saveRoute.js";
-export { initLoadRoute, refreshRouteList } from "./loadRoute.js";
 export {
   fetchRoutes,
   deleteRoute,

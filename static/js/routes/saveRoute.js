@@ -1,9 +1,10 @@
 import { getCurrentMode, getCurrentPathData, getLoadedRouteCoordinates, manualRouteState } from "./routeState.js";
-import { refreshRouteList } from "./loadRoute.js";
-import { defaultCentre, homeButtonFunction } from "../ui.js";
+import { defaultCentre, homeButtonFunction, } from "../ui.js";
 import { getMap } from "../map.js";
 
 let saveRouteForm = null;
+const allRoutesContainer = document.getElementById("all-routes-container");
+
 
 export function initSaveRoute() {
   saveRouteForm = document.getElementById("save-route-form");
@@ -21,9 +22,9 @@ function handleSaveRoute(e) {
   const messageDiv = document.getElementById("save-message");
   const distance = document.getElementById("route-distance-display")?.textContent;
   const eta = document.getElementById("route-eta-display")?.textContent;
-  const elevationChange = document.getElementById(
-    "route-elevation-change-display",
-  )?.textContent;
+  const elevationChange = document.getElementById("route-elevation-change-display")?.textContent;
+  const allRoutesContainer = document.getElementById("all-routes-container");
+
 
   if (!messageDiv) return;
 
@@ -74,7 +75,43 @@ function handleSaveRoute(e) {
         messageDiv.innerHTML = `<span style="color: green;">✓ ${data.message}</span>`;
         const routeNameInput = document.getElementById("route-name");
         if (routeNameInput) routeNameInput.value = "";
-        refreshRouteList();
+
+        const today = new Date();
+
+        const formattedToday = new Intl.DateTimeFormat('en-GB', {
+          "day": "2-digit",
+          "month": "2-digit",
+          "year": "2-digit"
+        }).format(today);
+
+        const routeCard = `<div class="route-card" data-route-name="${routeName}">
+                              <div class="route-card-header">
+                                  <h3 class="route-card-name">${routeName}</h3>
+                                  <span class="route-card-date">Saved on ${formattedToday}</span>
+                              </div>
+                              <div class="route-card-stats">
+                                  <div class="stat-item">
+                                      <span class="stat-label">Distance:</span>
+                                      <span class="stat-value">${distance}</span>
+                                  </div>
+                                  <div class="stat-item">
+                                      <span class="stat-label">ETA:</span>
+                                      <span class="stat-value">${eta}</span>
+                                  </div>
+                                  <div class="stat-item">
+                                      <span class="stat-label">Elevation Change:</span>
+                                      <span class="stat-value">${elevationChange}</span>
+                                  </div>
+                              </div>
+                              <div class="route-card-actions">
+                                  <button type="button" class="route-btn route-btn-delete">Delete</button>
+                                  <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
+                                  <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
+                                  <button type="button" class="route-btn route-btn-load">Load</button>
+                              </div>
+                          </div>
+                          `
+        if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
         homeButtonFunction();
       } else {
         messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;

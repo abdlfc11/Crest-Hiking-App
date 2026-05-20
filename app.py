@@ -816,7 +816,11 @@ def get_routes():
         routes_list.append({
             "name": route.name,
             "type": route.format,
-            "filename": f"{route.name}.{route.format}"
+            "filename": f"{route.name}.{route.format}",
+            "elevationChange": route.elevation_change,
+            "eta": route.ETA,
+            "distance": route.distance,
+            "created": route.created_at.strftime("%d/%m/%y")
         })
     
     return jsonify({"routes": routes_list, "success": True})
