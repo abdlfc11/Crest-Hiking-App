@@ -129,11 +129,15 @@ function showCoordInputError(entry, message) {
 
 function setStartCoord() {
   clickMode = "setStart";
+  startCoordEntry.style.borderColor = "#5a76e7";
+  startCoordEntry.placeholder = "Click a point on the map"
   mapElement.style.cursor = "crosshair";
 }
 
 function setEndCoord() {
   clickMode = "setEnd";
+  endCoordEntry.style.borderColor = "#5a76e7";
+  endCoordEntry.placeholder = "Click a point on the map"
   mapElement.style.cursor = "crosshair";
 }
 
@@ -141,6 +145,8 @@ function setCoordEntry(entry, event) {
   const coordinate = event.coordinate;
   const rounded = roundCoords(coordinate, 0);
   entry.value = `${rounded[0]}, ${rounded[1]}`;
+  entry.placeholder = "Coordinates"
+  entry.style.borderColor = "#e1cbcb"
   clickMode = null;
   mapElement.style.cursor = "grab";
 }

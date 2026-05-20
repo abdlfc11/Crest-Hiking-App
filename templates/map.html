@@ -238,7 +238,7 @@
             <div id="all-routes-container">
                 {% if available_routes %}
                     {% for route in available_routes %}
-                    <div class="route-card" data-route-name="{{ route.name }}" data-route-type="{{ route.format }}" >
+                    <div class="route-card" data-route-name="{{ route.name }}">
                         <div class="route-card-header">
                             <h3 class="route-card-name">{{ route.name }}</h3>
                             <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%y") }}</span>
@@ -265,9 +265,13 @@
                         </div>
                     </div>
                     {% endfor %}
-                {% else %}
-                    <p id="no-routes-message" class="no-routes-message">No saved routes yet.</p>
                 {% endif %}
+
+                <div class="saved-route-dash-no-route-content">
+                    <h3 class="saved-route-dash-no-routes-heading">Looks like you don't have any routes</h3>
+                    <h3 class="saved-route-dash-no-routes-heading">Create one below</h3>
+                    <button class="generate-button">Create a route</button>
+                </div>
             </div>
         </div>
 

@@ -59,10 +59,9 @@ export async function deleteRoute(routeName) {
 
 /**
  * @param {string} routeName
- * @param {string} fileType
  * @returns {Promise<{ success: boolean, path_geojson?: object, coordinates?: number[][], route_stats?: object, message?: string }>}
  */
-export async function loadRoute(routeName, fileType) {
+export async function loadRoute(routeName) {
   const url = window.appConfig.apiLoadRouteUrl;
 
   const response = await fetch(url, {
@@ -70,7 +69,6 @@ export async function loadRoute(routeName, fileType) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       route_name: routeName,
-      file_type: fileType
     }),
   });
 
@@ -91,11 +89,13 @@ export async function loadRoute(routeName, fileType) {
 /**
  * @param {string} routeName
  * @param {"gpx" | "geojson"} format
+ * @param {HTMLButtonElement} DOMElement
  * @returns {Promise<Blob>}
  */
-export async function downloadRoute(routeName, format) {
+export async function downloadRoute(routeName, format, DOMElement) {
 
   const url = window.appConfig.apiDownloadRouteUrl
+  DOMElement.classList.add('loading');
 
   const response = await fetch(url, {
     method: "POST",
@@ -110,6 +110,7 @@ export async function downloadRoute(routeName, format) {
     console.log(response.message || "no message from backend")
     throw new Error(`HTTP Error, ${response.status}`)
   }
+  DOMElement.classList.remove('loading')
   return response
 }
 
