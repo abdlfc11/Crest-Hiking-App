@@ -8,12 +8,11 @@ import { addClickListener, closeNav, closeSavedRoutesDash,  } from "../ui.js"
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
 
-// import { deleteRoute, loadRoute, downloadRoute, } from "./routeApi.js";
+const allRoutesContainer = document.getElementById("all-routes-container");
 
-let allRoutesContainer = null;
 
 /**
- * Read route name + format from the nearest .route-card.
+ * reads the route name and format from the closest route card
  * @param {Element} routeCardElement
  * @returns {{ routeName: string, routeType: string } | null}
  */
@@ -24,10 +23,11 @@ export function getRouteFromCard(routeCardElement) {
   const routeType = routeCardElement.dataset.routeType;
   if (!routeName || !routeType) return null;
 
-  return { routeName, routeType };
+  return { routeName};
 }
 
 /**
+ * handler for controlling the sequence of events that occur following the clicking of the load route button 
  * @param {MouseEvent} event
  */
 async function onLoadClick(event) {
@@ -45,6 +45,7 @@ async function onLoadClick(event) {
 }
 
 /**
+ * handler for controlling the sequence of events that occur following the clicking of the delete route button 
  * @param {MouseEvent} event
  */
 async function onDeleteClick(event) {
@@ -52,13 +53,13 @@ async function onDeleteClick(event) {
   const route = getRouteFromCard(routeCard);
   if (!route) return;
 
-  const check = confirm(`Are you sure you want to delete the route: ${route.routeName} (${route.routeType.toUpperCase()})?`);
+  const check = confirm(`Are you sure you want to delete the route: ${route.routeName}?`);
   if (!check) {
     return;
   }
 
   try {
-    const response = await deleteRoute(route.routeName, route.routeType);
+    const response = await deleteRoute(route.routeName);
     if (response.success) {
      routeCard.remove();
     }
@@ -71,20 +72,29 @@ async function onDeleteClick(event) {
 }
 
 /**
+ * handler for controlling the sequence of events that occur following the clicking of the download route button 
  * @param {MouseEvent} event
  * @param {"gpx" | "geojson"} format
+ * @param {HTMLButtonElement} DOMElement
  */
-async function onDownloadClick(event, format) {
+async function onDownloadClick(event, format, DOMElement) {
+
+  const temp = DOMElement.innerHTML
+  DOMElement.classList.add('loading')
+  DOMElement.disabled = true;
 
   event.preventDefault();
 
   const routeCard = event.target.closest(".route-card")
   const route = getRouteFromCard(routeCard);
   if (!route) return;
-
-  // TODO: await downloadRoute(route.routeName, format) and trigger a file download
-
+  
   try {
+
+    setTimeout(() => {
+      DOMElement.disabled = false;
+      DOMElement.classList.remove
+    }, 800)
 
     const response = await downloadRoute(route.routeName, format); 
     
@@ -116,6 +126,9 @@ async function onDownloadClick(event, format) {
     console.error("Download route failed: ", error)
   }
 }
+/** 
+  * handles adding the event listeners for each button on the route card
+*/
 
 function bindRouteCardButtons() {
   if (!allRoutesContainer) return;
@@ -134,14 +147,17 @@ function bindRouteCardButtons() {
       onLoadClick(e)
     }
     else if (gpxButton) {
-      onDownloadClick(e, "gpx")
+      onDownloadClick(e, "gpx", gpxButton)
     }
     else if (geojsonButton) {
-      onDownloadClick(e, "geojson")
+      onDownloadClick(e, "geojson", geojsonButton)
     }
   })
 }
 
+/**
+ * responsible for adding event listener to the go back button
+ */
 function bindNavigation() {
   const goBackButton = document.getElementById("go-back-button");
   if (goBackButton) {
@@ -150,9 +166,10 @@ function bindNavigation() {
     });
   }
 }
-
+/**
+ * function responsbile for initialising the event listeners by calling both functions associated with adding event listeners 
+ */
 export function initSavedRoutesDashboard() {
-  allRoutesContainer = document.getElementById("all-routes-container");
   bindNavigation();
   bindRouteCardButtons();
 }

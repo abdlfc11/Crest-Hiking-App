@@ -86,29 +86,6 @@
                 <button type="button" id="clear-manual-route" class="generate-button">Clear Route</button>
             </div>
         </div>
-
-        <div id="load-route" class="load-route">
-            <div class="coords-header">
-                <span class="coords-title">Load Route</span>
-            </div>
-            <div class="coords-content">
-                <div id="load-route-dropdown">
-                    <div class="load-route-selected" id="selected-route-display">Choose a route</div>
-                        <div class="load-route-list" id="route-list">
-                            {% for route in available_routes %}
-                                <div class="load-route-item" data-name="{{ route.name }}" data-type="{{ route.format }}">
-                                    <span class="load-route-name">{{ route.name }} ({{ route.format.upper() }})</span>
-                                    <span class="load-route-delete" title="Delete Route" data-name="{{ route.name }}" data-type="{{ route.format }}">X</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <input type="hidden" id="selected-route-name" name="load_route_name">
-                        <input type="hidden" id="selected-route-type">
-                    </div>
-                    <button id="load-route-button" class="generate-button">Load Route</button>
-                <div id="load-message"></div>
-            </div>
-        </div>
         
         <div id="save-route" {% if not current_path %}style="display: none;"{% endif %}>
             <div class="coords-header">
@@ -281,10 +258,10 @@
                             </div>
                         </div>
                         <div class="route-card-actions">
-                            <button type="button" class="route-btn route-btn-load">Load</button>
+                            <button type="button" class="route-btn route-btn-delete">Delete</button>
                             <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
                             <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
-                            <button type="button" class="route-btn route-btn-delete">Delete</button>
+                             <button type="button" class="route-btn route-btn-load">Load</button>
                         </div>
                     </div>
                     {% endfor %}

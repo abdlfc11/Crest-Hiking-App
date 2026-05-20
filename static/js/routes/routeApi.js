@@ -31,7 +31,7 @@ export async function fetchRoutes() {
  * @param {string} fileType - e.g. "geojson" | "gpx"
  * @returns {Promise<{ success: boolean, message?: string, [key: string]: unknown }>}
  */
-export async function deleteRoute(routeName, routeType) {
+export async function deleteRoute(routeName) {
 
     const url = window.appConfig.apiDeleteRouteUrl
 
@@ -40,7 +40,6 @@ export async function deleteRoute(routeName, routeType) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         route_name: routeName,
-        file_type: routeType
       }),
     });
 

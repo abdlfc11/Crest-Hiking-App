@@ -26,8 +26,6 @@ import {
 } from "./saved_points/style.js";
 import {
   initSaveRoute,
-  initLoadRoute,
-  refreshRouteList,
   loadRoute,
 } from "./routes/index.js";
 import {
@@ -71,7 +69,6 @@ const selectedRouteDisplay = document.getElementById("selected-route-display");
 const selectedRouteName = document.getElementById("selected-route-name");
 const selectedRouteType = document.getElementById("selected-route-type");
 const saveRouteDiv = document.getElementById("save-route");
-const loadRouteDiv = document.getElementById("load-route");
 const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
 const pointDeleteModalNameDisplay = document.getElementById("point-name-display");
 const pointDeleteDeleteButton = document.getElementById("point-delete-delete-button");
@@ -85,6 +82,33 @@ const savedRoutesDashContent = document.getElementById('saved-routes-dashboard')
 let clickMode = null;
 let manualRouteLayer = null;
 let selectedPoint = null;
+
+// check if user is on mobile and take subsequent action to inform them of decision to make Crest desktop only for now
+function checkIfMobile() {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;   
+
+  if (isMobile) {
+      document.body.innerHTML = `
+          <div style="height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; font-family: system-ui;">
+              <div>
+                  <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Crest Hiking App</h1>
+                  <p style="font-size: 1.3rem; margin-bottom: 2rem;">
+                      This website is designed for desktop only.
+                  </p>
+                  <p style="max-width: 500px; margin: 0 auto 2rem;">
+                      For the best experience on your phone, we’re building a dedicated mobile app.<br><br>
+                      In the meantime, please visit us on a laptop or desktop computer.
+                  </p>
+                  <button onclick="window.location.reload()" 
+                          style="padding: 14px 32px; font-size: 1.1rem; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                      Refresh Anyway
+                  </button>
+              </div>
+          </div>
+      `;
+  }
+}
+
 
 export function addClickListener(element, func, type) {
   if (element) element.addEventListener(type, func);
@@ -219,7 +243,6 @@ function switchToAutoMode() {
 
   clearManualRoute();
   clearAutoRoute();
-  updateLoadRouteVisibility();
 }
 
 function switchToManualMode() {
@@ -236,22 +259,6 @@ function switchToManualMode() {
   map.un("click", mapClickHandler);
   map.on("click", manualRouteClickHandler);
   clearAutoRoute();
-  updateLoadRouteVisibility();
-}
-
-export function updateLoadRouteVisibility() {
-  if (!loadRouteDiv) return;
-
-  if (getCurrentMode() === "manual") {
-    loadRouteDiv.style.display = "none";
-    return;
-  }
-
-  const pathData = getCurrentPathData();
-  const loaded = getLoadedRouteCoordinates();
-  const hasPath =
-    (pathData && pathData.length > 0) || (loaded && loaded.length > 0);
-  loadRouteDiv.style.display = hasPath ? "none" : "block";
 }
 
 export function clearAutoRoute() {
@@ -292,7 +299,7 @@ export function clearAutoRoute() {
   if (saveRouteDiv) saveRouteDiv.style.display = "none";
   if (loadRouteDiv) loadRouteDiv.style.display = "block";
 
-  updateLoadRouteVisibility();
+  
 }
 
 export function clearManualRoute() {
@@ -315,7 +322,7 @@ export function clearManualRoute() {
   clearPathState();
   getRouteLayer()?.getSource().clear();
 
-  updateLoadRouteVisibility();
+  
 }
 
 export function homeButtonFunction() {
@@ -370,7 +377,7 @@ export function homeButtonFunction() {
 
   clearPathState();
   if (saveRouteDiv) saveRouteDiv.style.display = "none";
-  updateLoadRouteVisibility();
+  
   loadAndDisplaySavedPoints();
 }
 
@@ -410,9 +417,7 @@ function searchArea() {
 
 async function mapRenderComplete() {
 
-  loadAndDisplaySavedPoints();
-  refreshRouteList();
-  updateLoadRouteVisibility();
+  loadAndDisplaySavedPoints();  
 }
 
 async function handleAutoRouteGeneration() {
@@ -434,7 +439,7 @@ async function handleAutoRouteGeneration() {
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;
-    updateLoadRouteVisibility();
+    
   }
 }
 
@@ -685,7 +690,6 @@ export function initUi() {
   if (mapElement) mapElement.style.cursor = "grab";
 
   initSaveRoute();
-  initLoadRoute({ updateLoadRouteVisibility });
   initPointDeleteHandlers();
 
   setOnDistanceUnitChange(() => updateManualRoute());
@@ -704,6 +708,7 @@ export function initUi() {
   addClickListener(clearAutoRouteButton, clearAutoRoute, "click");
   addClickListener(clearManualRouteButton, clearManualRoute, "click");
   addClickListener(searchForAreaButton, searchArea, "click");
+  window.addEventListener('load', checkIfMobile);
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);
