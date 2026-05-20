@@ -1,6 +1,7 @@
 import { getCurrentMode, getCurrentPathData, getLoadedRouteCoordinates, manualRouteState } from "./routeState.js";
 import { defaultCentre, homeButtonFunction, } from "../ui.js";
 import { getMap } from "../map.js";
+import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
@@ -52,7 +53,7 @@ function handleSaveRoute(e) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       route_name: routeName,
-      format,
+      format: format,
       coordinates: pathCoordinates,
       route_distance: distance,
       route_ETA: eta,
@@ -84,7 +85,7 @@ function handleSaveRoute(e) {
           "year": "2-digit"
         }).format(today);
 
-        const routeCard = `<div class="route-card" data-route-name="${routeName}">
+        const routeCard = `<div class="route-card" data-route-name="${routeName} data-route-type="${format}">
                               <div class="route-card-header">
                                   <h3 class="route-card-name">${routeName}</h3>
                                   <span class="route-card-date">Saved on ${formattedToday}</span>
@@ -110,8 +111,9 @@ function handleSaveRoute(e) {
                                   <button type="button" class="route-btn route-btn-load">Load</button>
                               </div>
                           </div>
-                          `
+                          `;
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
+        initSavedRoutesDashboard();
         homeButtonFunction();
       } else {
         messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;

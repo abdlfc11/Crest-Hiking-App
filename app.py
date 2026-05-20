@@ -73,6 +73,7 @@ class User(db.Model):
 
     routes = db.relationship("Route", back_populates="user")
     points = db.relationship("Point", back_populates="user")
+    settings = db.relationship("Settings", back_populates="user")
 
 class Route(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -95,6 +96,14 @@ class Point(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User", back_populates="points")
+
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key = db.Column(db.String, nullable=False)
+    value = db.Column(db.String, nullable=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user = db.relationship("User", back_populates="settings")
 
 # useful helper for getting the current user during route and point creation as well as logging in and out 
 def get_current_user():
@@ -119,7 +128,9 @@ def strftime_filter(date, format: str):
         date = datetime.isoformat(date)
     return date.strftime(format)
 
-# LOGGING IN AND OUT
+# region AUTH FLASK ROUTES
+
+#region LOGGING IN AND OUT
 
 @app.route("/login", methods=["POST"])
 @limiter.limit("10 per minute")
@@ -146,8 +157,10 @@ def logout():
     username = session.get("username", "user")
     session.pop('username', None)
     return jsonify({"success": True, "message": f"Sucessfully logged out of {username}"})
+
+#endregion
     
-# REGISTERING 
+# region REGISTERING 
 @app.route("/registering", methods=["POST"])
 @limiter.limit("10 per minute")
 def registering():
@@ -188,7 +201,9 @@ def registering():
     except Exception:
         return jsonify({"success": False, "message": "There was an unexpected error with our database"})
 
-# DELETING ACCOUNT
+#endregion
+
+# region DELETING ACCOUNT
 @app.route("/delete_account", methods=["POST"])
 @limiter.limit("10 per minute")
 def delete_account():
@@ -208,7 +223,37 @@ def delete_account():
             print("ERROR:", e)
             return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
+#endregion
 
+#endregion
+
+# region SETTINGS FLASK ROUTE
+
+@app.route("/get_settings")
+def get_settings():
+    user = get_current_user()
+
+    if not user:
+        return jsonify({"success": False, "message": "Error: no user found"}), 401
+    
+    settings_dict = {}
+
+    try:
+        settings = Settings.query.filter_by(user_id=user.id).all()
+        for setting in settings:
+            settings_dict[setting.key] = setting.value
+    except Exception as error:
+        print(f"FATAL ERROR (SETTINGS): could not retrieve settings -> {error}")
+        return jsonify({"success": False, "message": "Could not retrieve settings"}), 500
+    
+    return jsonify({
+        "success": True,
+        "settingsDictionary": settings_dict
+    })
+    
+
+
+#endregion
 
 # ROUTE CREATION  
 
@@ -978,50 +1023,6 @@ def map_view():
                            saved_points=web_mercator_points,
                            logged_in = (user is not None))
 
-
-
-# route which resets all values within entries and returns the user to the main-menu of the application
-@app.route("/js/config.js")
-def map_jinja_js():
-
-    print("DEBUG STATEMENT : /js/config.js file reached")
-
-    web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
-    
-    # gets list of available routes and points for the JavaScript
-    user = get_current_user()
-    if user is None:
-        available_routes = []
-        saved_points = []
-        current_path = None
-        logged_in = False
-    else:
-        available_routes = Route.query.filter_by(user_id=user.id).all()
-        saved_points = Point.query.filter_by(user_id=user.id).all()
-        current_path = session.get('current_path', None)
-        logged_in = True
-
-    web_mercator_points = []
-    for point in saved_points:
-        try:
-            bng_x, bng_y = json.loads(point.coordinates)
-            web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-            web_mercator_points.append({
-                "name": point.name,
-                "coordinates": [web_mercator_x, web_mercator_y]
-            })
-        except Exception as e:
-            print(f"Error in conversion: {e}")
-            continue
-    
-    response = app.make_response(render_template("js/config.js",
-                           map_centre = web_mercator_center,
-                           map_zoom = 10,
-                           current_path = current_path,
-                           saved_points = web_mercator_points,
-                           logged_in = logged_in))
-    response.headers['Content-Type'] = 'application/javascript'
-    return response
 
 @app.route("/reset", methods=["GET"])
 @limiter.limit("200 per minute")

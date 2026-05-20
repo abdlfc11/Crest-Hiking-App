@@ -37,7 +37,7 @@ async function onLoadClick(event) {
 
   await closeSavedRoutesDash();
   await closeNav();
-  const data = await loadRoute(route.routeName, route.routeType);
+  const data = await loadRoute(route.routeName);
   await displayLoadedRouteOnMap(data);
   await setLoadedRouteCoordinates(data.coordinates);
   await setCurrentPathData(data.coordinates);
@@ -117,19 +117,19 @@ async function onDownloadClick(event, format, DOMElement) {
 
     a.click(); // simulates click starting the download
 
-    document.body.removeChild(a); // good practice to remove
-
-    URL.revokeObjectURL(url); // also good pratice to remove
+    // good practice to remove the link + download url
+    document.body.removeChild(a); 
+    URL.revokeObjectURL(url);
 
   } 
   catch(error) {
     console.error("Download route failed: ", error)
   }
 }
+
 /** 
   * handles adding the event listeners for each button on the route card
 */
-
 function bindRouteCardButtons() {
   if (!allRoutesContainer) return;
 
