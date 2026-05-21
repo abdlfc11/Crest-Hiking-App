@@ -77,7 +77,11 @@ const dialogWrapper = deletePointConfirmationDialog?.querySelector(".wrapper");
 
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
 const closeSavedRoutesDashButton = document.getElementById('saved-routes-dash-go-back-button');
-const savedRoutesDashContent = document.getElementById('saved-routes-dashboard')
+const savedRoutesDashContent = document.getElementById('saved-routes-dashboard');
+
+const settingOpenButton = document.getElementById("settings-open-button");
+const settingCloseButton = document.getElementById("settings-close-button");
+const settingPanel = document.getElementById("settings-panel");
 
 let clickMode = null;
 let manualRouteLayer = null;
@@ -109,7 +113,12 @@ function checkIfMobile() {
   }
 }
 
-
+/**
+ * 
+ * @param {DOMElement} element 
+ * @param {function} func 
+ * @param {Event} type 
+ */
 export function addClickListener(element, func, type) {
   if (element) element.addEventListener(type, func);
 }
@@ -214,12 +223,21 @@ function openNav() {
 export function closeNav() {
   navBar.style.width = "0";
 }
+
 function openSavedRoutesDash() {
   savedRoutesDashContent.style.width = "100vw";
 }
 
 export function closeSavedRoutesDash() {
   savedRoutesDashContent.style.width = "0";
+}
+
+function openSettings() {
+  settingPanel.style.width = "100vw";
+}
+
+export function closeSettings() {
+  settingPanel.style.width = "0";
 }
 
 function handleToggles(event) {
@@ -704,8 +722,10 @@ export function initUi() {
   addClickListener(setEndCoordButton, setEndCoord, "click");
   addClickListener(openNavButton, openNav, "click");
   addClickListener(closeNavButton, closeNav, "click");
-  addClickListener(openSavedRoutesDashButton, openSavedRoutesDash, "click")
-  addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click")
+  addClickListener(openSavedRoutesDashButton, openSavedRoutesDash, "click");
+  addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click");
+  addClickListener(settingOpenButton, openSettings, "click");
+  addClickListener(settingCloseButton, closeSettings, "click");
   addClickListener(autoModeOption, handleToggles, "click");
   addClickListener(manualModeOption, handleToggles, "click");
   addClickListener(autoModeOption, switchToAutoMode, "click");

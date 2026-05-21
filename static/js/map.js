@@ -4,7 +4,7 @@ export let map = null;
 export let tileLayer = null;
 export let routeLayer = null;
 
-let mapInitialized = false;
+let mapInitialised = false;
 
 export function getMap() {
   return map;
@@ -27,8 +27,8 @@ export function setTileLayer(layer) {
 }
 
 export function initMap() {
-  if (mapInitialized) return;
-  mapInitialized = true;
+  if (mapInitialised) return;
+  mapInitialised = true;
   createTileLayer();
   createMap();
   createRouteLayer();

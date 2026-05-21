@@ -143,14 +143,12 @@ def login():
 
     if user and check_password_hash(user.password_hashed, password):
         session["username"] = username
-        session["name"] = user.name
+        session["preferred_name"] = user.preferred_name if user.preferred_name else user.username
         print(session["username"])
-        print(session)
+        print(session["preferred_name"])
         session.permanent = True  # Make session respect PERMANENT_SESSION_LIFETIME
         return jsonify({"success": True, "message": "Successfully logged in"})
-    if user is None:
-        return jsonify({"success": False, "message": "User does not exist"})
-    else:
+    if user is None or not check_password_hash(user.password_hashed, password):
         return jsonify({"success": False, "message": "Username and/or Password are incorrect"})
 
 @app.route("/logout", methods=["POST"])
