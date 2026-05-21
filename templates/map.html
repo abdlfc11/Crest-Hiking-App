@@ -218,62 +218,8 @@
 
     <div id="the-sidenav" class="sidenav">
         <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-        <a id="saved-routes-dash-open-button">Saved Routes</a>
+        <a href="saved_routes">Saved Routes</a>
     </div>
-
-
-    <!-- SAVED ROUTE DASH -->
-
-    <div id="saved-routes-dashboard">
-        <div class="inner-content">
-            <div id="top-section">
-                <div id="dashboard-header">
-                    <h1>Hi {{ session.get("username") }}, these are your saved routes</h1>
-                </div>
-                <div id="go-back-button-container">
-                    <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
-                </div>
-            </div>
-
-            <div id="all-routes-container">
-                {% if available_routes %}
-                    {% for route in available_routes %}
-                    <div class="route-card" data-route-name="{{ route.name }}">
-                        <div class="route-card-header">
-                            <h3 class="route-card-name">{{ route.name }}</h3>
-                            <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%y") }}</span>
-                        </div>
-                        <div class="route-card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Distance:</span>
-                                <span class="stat-value">{{ route.distance }} km</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">ETA:</span>
-                                <span class="stat-value">{{ route.ETA }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Elevation Change:</span>
-                                <span class="stat-value">{{ route.elevation_change }}</span>
-                            </div>
-                        </div>
-                        <div class="route-card-actions">
-                            <button type="button" class="route-btn route-btn-delete">Delete</button>
-                            <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
-                            <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
-                             <button type="button" class="route-btn route-btn-load">Load</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% endif %}
-
-                <div class="saved-route-dash-no-route-content">
-                    <h3 class="saved-route-dash-no-routes-heading">Looks like you don't have any routes</h3>
-                    <h3 class="saved-route-dash-no-routes-heading">Create one below</h3>
-                    <button class="generate-button">Create a route</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- ADD A REAL NAME OPTION WHEN REGISTERING !!!

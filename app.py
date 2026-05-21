@@ -227,76 +227,7 @@ def delete_account():
             print("ERROR:", e)
             return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
-#endregion
 
-#endregion
-
-# region SETTINGS FLASK ROUTE
-
-@app.route("/get_settings")
-def get_settings():
-    user = get_current_user()
-
-    if not user:
-        return jsonify({"success": False, "message": "Error: no user found"}), 401
-    
-    settings_dict = {}
-
-    try:
-        settings = Settings.query.filter_by(user_id=user.id).all()
-        for setting in settings:
-            settings_dict[setting.key] = setting.value
-    except Exception as error:
-        print(f"FATAL ERROR (SETTINGS): could not retrieve settings -> {error}")
-        return jsonify({"success": False, "message": "Could not retrieve settings"}), 500
-    
-    return jsonify({
-        "success": True,
-        "settingsDictionary": settings_dict
-    })
-
-@app.route("/save_settings")
-def save_settings():
-    data = request.get_json()
-    settings = data.get("settings_dict")
-    user = get_current_user()
-
-    if not user:
-        return jsonify({"success": False, "message": "Error: no user found"}), 401
-
-    try:
-        existing_records = Settings.query.filter_by(user_id=user.id).all()
-        settings_dictionary = {record.key: record for record in existing_records} # key object used to ensure that SQLAlchemy can track and update changes
-
-        db_changed = False # tracker to ensure when to commit and when to pass with no changes
-
-        for key, new_value in settings.items():
-            if key in settings_dictionary:
-                record = settings_dictionary[key]
-                if record.value != new_value:
-                    record.value = new_value
-                    db_changed = True
-            else:
-                new_record = Settings(user_id=user.id, key=key, value=new_value)
-                db.session.add(new_record)
-                db_changed = True
-        
-        if db_changed:
-            db.session.commit()
-        
-        return jsonify({"success": True, "message": "Successfully saved settings"}), 200
-
-    except Exception as error:
-        db.session.rollback()
-        print("ERROR WHILE SAVING SETTINGS: ", error)
-        return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
-
-
-    
-    
-
-
-#endregion
 
 # ROUTE CREATION  
 
