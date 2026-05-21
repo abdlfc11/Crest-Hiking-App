@@ -27,7 +27,6 @@
                 <span id="open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
                 <span class="coords-title">Path Generation</span>
                 <button id="auto-home-button" class="home-button">&#8635</button>
-                <button id="settings-button" class="settings-button" title="Settings" type="button"><i data-lucide="settings"></i></button>
             </div>
             <div class="coords-content" id="auto-mode-content">
                     <div class="coord-row">
@@ -152,35 +151,6 @@
             </div>
         </dialog>
 
-        <div id="settings-modal" class="settings-modal">
-            <div class="settings-modal-content">
-                <div class="settings-modal-header">
-                    <h2>Settings</h2>
-                    <button id="settings-close" class="settings-close-button">&times;</button>
-                </div>
-                <div class="settings-modal-body">
-                    <div class="setting-item">
-                        <label for="distance-unit-toggle" class="setting-label">
-                            <span>Distance Unit</span>
-                            <span class="setting-description">Kilometres / Miles</span>
-                        </label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="distance-unit-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div id="bottom-settings-container">
-                        <div id="logout-button-container">
-                            <button class="generate-button" id="logout-button">Log out</button>
-                        </div>
-                        <div id="delete-user-button-container">
-                            <button id="delete-user-button">Delete Account</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         {% if route_stats %}
         <div id="route-stats">
             <div class="stats-header">
@@ -219,7 +189,7 @@
         <div class="inner-content">
             <div id="top-section">
                 <div id="dashboard-header">
-                    <h1>Hi {{ session.get("preferred_name") }}, these are your saved routes</h1>
+                    <h1>Hi, {{ session.get("preferred_name") }}, these are your saved routes</h1>
                 </div>
                 <div id="go-back-button-container">
                     <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
@@ -282,7 +252,7 @@
                 <div class="settings-item">
                     <div class="settings-text">
                         <span class="settings-title">Distance Units</span>
-                        <span class="settings-description">Toggle between Kilometers and Miles</span>
+                        <span class="settings-description">Toggle between Kilometres and Miles</span>
                     </div>
                     
                     <label class="switch-toggle">
@@ -324,7 +294,9 @@
             apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
             apiSaveRouteUrl: "{{ url_for('save_route') }}",
             mapPageUrl: "{{ url_for('map_view') }}",
-            apiDownloadRouteUrl: "{{ url_for('download_route') }}"
+            apiDownloadRouteUrl: "{{ url_for('download_route') }}",
+            apiSaveSettings: "{{ url_for('save_settings') }}",
+            apiGetSettings: "{{ url_for('get_settings') }}"
         };
     </script>
 

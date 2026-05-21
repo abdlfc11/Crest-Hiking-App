@@ -255,10 +255,10 @@ def get_settings():
         print("ERROR WHILE RETRIEVING SETTINGS: ", error)
         return jsonify({"success": False, "message": "There was an error whilst retrieving settings"}), 500
 
-@app.route("/save_settings", methods=["POST"]) # Good habit to explicitly state methods
+@app.route("/save_settings", methods=["POST"]) 
 def save_settings():
     data = request.get_json()
-    settings = data.get("settings_dict") or {} # Guard against None values
+    settings = data.get("settings_dict") or {} 
     user = get_current_user()
 
     if not user:
