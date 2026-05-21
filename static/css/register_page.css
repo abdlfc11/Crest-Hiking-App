@@ -65,6 +65,13 @@
     outline: none;
 }
 
+.inner-entry-asterisk {
+    pointer-events: none;
+    position: absolute;
+    color: #ff4d4d;
+    left: 16.35rem;
+    bottom: 2rem;
+}
 
 .inner-entry-label {
     pointer-events: none;

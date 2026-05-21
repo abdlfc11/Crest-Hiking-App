@@ -67,9 +67,10 @@ limiter = Limiter(
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(25), nullable=False, unique=True)
+    username = db.Column(db.String(25), nullable=False, index=True, unique=True)
+    preferred_name = db.Column(db.String(30), nullable=True, unique=False)
     password_hashed = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default= lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     routes = db.relationship("Route", back_populates="user")
     points = db.relationship("Point", back_populates="user")
@@ -142,6 +143,7 @@ def login():
 
     if user and check_password_hash(user.password_hashed, password):
         session["username"] = username
+        session["name"] = user.name
         print(session["username"])
         print(session)
         session.permanent = True  # Make session respect PERMANENT_SESSION_LIFETIME
@@ -168,6 +170,7 @@ def registering():
     username = data.get("username", "").strip()
     p1 = data.get("password1", "")
     p2 = data.get("password2", "")
+    preferred_name = data.get("preferred_name").strip()
 
     if not username or len(username) <= 7:
         return jsonify({"success": False, "message": "Username must have at least 8 characters"})
@@ -192,6 +195,7 @@ def registering():
     try:
         new_user = User(
             username = username,
+            preferred_name = preferred_name,
             password_hashed = generate_password_hash(p1)
         )
         db.session.add(new_user)
@@ -250,6 +254,45 @@ def get_settings():
         "success": True,
         "settingsDictionary": settings_dict
     })
+
+@app.route("/save_settings")
+def save_settings():
+    data = request.get_json()
+    settings = data.get("settings_dict")
+    user = get_current_user()
+
+    if not user:
+        return jsonify({"success": False, "message": "Error: no user found"}), 401
+
+    try:
+        existing_records = Settings.query.filter_by(user_id=user.id).all()
+        settings_dictionary = {record.key: record for record in existing_records} # key object used to ensure that SQLAlchemy can track and update changes
+
+        db_changed = False # tracker to ensure when to commit and when to pass with no changes
+
+        for key, new_value in settings.items():
+            if key in settings_dictionary:
+                record = settings_dictionary[key]
+                if record.value != new_value:
+                    record.value = new_value
+                    db_changed = True
+            else:
+                new_record = Settings(user_id=user.id, key=key, value=new_value)
+                db.session.add(new_record)
+                db_changed = True
+        
+        if db_changed:
+            db.session.commit()
+        
+        return jsonify({"success": True, "message": "Successfully saved settings"}), 200
+
+    except Exception as error:
+        db.session.rollback()
+        print("ERROR WHILE SAVING SETTINGS: ", error)
+        return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
+
+
+    
     
 
 

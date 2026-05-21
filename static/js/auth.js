@@ -17,6 +17,7 @@ const registerScreen = document.getElementById("register-screen");
 const registerPasswordEntry1 = document.getElementById("register-password-entry1");
 const registerPasswordEntry2 = document.getElementById("register-password-entry2");
 const registerUsernameEntry = document.getElementById("register-username-entry");
+const registerPreferredNameEntry = document.getElementById("register-preferred-name-entry");
 const specialCharacters = [
   "@", "#", "$", "%", "^",
   "&", "*", "(", ")", "_",
@@ -93,6 +94,7 @@ function register() {
   const username = registerUsernameEntry.value;
   const password1 = registerPasswordEntry1.value;
   const password2 = registerPasswordEntry2.value;
+  const preferredName = registerPreferredNameEntry.value;
 
   const message = validateRegisterInput(username, password1, password2);
 
@@ -111,6 +113,7 @@ function register() {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      preferred_name: preferredName,
       username: username,
       password1: password1,
       password2: password2,
@@ -140,7 +143,13 @@ function clearRegisterEntries() {
 }
 
 // validation
-
+/**
+ * 
+ * @param {string} username 
+ * @param {string} p1 
+ * @param {string} p2 
+ * @returns 
+ */
 function validateRegisterInput(username, p1, p2) {
   const thereIsSpecialCharacter = specialCharacters.some((word) =>
     p1.includes(word),
