@@ -30,4 +30,9 @@ instance/
 # graph testing files
 testing_stuff.py
 
+# agent guides
+AGENTS.md
+
+app.py
+
 .wiki/
