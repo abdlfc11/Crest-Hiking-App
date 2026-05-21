@@ -228,6 +228,72 @@ def delete_account():
             return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
 
+#endregion
+
+#endregion
+
+#region SETTING ROUTES
+
+@app.route("/get_settings", methods=["GET"])
+def get_settings():
+    user = get_current_user()
+    if not user:
+        return jsonify({"success": False, "message": "Error: no user found"}), 401
+
+    try:
+        # all setting records are queried
+        existing_records = Settings.query.filter_by(user_id=user.id).all()
+        
+        # makes key value pairs in the structure (setting: user_choice)
+        settings_payload = {record.key: record.value for record in existing_records}
+        
+        # returns data in a valid format
+        return jsonify({
+            "success": True, 
+            "settings_dict": settings_payload
+        }), 200
+
+    except Exception as error:
+        print("ERROR WHILE RETRIEVING SETTINGS: ", error)
+        return jsonify({"success": False, "message": "There was an error whilst retrieving settings"}), 500
+
+@app.route("/save_settings", methods=["POST"]) # Good habit to explicitly state methods
+def save_settings():
+    data = request.get_json()
+    settings = data.get("settings_dict") or {} # Guard against None values
+    user = get_current_user()
+
+    if not user:
+        return jsonify({"success": False, "message": "Error: no user found"}), 401
+
+    try:
+        existing_records = Settings.query.filter_by(user_id=user.id).all()
+        settings_dictionary = {record.key: record for record in existing_records}
+
+        db_changed = False 
+
+        for key, new_value in settings.items():
+            if key in settings_dictionary:
+                record = settings_dictionary[key]
+                if record.value != new_value:
+                    record.value = new_value
+                    db_changed = True
+            else:
+                new_record = Settings(user_id=user.id, key=key, value=new_value)
+                db.session.add(new_record)
+                db_changed = True 
+        
+        if db_changed:
+            db.session.commit()
+        
+        return jsonify({"success": True, "message": "Successfully saved settings"}), 200
+
+    except Exception as error:
+        db.session.rollback()
+        print("ERROR WHILE SAVING SETTINGS: ", error)
+        return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
+#endregion
+
 
 # ROUTE CREATION  
 
