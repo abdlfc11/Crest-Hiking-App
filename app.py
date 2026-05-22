@@ -22,6 +22,7 @@ from datetime import timedelta
 import gpxpy
 import gpxpy.gpx
 import io
+import re
 
 
 
@@ -83,7 +84,8 @@ class Route(db.Model):
     format = db.Column(db.String(25), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     ETA = db.Column(db.String(100), nullable=False)
-    distance = db.Column(db.String(100), nullable=False) 
+    distance = db.Column(db.String(100), nullable=True) 
+    distance_km = db.Column(db.Float, nullable=True)
     elevation_change = db.Column(db.String(20), nullable=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -731,7 +733,8 @@ def save_route():
         coordinates = data.get("coordinates")
         format_type = data.get("format")
         route_distance = data.get("route_distance")
-        route_distance = route_distance.replace("km", "").replace("m", "").strip()
+        legacy_route_distance = route_distance.replace("km", "").replace("m", "").strip() if route_distance else None
+        route_distance_km = data.get("route_distance_km")
         ETA = data.get("route_ETA")
         elevation_change = data.get("elevation_change")
 
@@ -749,9 +752,42 @@ def save_route():
         
         coordinates_json = json.dumps(coordinates)
 
-        route = Route(name=route_name, coordinates=coordinates_json, format=format_type, user_id=user.id, ETA=ETA, distance=route_distance, elevation_change=elevation_change)
+        # robust validation to ensure both the float and string distances are both defined before making the route object
+        if route_distance_km != None:
+            distance_km_value = float(route_distance_km)
+            distance_string_value = legacy_route_distance if legacy_route_distance else str(route_distance_km)
+            
+        else:
+            if legacy_route_distance:
+                try: 
+                    cleaned_distance_string = "".join((re.findall(r"[0-9.]", legacy_route_distance)))
+                    distance_km_value = float(cleaned_distance_string) if cleaned_distance_string else 0.0
+                    distance_string_value = cleaned_distance_string
+                except Exception as e:
+                    print(f"[DEBUG][ERROR] Exception during legacy distance parsing: {e}")
+                    distance_km_value = 0.0
+                    distance_string_value = "0"
+            else:
+                distance_km_value = 0.0
+                distance_string_value = "0"
+        
+        if not distance_string_value:
+            distance_string_value = "0"
+                    
+        route = Route(
+            name=route_name, 
+            coordinates=coordinates_json, 
+            format=format_type, 
+            user_id=user.id, 
+            ETA=ETA, 
+            distance_km=distance_km_value, 
+            distance=distance_string_value, 
+            elevation_change=elevation_change
+        )
+        
         db.session.add(route)
         db.session.commit()
+        print(f"[DEBUG] Route successfully committed to database.")
 
         return jsonify({"success": True, "message": "Successfully saved the route"})
     except Exception as e:
@@ -903,6 +939,7 @@ def get_routes():
             "elevationChange": route.elevation_change,
             "eta": route.ETA,
             "distance": route.distance,
+            "route_distance_km": route.distance_km,
             "created": route.created_at.strftime("%d/%m/%y")
         })
     
