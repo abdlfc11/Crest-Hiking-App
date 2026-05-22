@@ -225,9 +225,9 @@ export function logout() {
 // LOGIN AND LOGOUT
 // ###########
 
-function deleteAccount() {
+export function deleteAccount(skipConfirm = false) {
 
-  const userConfirmation = confirm("Are you sure you want to delete your account ? ") // ensures the user is sure they want to delete 
+  const userConfirmation = skipConfirm || confirm("Are you sure you want to delete your account ? ") // ensures the user is sure they want to delete 
 
   // if the user has not confirmed (clicked no)
   if (!userConfirmation) {

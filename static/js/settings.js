@@ -16,6 +16,7 @@ import {
   saveAppSettingsToServer,
 } from "./settingsState.js";
 import { formatDistance } from "./utils.js";
+import { logout, deleteAccount } from "./auth.js";
 
 /** @type {(() => void) | null} */
 let onDistanceUnitChange = null;
@@ -50,6 +51,8 @@ export function initSettings() {
 
   // Note: we intentionally do NOT attach open/close here.
   // ui.js does: addClickListener(settingOpenButton, openSettings...) and closeSettings()
+
+  initAccountManagementButtons();
 }
 
 /**
@@ -107,8 +110,7 @@ function handleDistanceUnitChange() {
 /**
  * Best-effort refresh of #route-distance-display elements.
  * Only safe when we know the numeric value inside is still the original km value
- * (i.e. right after page load before any toggle). After first toggle we rely on
- * recompute paths in ui.js instead of parsing formatted strings.
+ * (i.e. right after page load before any toggle). After first toggle we rely on recompute paths in ui.js instead of parsing formatted strings.
  */
 function refreshStaticDistanceDisplaysIfSafe() {
   const els = document.querySelectorAll("#route-distance-display");
@@ -124,3 +126,49 @@ function refreshStaticDistanceDisplaysIfSafe() {
 
 // Legacy alias some older code may have referenced (harmless if unused)
 export { initSettings as initSettingsHandlers };
+
+ // ACCOUNT MANAGEMENT BUTTONS IN PANEL
+
+function initAccountManagementButtons() {
+
+  // Logout button 
+  const logoutBtn = document.getElementById("settings-logout-button");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      logout();
+    });
+  }
+
+  // Delete account 
+  const container = document.getElementById("delete-account-container");
+  if (!container) return;
+
+  const normalState = container.querySelector(".delete-normal-state");
+  const confirmState = container.querySelector(".delete-confirm-state");
+  const deleteBtn = document.getElementById("settings-delete-account-button");
+  const cancelBtn = document.getElementById("delete-cancel-button");
+  const confirmBtn = document.getElementById("delete-confirm-button");
+
+  if (!normalState || !confirmState || !deleteBtn) return;
+
+  // First click on "Delete" morphs the row into confirmation
+  deleteBtn.addEventListener("click", () => {
+    normalState.style.display = "none";
+    confirmState.style.display = "flex";
+  });
+
+  // Cancel restores original row
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      confirmState.style.display = "none";
+      normalState.style.display = "flex";
+    });
+  }
+
+  // Final confirmation calls the delete endpoint from flask backend
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", () => {
+      deleteAccount(true); // skip the browser confirm, we already did the nice UI version
+    });
+  }
+}
