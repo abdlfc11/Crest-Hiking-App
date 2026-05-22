@@ -47,13 +47,22 @@ export function createManualPointStyle(label, colour, radius=7.5) {
   })
 }
 
+export function getRouteStrokeStyle() {
+  return {
+    color: "#2563eb",
+    width: 8,
+    lineCap: "round",
+    lineJoin: "round",
+  }
+}
+
 // formating distance between different units
 export function formatDistance(distanceKm) {
-  const appSettings = getAppSettings();
-  if (!appSettings) return `${distanceKm.toFixed(2)}km`;
+  const appSettings = getAppSettings(); // retrieves copy of app setting object from settingsState.js 
+  const distanceUnit = appSettings?.distanceUnit;
 
-  if (appSettings.distanceUnit === "miles") {
-    const distanceMiles = distanceKm * 0.621371;
+  if (distanceUnit === "miles") {
+    const distanceMiles = distanceKm * 0.621371; 
     return `${distanceMiles.toFixed(2)}mi`;
   }
   return `${distanceKm.toFixed(2)}km`;

@@ -1,5 +1,5 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
-import { formatDistance, showToast } from "../utils.js";
+import { formatDistance, getRouteStrokeStyle, showToast } from "../utils.js";
 import { setCurrentPathData, setLoadedRouteCoordinates } from "./routeState.js";
 import { deleteRoute, loadRoute, fetchRoutes } from "./routeApi.js";
 
@@ -33,10 +33,7 @@ export function displayLoadedRouteOnMap(data) {
   features.forEach((feature) => {
     feature.setStyle(
       new ol.style.Style({
-        stroke: new ol.style.Stroke({
-          color: getPathColour(),
-          width: 5,
-        }),
+        stroke: new ol.style.Stroke(getRouteStrokeStyle()),
       }),
     );
   });

@@ -4,7 +4,8 @@ import {
   formatDistance,
   calculateTotalDistance,
   calculateEta,
-  moveMapToPosition
+  moveMapToPosition,
+  getRouteStrokeStyle
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -39,6 +40,12 @@ import {
   clearManualRouteState,
   manualRouteState,
 } from "./routes/routeState.js";
+import {
+  initCursorManager,
+  updateCursor,
+  setCursor,
+  forceApplyCursor,
+} from "./cursorManager.js";
 import { setOnDistanceUnitChange } from "./settings.js";
 import { displayLoadedRouteOnMap } from "./routes/loadRoute.js";
 
@@ -86,6 +93,10 @@ const settingPanel = document.getElementById("settings-panel");
 let clickMode = null;
 let manualRouteLayer = null;
 let selectedPoint = null;
+
+export function getClickMode() {
+  return clickMode;
+}
 
 // check if user is on mobile and take subsequent action to inform them of decision to make Crest desktop only for now
 function checkIfMobile() {
@@ -140,14 +151,14 @@ function setStartCoord() {
   clickMode = "setStart";
   startCoordEntry.style.borderColor = "#5a76e7";
   startCoordEntry.placeholder = "Click a point on the map"
-  mapElement.style.cursor = "crosshair";
+  updateCursor();
 }
 
 function setEndCoord() {
   clickMode = "setEnd";
   endCoordEntry.style.borderColor = "#5a76e7";
   endCoordEntry.placeholder = "Click a point on the map"
-  mapElement.style.cursor = "crosshair";
+  updateCursor();
 }
 
 function setCoordEntry(entry, event) {
@@ -157,7 +168,7 @@ function setCoordEntry(entry, event) {
   entry.placeholder = "Coordinates"
   entry.style.borderColor = "#e1cbcb"
   clickMode = null;
-  mapElement.style.cursor = "grab";
+  updateCursor();
 }
 
 export function mapClickHandler(event) {
@@ -165,7 +176,7 @@ export function mapClickHandler(event) {
   if (!map) return;
 
   if (clickMode) {
-    mapElement.style.cursor = "crosshair"
+    updateCursor();
   }
 
   if (clickMode === "setStart") {
@@ -230,6 +241,9 @@ function openSavedRoutesDash() {
 
 export function closeSavedRoutesDash() {
   savedRoutesDashContent.style.width = "0";
+  // Re-assert the correct cursor now that the map is fully visible again.
+  // forceApplyCursor ensures it happens even if no pointermove has fired yet.
+  forceApplyCursor();
 }
 
 function openSettings() {
@@ -255,8 +269,8 @@ function switchToAutoMode() {
   const map = getMap();
   if (!map) return;
 
-  mapElement.style.cursor = "grab";
   setCurrentMode("auto");
+  updateCursor();
   autoModeOption.classList.add("active");
   manualModeOption.classList.remove("active");
   autoModeContent.style.display = "block";
@@ -272,9 +286,9 @@ function switchToAutoMode() {
 function switchToManualMode() {
   const map = getMap();
   if (!map) return;
-
-  mapElement.style.cursor = "crosshair";
+  
   setCurrentMode("manual");
+  updateCursor();
   manualModeOption.classList.add("active");
   autoModeOption.classList.remove("active");
   autoModeContent.style.display = "none";
@@ -321,8 +335,6 @@ export function clearAutoRoute() {
   if (selectedRouteDisplay) selectedRouteDisplay.textContent = "Choose a route";
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveRouteDiv) saveRouteDiv.style.display = "none";
-  if (loadRouteDiv) loadRouteDiv.style.display = "block";
-
   
 }
 
@@ -371,10 +383,7 @@ export function homeButtonFunction() {
     new ol.layer.Vector({
       source: new ol.source.Vector(),
       style: new ol.style.Style({
-        stroke: new ol.style.Stroke({
-          color: getPathColour(),
-          width: 5,
-        }),
+        stroke: new ol.style.Stroke(getRouteStrokeStyle()),
       }),
       zIndex: 999,
     }),
@@ -403,6 +412,7 @@ export function homeButtonFunction() {
   if (saveRouteDiv) saveRouteDiv.style.display = "none";
   
   loadAndDisplaySavedPoints();
+  updateCursor();
 }
 
 function searchArea() {
@@ -576,8 +586,7 @@ export function updateManualRoute() {
   if (saveRouteDiv) saveRouteDiv.style.display = "block";
 
   const { userClicks, pathCoords } = manualRouteState;
-  const totalDistanceKm =
-    calculateTotalDistance(pathCoords) / 1000;
+  const totalDistanceKm = calculateTotalDistance(pathCoords) / 1000;
   const distanceDisplay = formatDistance(totalDistanceKm);
   const etaDisplay = calculateEta(totalDistanceKm);
   const isSnapped = checkIfCircularRoute();
@@ -619,7 +628,7 @@ export function updateManualRoute() {
         return createManualPointStyle("", "#000", 6.5);
       }
       return new ol.style.Style({
-        stroke: new ol.style.Stroke({ color: "#2563eb", width: 5 }),
+        stroke: new ol.style.Stroke(getRouteStrokeStyle()),
       });
     },
   });
@@ -711,13 +720,17 @@ function initPointDeleteHandlers() {
 }
 
 export function initUi() {
-  if (mapElement) mapElement.style.cursor = "grab";
+  // Initialize cursor manager - this takes over all cursor control
+  // so we beat OpenLayers' internal "pointer" on features.
+  const map = getMap();
+  if (map) {
+    initCursorManager(map, getCurrentMode, getClickMode);
+  }
 
   initSaveRoute();
   initPointDeleteHandlers();
 
   setOnDistanceUnitChange(() => updateManualRoute());
-
   addClickListener(setStartCoordButton, setStartCoord, "click");
   addClickListener(setEndCoordButton, setEndCoord, "click");
   addClickListener(openNavButton, openNav, "click");
@@ -743,14 +756,14 @@ export function initUi() {
   manualHomeButton?.addEventListener("click", homeButtonFunction);
 
   mapElement?.addEventListener("mouseup", () => {
-    if (!clickMode) {
-      mapElement.style.cursor = "grab";
-    }
-    else {
-      mapElement.style.cursor = "crosshair";
-    }
+    updateCursor();
   });
   mapElement?.addEventListener("mousedown", () => {
-      mapElement.style.cursor = "grabbing";
+    if (getCurrentMode() === "manual") {
+      // crosshair all the time due to creation of routes
+      setCursor("crosshair");
+      return;
+    }
+    setCursor("grabbing");
   });
 }
