@@ -1,7 +1,7 @@
 """Amended user table to add preferred name option
 
 Revision ID: d9346fc2e12b
-Revises: 78f1b406b8b8
+Revises: 21d303038927
 Create Date: 2026-05-21 16:48:15.919865
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'd9346fc2e12b'
-down_revision = '78f1b406b8b8'
+down_revision = '21d303038927'
 branch_labels = None
 depends_on = None
 

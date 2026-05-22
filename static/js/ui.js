@@ -47,6 +47,7 @@ import {
   forceApplyCursor,
 } from "./cursorManager.js";
 import { setOnDistanceUnitChange } from "./settings.js";
+import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap } from "./routes/loadRoute.js";
 
 export const defaultCentre = [-357428, 7256794];
@@ -166,7 +167,12 @@ function setCoordEntry(entry, event) {
   const rounded = roundCoords(coordinate, 0);
   entry.value = `${rounded[0]}, ${rounded[1]}`;
   entry.placeholder = "Coordinates"
-  entry.style.borderColor = "#e1cbcb"
+  if (getTheme() === "dark") {
+    entry.style.borderColor = "#4b5563";
+  }
+  else {
+    entry.style.borderColor = "#e1cbcb"
+  }
   clickMode = null;
   updateCursor();
 }
@@ -719,13 +725,22 @@ function initPointDeleteHandlers() {
   );
 }
 
+// ##### LIGHT / DARK THEME #####
+export function applyTheme(theme) {
+  const effective = theme === "system" ? getTheme() : theme;
+  document.documentElement.classList.toggle("dark", effective === "dark");
+}
+
+
 export function initUi() {
-  // Initialize cursor manager - this takes over all cursor control
+  // Initialise cursor manager this takes over all cursor control
   // so we beat OpenLayers' internal "pointer" on features.
   const map = getMap();
   if (map) {
     initCursorManager(map, getCurrentMode, getClickMode);
   }
+
+  applyTheme(getTheme());
 
   initSaveRoute();
   initPointDeleteHandlers();
@@ -748,6 +763,9 @@ export function initUi() {
   addClickListener(clearManualRouteButton, clearManualRoute, "click");
   addClickListener(searchForAreaButton, searchArea, "click");
   window.addEventListener('load', checkIfMobile);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", () => {
+    applyTheme(getTheme())
+  })
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);

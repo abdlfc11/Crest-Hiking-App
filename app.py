@@ -298,7 +298,9 @@ def save_settings():
 # ROUTE CREATION  
 
 class NodeFinder:
-    def __init__(self, graph_path="Pathfinding/better_path_graph.pkl", max_distance=5000, early_exit_distance=100):
+    def __init__(self, graph_path=None, max_distance=5000, early_exit_distance=100):
+        if graph_path is None:
+            graph_path = Config.GRAPH_PATH
         self.graph_path = graph_path
         self._graph = None
         self._kdtree = None
@@ -312,6 +314,23 @@ class NodeFinder:
     def load_graph(self):
         # loads the graph only when needed (lazy loading)
         if self._graph is None:
+            if not os.path.exists(self.graph_path):
+                raise FileNotFoundError(
+                    f"\n\n=== GRAPH FILE MISSING ===\n"
+                    f"Expected graph at: {os.path.abspath(self.graph_path)}\n\n"
+                    "This is the #1 cause of 'error when generating a route' in Docker.\n\n"
+                    "Common fixes:\n"
+                    "  1. On your HOST machine (not inside container):\n"
+                    "       git lfs install && git lfs pull\n\n"
+                    "  2. Then restart Docker cleanly:\n"
+                    "       docker-compose down -v\n"
+                    "       docker-compose up --build -d\n\n"
+                    "  3. If the file still doesn't appear inside the container,\n"
+                    "     go to Docker Desktop → Settings → Resources → File sharing\n"
+                    "     and make sure the project folder is listed, then Apply & Restart.\n\n"
+                    "The graph must be the real ~195MB better_path_graph.pkl (with elevation).\n"
+                )
+
             with open(self.graph_path, "rb") as file:
                 self._graph = pkl.load(file)
 
@@ -329,6 +348,13 @@ class NodeFinder:
             build_global_kdtree(self._graph)
 
             print(f"Graph initialised with {len(self._nodes_list)} reachable nodes.")
+
+            # Verify elevation data is present (the usual cause of late failures)
+            if self._nodes_list:
+                sample_node = self._graph.nodes[self._nodes_list[0]]
+                if 'elev' not in sample_node:
+                    print("WARNING: Graph loaded successfully but nodes have no 'elev' attribute.")
+                    print("         Elevation stats will be broken. Rebuild the graph with elevation_upgrade.py if needed.")
         
         return self._graph
 
@@ -476,7 +502,7 @@ class NodeFinder:
         
         return map_center, map_zoom
 
-service = NodeFinder()
+service = NodeFinder(graph_path=Config.GRAPH_PATH)
 
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)

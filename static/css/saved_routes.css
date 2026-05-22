@@ -50,16 +50,28 @@ body {
   cursor: pointer;
 }
 
-#saved-routes-dashboard a:hover, .closebtn {
+#saved-routes-dashboard a:hover {
   color: #000000;
 }
 
 #saved-routes-dashboard .closebtn {
   position: absolute;
-  top: 0;
-  right: 25px;
-  font-size: 36px;
-  margin-left: 50px;
+  top: 8px;
+  right: 16px;
+  font-size: 32px;
+  padding: 6px 10px;
+  width: auto;
+  margin: 0;
+  color: #818181;
+  line-height: 1;
+  transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+#saved-routes-dashboard .closebtn:hover {
+  color: #000000;
+  transform: scale(1.05);
 }
 
 
@@ -227,4 +239,43 @@ body {
     padding: 2rem;
     color: #475569;
     font-size: 1rem;
+}
+
+/* ===== DARK THEME (only affects #saved-routes-dashboard per project scope) ===== */
+html.dark #saved-routes-dashboard {
+    background: #1f2937;
+}
+
+html.dark #saved-routes-dashboard .inner-content {
+    background: #1f2937;
+}
+
+html.dark #saved-routes-dashboard h1,
+html.dark #saved-routes-dashboard .route-card-name,
+html.dark #saved-routes-dashboard .stat-label,
+html.dark #saved-routes-dashboard .stat-value,
+html.dark #saved-routes-dashboard .route-card-date {
+    color: #f3f4f6;
+}
+
+html.dark #saved-routes-dashboard .route-card {
+    background-color: #374151;
+    border-color: #4b5563;
+}
+
+html.dark #saved-routes-dashboard .route-btn {
+    background-color: #4b5563;
+    color: #f3f4f6;
+}
+
+html.dark #saved-routes-dashboard .closebtn {
+    color: #9ca3af;
+    padding: 6px 10px;
+    transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
+}
+
+html.dark #saved-routes-dashboard .closebtn:hover {
+    color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.12);
+    transform: scale(1.05);
 }

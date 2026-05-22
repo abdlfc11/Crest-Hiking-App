@@ -7,9 +7,16 @@
  * @module settingsState
  */
 
-/** @typedef {{ distanceUnit: 'km' | 'miles' }} AppSettings */
+/** 
+ * @typedef {Object} AppSettings
+ * @property {'km' | 'miles'} distanceUnit
+ * @property {'light' | 'dark' | 'system'} theme
+ */
 
-let appSettings = { distanceUnit: "km" };
+let appSettings = {
+  distanceUnit: "km",
+  theme: "system"
+};
 
 /**
  * Hydrate from localStorage (sync, used for instant UI before server round-trip).
@@ -20,15 +27,15 @@ function hydrateFromLocalStorage() {
     const saved = localStorage.getItem("appSettings");
     if (saved) {
       const parsed = JSON.parse(saved); // this makes a JS Object from the local storage string
-      if (parsed && (parsed.distanceUnit === "km" || parsed.distanceUnit === "miles")) {
-        appSettings = { distanceUnit: parsed.distanceUnit };
+      if (parsed) {
+        appSettings = { ...appSettings, ...parsed };
         return;
       }
     }
     // legacy key
     const legacy = localStorage.getItem("distanceUnit");
     if (legacy === "miles" || legacy === "km") {
-      appSettings = { distanceUnit: legacy };
+      appSettings.distanceUnit = legacy;
     }
   } catch (e) {
     // ignore corrupt localStorage
@@ -50,11 +57,16 @@ export function getAppSettings() {
  * @param {AppSettings} settings
  */
 export function saveAppSettings(settings) {
-  if (!settings || !settings.distanceUnit) return;
-  appSettings = { distanceUnit: settings.distanceUnit };
+
+  if(!settings) return;
+
+  appSettings = { ...appSettings, ...settings };
   try {
     localStorage.setItem("appSettings", JSON.stringify(appSettings));
-    localStorage.setItem("distanceUnit", appSettings.distanceUnit);
+
+    if (settings.distanceUnit) {
+      localStorage.setItem("distanceUnit", appSettings.distanceUnit);
+    }
   } catch (e) {
     // storage full / private mode etc.
   }
@@ -83,6 +95,9 @@ export async function loadAppSettingsFromServer() {
       if (incoming.distanceUnit === "km" || incoming.distanceUnit === "miles") {
         saveAppSettings({ distanceUnit: incoming.distanceUnit });
       }
+      if (incoming.theme === "dark" || incoming.theme === "light" || incoming.theme === "system") {
+        saveAppSettings({ theme: incoming.theme });
+      }
     }
   } catch (err) {
     console.warn("[settingsState] failed to load settings from server:", err);
@@ -102,7 +117,7 @@ export async function saveAppSettingsToServer(settingsDict) {
   const url = window.appConfig && window.appConfig.apiSaveSettings;
   if (!url) throw new Error("apiSaveSettings not present in window.appConfig");
 
-  const payload = settingsDict || { distanceUnit: appSettings.distanceUnit };
+  const payload = settingsDict || { ...appSettings };
 
   const res = await fetch(url, {
     method: "POST",
@@ -116,3 +131,19 @@ export async function saveAppSettingsToServer(settingsDict) {
   }
   return res.json();
 }
+
+// ##### SYSTEM THEME #####
+
+/**
+ * returns the correct theme to apply at the time of calling
+ * @returns {string}
+ */
+export function getTheme() {
+  const currentTheme = appSettings.theme;
+
+  if (currentTheme === "system") {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches; // var is a boolean value, True for dark and false for light
+    return prefersDark ? "dark" : "light" // if prefersDark is true, the return value is "dark" otherwise it is "light"
+  }
+  return currentTheme
+} 

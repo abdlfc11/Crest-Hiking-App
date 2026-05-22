@@ -15,7 +15,7 @@
 
     <div id="map-content">
 
-        <!-- ##### AUTO -> MANUAL TOGGLE ##### -->
+        <!-- ##### AUTO / MANUAL TOGGLE ##### -->
         <div id="mode-toggle">
             <div class="mode-toggle-container">
                 <button id="auto-mode-option" class="mode-button active">Auto</button>
@@ -252,10 +252,33 @@
                         <input type="checkbox" id="distance-unit-checkbox">
                         <span class="switch-slider"></span>
                     </label>
-                </div>
-
-                <!-- Delete Account -->
-                <div class="settings-item settings-item-destructive" id="delete-account-container">
+                 </div>
+ 
+                 <!-- Theme -->
+                 <div class="settings-item">
+                     <div class="settings-text">
+                         <span class="settings-title">Theme</span>
+                         <span class="settings-description">Choose appearance</span>
+                     </div>
+ 
+                     <div class="settings-radio-pills">
+                         <label class="radio-pill">
+                             <input type="radio" name="theme" value="light">
+                             <span>Light</span>
+                         </label>
+                         <label class="radio-pill">
+                             <input type="radio" name="theme" value="dark">
+                             <span>Dark</span>
+                         </label>
+                         <label class="radio-pill">
+                             <input type="radio" name="theme" value="system">
+                             <span>System</span>
+                         </label>
+                     </div>
+                 </div>
+ 
+                 <!-- Delete Account -->
+                 <div class="settings-item settings-item-destructive" id="delete-account-container">
                     <div class="delete-normal-state">
                         <div class="settings-text">
                             <span class="settings-title">Delete Account</span>

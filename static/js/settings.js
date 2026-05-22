@@ -1,6 +1,6 @@
 /**
  * settings.js
- * Handles settings panel UI wiring for the map view (distance unit toggle).
+ * Handles settings panel UI wiring for the map view (distance unit toggle + theme radio pills).
  * Open/close of the panel itself is managed by ui.js (style.width).
  * Persists choice to both localStorage (via settingsState) and the Flask backend.
  *
@@ -14,9 +14,11 @@ import {
   saveAppSettings,
   loadAppSettingsFromServer,
   saveAppSettingsToServer,
+  getTheme,
 } from "./settingsState.js";
 import { formatDistance } from "./utils.js";
 import { logout, deleteAccount } from "./auth.js";
+import { applyTheme } from "./ui.js";
 
 /** @type {(() => void) | null} */
 let onDistanceUnitChange = null;
@@ -39,19 +41,23 @@ export function setOnDistanceUnitChange(handler) {
 export function initSettings() {
   // 1. Immediate UI from local/default
   syncCheckboxWithCurrentSettings();
-
+  syncThemeRadiosWithCurrentSettings();
+  applyTheme(getTheme());
+ 
   // 2. Background sync with server (user is authenticated on /map)
   loadAppSettingsFromServer()
     .then(() => {
       syncCheckboxWithCurrentSettings();
+      syncThemeRadiosWithCurrentSettings();
+      applyTheme(getTheme());
     })
     .catch((err) => {
       console.warn("[settings] server load failed, using local", err);
     });
-
+ 
   // Note: we intentionally do NOT attach open/close here.
   // ui.js does: addClickListener(settingOpenButton, openSettings...) and closeSettings()
-
+ 
   initAccountManagementButtons();
 }
 
@@ -122,6 +128,52 @@ function refreshStaticDistanceDisplaysIfSafe() {
       el.textContent = formatDistance(num);
     }
   });
+}
+
+/**
+ * Read current settings and check the correct theme radio.
+ * Uses the same once-only listener guard pattern as the distance checkbox.
+ */
+function syncThemeRadiosWithCurrentSettings() {
+  const radios = document.querySelectorAll('input[name="theme"]');
+  if (!radios.length) return;
+
+  const settings = getAppSettings();
+  const current = settings.theme || "system";
+
+  radios.forEach((radio) => {
+    radio.checked = radio.value === current;
+  });
+
+  if (!radios[0].dataset.settingsBound) {
+    radios.forEach((radio) => {
+      radio.addEventListener("change", handleThemeChange);
+    });
+    radios[0].dataset.settingsBound = "true";
+  }
+}
+
+/**
+ * Radio change handler – updates state, persists locally + server, applies visual theme.
+ * @this {HTMLInputElement}
+ */
+function handleThemeChange() {
+  const value = this.value; // "light" | "dark" | "system"
+  const newSettings = { theme: value };
+
+  const previous = getAppSettings();
+  if (previous.theme === newSettings.theme) return;
+
+  // local + memory
+  saveAppSettings(newSettings);
+
+  // server (best-effort)
+  saveAppSettingsToServer({ theme: newSettings.theme }).catch((err) => {
+    console.warn("[settings] failed to save to server:", err);
+  });
+
+  // immediately update the UI (side nav, saved routes dashboard, etc.)
+  applyTheme(getTheme());
 }
 
 // Legacy alias some older code may have referenced (harmless if unused)

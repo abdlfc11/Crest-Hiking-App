@@ -996,16 +996,33 @@ select.coord-input:focus {
   cursor: pointer;
 }
 
-.sidenav a:hover, .closebtn {
+.sidenav a:not(.closebtn) {
+    border-radius: 28px;
+    text-align: center;
+}
+
+.sidenav a:hover {
   color: #000000;
 }
 
 .sidenav .closebtn {
   position: absolute;
-  top: 0;
-  right: 25px;
-  font-size: 36px;
-  margin-left: 50px;
+  top: 8px;
+  right: 16px;
+  font-size: 32px;
+  padding: 6px 10px;
+  width: auto;
+  margin: 0;
+  color: #818181;
+  line-height: 1;
+  transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.sidenav .closebtn:hover {
+  color: #000000;
+  transform: scale(1.05);
 }
 
 
@@ -1019,4 +1036,121 @@ select.coord-input:focus {
 /* overriding browsers autofill colour */
 input:-webkit-autofill {
     -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+}
+
+/* ===== DARK THEME  ===== */
+/* Only the actual map tiles / #map are excluded from theming */
+
+html.dark .sidenav {
+    /* glassmorphism like light mode but dark */
+    background: rgba(31, 41, 55, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .sidenav a {
+    color: #9ca3af;
+}
+
+html.dark .sidenav a:hover:not(.closebtn) {
+    color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+html.dark .closebtn {
+    color: #9ca3af;
+    padding: 6px 10px;
+    transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
+}
+
+html.dark .closebtn:hover {
+    color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.12);
+    transform: scale(1.05);
+}
+
+html.dark #start-end,
+html.dark #manual-mode-content,
+html.dark #save-route,
+html.dark #route-stats,
+html.dark #mode-toggle,
+html.dark #remove-point {
+    background: rgb(31 41 55 / 0.75);
+    border-color: #4b5563;
+    color: #f3f4f6;
+}
+
+html.dark .coords-header,
+html.dark .stats-header {
+    background: rgb(55 65 81 / 0.75);
+    border-bottom-color: #4b5563;
+}
+
+html.dark .coords-title,
+html.dark .stats-title {
+    color: #f3f4f6;
+}
+
+html.dark .coord-label,
+html.dark .stat-label,
+html.dark .manual-instruction {
+    color: #9ca3af;
+}
+
+html.dark .coord-input {
+    background: #374151;
+    color: #f3f4f6;
+    border-color: #4b5563;
+}
+
+html.dark .coord-input::placeholder {
+    color: #6b7280;
+}
+
+html.dark .coord-button {
+    background: #4b5563;
+    color: #f3f4f6;
+    border-color: #6b7280;
+}
+
+html.dark .coord-button:hover {
+    background: #6b7280;
+    border-color: #9ca3af;
+}
+
+html.dark .generate-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+html.dark .mode-button {
+    background: #374151;
+    color: #d1d5db;
+    border-color: #4b5563;
+}
+
+html.dark .mode-button.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+html.dark .mode-button:hover {
+    background: #4b5563;
+}
+
+html.dark #route-stats .stat-value,
+html.dark #route-stats .stat-label {
+    color: #f3f4f6;
+}
+
+html.dark .error-message {
+    color: #f87171;
+}
+
+html.dark #save-message,
+html.dark #load-message {
+    color: #d1d5db;
 }

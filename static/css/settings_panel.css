@@ -431,3 +431,95 @@
 .alt-toggle input:checked + .switch-slider {
     background-color: #059669;
 }
+
+/* ===== DARK THEME FOR SETTINGS PANEL ===== */
+/* Now included per updated scope — only the map itself stays light */
+
+html.dark #settings-panel {
+    background: rgba(17, 24, 39, 0.85);
+}
+
+html.dark .settings-header {
+    background: rgba(31, 41, 55, 0.75);
+    border-bottom-color: #374151;
+}
+
+html.dark .settings-header h1 {
+    color: #f3f4f6;
+}
+
+html.dark .settingCloseButton {
+    color: #9ca3af;
+}
+
+html.dark .settingCloseButton:hover {
+    color: #f3f4f6;
+}
+
+html.dark .settings-item {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+html.dark .settings-title {
+    color: #f3f4f6;
+}
+
+html.dark .settings-description {
+    color: #9ca3af;
+}
+
+/* Radio pills inside dark settings panel */
+html.dark .settings-radio-pills {
+    background: #374151;
+}
+
+html.dark .radio-pill span {
+    color: #9ca3af;
+}
+
+html.dark .radio-pill input:checked + span {
+    background: #1f2937;
+    color: #f3f4f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Delete account states */
+html.dark .settings-item-destructive .delete-normal-state,
+html.dark .settings-item-destructive .delete-confirm-state {
+    background: transparent;
+}
+
+html.dark .delete-account-btn {
+    border-color: #7f1d1d;
+    color: #f87171;
+}
+
+html.dark .delete-account-btn:hover {
+    background: #450a0a;
+    border-color: #b91c1c;
+}
+
+html.dark .cancel-delete-btn {
+    background: #374151;
+    color: #d1d5db;
+}
+
+html.dark .confirm-delete-btn {
+    background: #b91c1c;
+}
+
+/* Sticky footer + logout */
+html.dark .settings-sticky-footer {
+    background: rgba(31, 41, 55, 0.75);
+    border-top-color: #374151;
+}
+
+html.dark .logout-button {
+    background: #374151;
+    color: #f3f4f6;
+}
+
+html.dark .logout-button:hover {
+    background: #4b5563;
+}
