@@ -15,6 +15,7 @@
 
     <div id="map-content">
 
+        <!-- ##### AUTO -> MANUAL TOGGLE ##### -->
         <div id="mode-toggle">
             <div class="mode-toggle-container">
                 <button id="auto-mode-option" class="mode-button active">Auto</button>
@@ -22,6 +23,7 @@
             </div>
         </div>
 
+        <!-- ##### MAIN ROUTING PANEL ##### -->
         <div id="start-end">
             <div class="coords-header">
                 <span id="open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
@@ -76,6 +78,7 @@
             </div>
         </div>
 
+        <!-- ##### MANUAL ROUTING PANEL ##### -->
         <div id="manual-mode-content" style="display: none;">
             <div class="coords-header">
                 <span class="coords-title">Manual Route Creation</span>
@@ -87,6 +90,7 @@
             </div>
         </div>
         
+        <!-- ##### SAVE ROUTE DIV ##### -->
         <div id="save-route" {% if not current_path %}style="display: none;"{% endif %}>
             <div class="coords-header">
                 <span class="coords-title">Save Route</span>
@@ -118,6 +122,7 @@
             <button id="remove-point-button">remove</button>
         </div>
 
+        <!-- ##### DELETE POINT MODAL ##### -->
         <dialog id="delete-point-confirmation-dialog" class="confirmation-modal">
             <div class="wrapper">
                 <div class="confirmation-modal-content">
@@ -131,21 +136,6 @@
                     <div class="confirmation-buttons">
                         <button type="button" id="point-delete-exit-button">Exit</button>
                         <button id="point-delete-delete-button">Delete Point</button>
-                    </div>
-                </div>
-            </div>
-        </dialog>
-
-        <dialog id="initial-point-click-dialog" class="confirmation-modal">
-            <div class="wrapper">
-                <div class="confirmation-modal-content">
-                    <div class="confirmation-modal-header">
-                        <h2><span id="initial-point-name-display"></span></h2>
-                    </div>
-                    <div class="confirmation-buttons">
-                        <button type="button" id="inital-point-modal-set-as-start-position">Set as Start</button>
-                        <button type="button" id="inital-point-modal-set-as-end-position">Set as End</button>
-                        <button type="button" id="initial-point-modal-show-delete-modal-button">Delete</button>
                     </div>
                 </div>
             </div>
@@ -177,6 +167,7 @@
         <div id="map"></div>
     </div>
 
+    <!-- ##### SIDE NAV BAR ##### -->
     <div id="the-sidenav" class="sidenav">
         <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
         <a id="saved-routes-dash-open-button">Saved Routes</a>
@@ -185,11 +176,12 @@
 
     </div>
 
+    <!-- ##### SAVED ROUTE DASHBOARD ##### -->
     <div id="saved-routes-dashboard">
         <div class="inner-content">
             <div id="top-section">
                 <div id="dashboard-header">
-                    <h1>Hi, {{ session.get("preferred_name") }}, these are your saved routes</h1>
+                    <h1>Hi {{ session.get("preferred_name") }}, these are your saved routes</h1>
                 </div>
                 <div id="go-back-button-container">
                     <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
@@ -237,6 +229,7 @@
         </div>
     </div>
 
+    <!-- ##### SETTINGS ##### -->
     <div id="settings-panel">
         <div class="inner-content">
             <header class="settings-header">
@@ -260,10 +253,38 @@
                         <span class="switch-slider"></span>
                     </label>
                 </div>
+
+                <!-- Delete Account -->
+                <div class="settings-item settings-item-destructive" id="delete-account-container">
+                    <div class="delete-normal-state">
+                        <div class="settings-text">
+                            <span class="settings-title">Delete Account</span>
+                            <span class="settings-description">Permanently remove your account and all data</span>
+                        </div>
+                        <button type="button" class="delete-account-btn" id="settings-delete-account-button">Delete</button>
+                    </div>
+
+                    <div class="delete-confirm-state" style="display: none; width: 100%;">
+                        <div class="settings-text">
+                            <span class="settings-title" style="color: #b91c1c;">Delete account?</span>
+                            <span class="settings-description">This cannot be undone.</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                            <button type="button" class="cancel-delete-btn" id="delete-cancel-button">Cancel</button>
+                            <button type="button" class="confirm-delete-btn" id="delete-confirm-button">Delete forever</button>
+                        </div>
+                    </div>
+                </div>
             </section>
+
+            <!-- ##### FOOTER (inc. logout button) ##### -->
+            <div class="settings-sticky-footer">
+                <button id="settings-logout-button" class="logout-button">Log out</button>
+            </div>
         </div>
     </div>
 
+    <!-- ##### AppConfig to access API Enpoint URLS ##### -->
     <script>
         window.appConfig = {
             mapInitialCenter: {{ map_centre | tojson }},
