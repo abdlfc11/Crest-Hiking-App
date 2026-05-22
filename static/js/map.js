@@ -1,4 +1,4 @@
-
+import { getRouteStrokeStyle } from "./utils.js";
 
 export let map = null;
 export let tileLayer = null;
@@ -86,12 +86,7 @@ export function createRouteLayer() {
   routeLayer = new ol.layer.Vector({
     source: new ol.source.Vector(),
     style: new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: getPathColour(),
-        width: 8,
-        lineCap: "round",
-        lineJoin: "round",
-      }),
+      stroke: new ol.style.Stroke(getRouteStrokeStyle()),
     }),
     zIndex: 999,
   });

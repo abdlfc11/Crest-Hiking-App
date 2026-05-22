@@ -989,6 +989,7 @@ select.coord-input:focus {
   text-decoration: none;
   font-size: 25px;
   color: #818181;
+  padding-bottom: 1.5rem;
   display: block;
   transition: 0.3s;
   width: max-content;

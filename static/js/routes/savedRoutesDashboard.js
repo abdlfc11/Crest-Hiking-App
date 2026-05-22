@@ -14,16 +14,15 @@ const allRoutesContainer = document.getElementById("all-routes-container");
 /**
  * reads the route name and format from the closest route card
  * @param {Element} routeCardElement
- * @returns {{ routeName: string, routeType: string } | null}
+ * @returns {{ routeName: string } | null}
  */
 export function getRouteFromCard(routeCardElement) {
   if (!routeCardElement) return null;
 
   const routeName = routeCardElement.dataset.routeName;
-  const routeType = routeCardElement.dataset.routeType;
-  if (!routeName || !routeType) return null;
+  if (!routeName) return null;
 
-  return { routeName};
+  return { routeName };
 }
 
 /**
