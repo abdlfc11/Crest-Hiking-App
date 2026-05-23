@@ -86,16 +86,15 @@ async function onDownloadClick(event, format, DOMElement) {
 
   const routeCard = event.target.closest(".route-card")
   const route = getRouteFromCard(routeCard);
-  if (!route) return;
+  if (!route) {
+    DOMElement.disabled = false;
+    DOMElement.classList.remove('loading');
+    return;
+  }
   
   try {
 
-    setTimeout(() => {
-      DOMElement.disabled = false;
-      DOMElement.classList.remove
-    }, 800)
-
-    const response = await downloadRoute(route.routeName, format); 
+    const response = await downloadRoute(route.routeName, format, DOMElement); 
     
     const blob = await response.blob(); // this gets binary file
 
@@ -123,6 +122,10 @@ async function onDownloadClick(event, format, DOMElement) {
   } 
   catch(error) {
     console.error("Download route failed: ", error)
+  }
+  finally {
+    DOMElement.disabled = false;
+    DOMElement.classList.remove('loading')
   }
 }
 

@@ -45,6 +45,13 @@ body {
 #generate-path-button.loading .loader {
   display: inline-block; /* Show loader */
 }
+.route-btn.loading  .route-btn-text{
+    visibility: hidden;
+}
+
+.route-btn.loading .loader {
+  display: inline-block; /* Show loader */
+}
 
 /* map container */
 #map {
