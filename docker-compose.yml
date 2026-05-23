@@ -11,7 +11,12 @@ services:
     build: .
     command: flask run --host=0.0.0.0
     volumes:
-      - .:/app
+      - ./app.py:/app/app.py
+      - ./pathfinder.py:/app/pathfinder.py
+      - ./config.py:/app/config.py
+      - ./templates:/app/templates
+      - ./static:/app/static
+      - ./Pathfinding/better_path_graph.pkl:/app/Pathfinding/better_path_graph.pkl:ro
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - FLASK_ENV=development

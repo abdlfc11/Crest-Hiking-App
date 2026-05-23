@@ -63,6 +63,23 @@ if (deleteAccountButton) {
   deleteAccountButton.addEventListener('click', deleteAccount)
 }
 
+if (window.location.pathname === "/login-page" || window.location.pathname === "/register") {
+  if (window.location.pathname === "/login-page") {
+    document.addEventListener("keypress", (event) => {
+      if (event.key === 'Enter') {
+        login()
+      }
+    });
+  }
+  else {
+    document.addEventListener("keypress", (event) => {
+      if (event.key === 'Enter') {
+        register()
+      }
+    });
+  }
+};
+
 // ###########
 // HELPER FUNCTIONS
 // ###########

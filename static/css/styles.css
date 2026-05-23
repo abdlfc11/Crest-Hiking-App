@@ -989,7 +989,7 @@ select.coord-input:focus {
   text-decoration: none;
   font-size: 25px;
   color: #818181;
-  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
   display: block;
   transition: 0.3s;
   width: max-content;
@@ -997,12 +997,15 @@ select.coord-input:focus {
 }
 
 .sidenav a:not(.closebtn) {
+    padding: 10px 32px 10px 32px;
     border-radius: 28px;
     text-align: center;
+    margin-left: 1rem;
 }
 
 .sidenav a:hover {
   color: #000000;
+  background-color: #d1d5db;
 }
 
 .sidenav .closebtn {
