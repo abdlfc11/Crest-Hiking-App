@@ -752,8 +752,6 @@ def save_route():
         route_name = data.get("route_name")
         coordinates = data.get("coordinates")
         format_type = data.get("format")
-        route_distance = data.get("route_distance")
-        legacy_route_distance = route_distance.replace("km", "").replace("m", "").strip() if route_distance else None
         route_distance_km = data.get("route_distance_km")
         ETA = data.get("route_ETA")
         elevation_change = data.get("elevation_change")
@@ -772,27 +770,11 @@ def save_route():
         
         coordinates_json = json.dumps(coordinates)
 
-        # robust validation to ensure both the float and string distances are both defined before making the route object
-        if route_distance_km != None:
-            distance_km_value = float(route_distance_km)
-            distance_string_value = legacy_route_distance if legacy_route_distance else str(route_distance_km)
-            
-        else:
-            if legacy_route_distance:
-                try: 
-                    cleaned_distance_string = "".join((re.findall(r"[0-9.]", legacy_route_distance)))
-                    distance_km_value = float(cleaned_distance_string) if cleaned_distance_string else 0.0
-                    distance_string_value = cleaned_distance_string
-                except Exception as e:
-                    print(f"[DEBUG][ERROR] Exception during legacy distance parsing: {e}")
-                    distance_km_value = 0.0
-                    distance_string_value = "0"
-            else:
-                distance_km_value = 0.0
-                distance_string_value = "0"
+        if not route_distance_km:
+            return jsonify({"success": False, "message": "Error whilst saving route: cannot convert distance to float"})
         
-        if not distance_string_value:
-            distance_string_value = "0"
+        distance_km_value = float(route_distance_km)
+        distance_string = str(round(distance_km_value, 2))
                     
         route = Route(
             name=route_name, 
@@ -801,7 +783,7 @@ def save_route():
             user_id=user.id, 
             ETA=ETA, 
             distance_km=distance_km_value, 
-            distance=distance_string_value, 
+            distance=distance_string, 
             elevation_change=elevation_change
         )
         
