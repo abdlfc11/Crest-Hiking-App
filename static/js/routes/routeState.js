@@ -4,12 +4,39 @@ let currentPathData = null;
 let loadedRouteCoordinates = null;
 let currentMode = "auto";
 let lastKnownDistanceKm = null;
+let lastAutoRouteStats = null;
+let lastLoadedRouteStats = null;
 
 export const manualRouteState = {
   userClicks: [],
   pathCoords: [],
   manualRoutePoints: [],
 };
+
+export function getLastAutoRouteStats() {
+  return lastAutoRouteStats;
+}
+
+export function setLastAutoRouteStats(value) {
+  lastAutoRouteStats = value;
+}
+
+export function clearLastAutoRouteStats() {
+  lastAutoRouteStats = null;
+}
+
+export function getLastLoadedRouteStats() {
+  return lastLoadedRouteStats;
+}
+
+export function setLastLoadedRouteStats(value) {
+  lastLoadedRouteStats = value;
+}
+
+export function clearLastLoadedRouteStats() {
+  lastLoadedRouteStats = null;
+}
+
 
 export function getCurrentMode() {
   return currentMode;

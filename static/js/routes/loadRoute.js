@@ -1,6 +1,6 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
 import { formatDistance, getRouteStrokeStyle, showToast } from "../utils.js";
-import { setCurrentPathData, setLastKnownDistanceKm, setLoadedRouteCoordinates } from "./routeState.js";
+import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
 import { deleteRoute, loadRoute, fetchRoutes } from "./routeApi.js";
 
 
@@ -60,10 +60,14 @@ export function displayLoadedRouteOnMap(data) {
       duration: 1000,
     });
   }
+  setLastLoadedRouteStats(data.route_stats)
+  displayLoadedRouteStats(getLastLoadedRouteStats());
+}
 
-  if (!data.route_stats) return;
+export function displayLoadedRouteStats(routeStats) {
+  if (!routeStats) return;
 
-  setLastKnownDistanceKm(data.route_stats.total_distance);
+  setLastKnownDistanceKm(routeStats.total_distance);
 
   const statsHtml = `
     <div id="route-stats">
@@ -73,15 +77,15 @@ export function displayLoadedRouteOnMap(data) {
       <div class="stats-content">
         <div class="stat-row">
           <span class="stat-label">Distance:</span>
-          <span class="stat-value">${formatDistance(parseFloat(data.route_stats.total_distance))}</span>
+          <span class="stat-value">${formatDistance(parseFloat(routeStats.total_distance))}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">ETA:</span>
-          <span class="stat-value">${data.route_stats.eta}</span>
+          <span class="stat-value">${routeStats.eta}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Elevation Change:</span>
-          <span class="stat-value" id="route-elevation-change-display">${data.route_stats.elevation_change || "N/A"}</span>
+          <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change || "N/A"}</span>
         </div>
       </div>
     </div>

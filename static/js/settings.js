@@ -22,6 +22,8 @@ import { applyTheme } from "./ui.js";
 
 /** @type {(() => void) | null} */
 let onDistanceUnitChange = null;
+let onAutoDistanceUnitChange = null;
+let onLoadedDistanceUnitChange = null;
 
 /**
  * Register callback invoked after distance unit is toggled.
@@ -31,6 +33,14 @@ let onDistanceUnitChange = null;
  */
 export function setOnDistanceUnitChange(handler) {
   onDistanceUnitChange = handler;
+}
+
+export function setOnAutoDistanceUnitChange(handler) {
+  onAutoDistanceUnitChange = handler;
+}
+
+export function setOnLoadedDistanceUnitChange (handler) {
+  onLoadedDistanceUnitChange = handler;
 }
 
 /**
@@ -104,6 +114,22 @@ function handleDistanceUnitChange() {
       onDistanceUnitChange();
     } catch (e) {
       console.error("onDistanceUnitChange handler threw", e);
+    }
+  }
+
+  if (onAutoDistanceUnitChange) {
+    try {
+      onAutoDistanceUnitChange();
+    } catch (e) {
+      console.error("onAutoDistanceUnitChange handler threw", e);
+    }
+  }
+
+  if (onLoadedDistanceUnitChange) {
+    try {
+      onLoadedDistanceUnitChange();
+    } catch (e) {
+      console.error("onLoadedDistanceUnitChange handler threw", e);
     }
   }
 }

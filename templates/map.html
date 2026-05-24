@@ -200,7 +200,7 @@
                         <div class="route-card-stats">
                             <div class="stat-item">
                                 <span class="stat-label">Distance:</span>
-                                <span class="stat-value">{{ route.distance }} km</span>
+                                <span class="stat-value">{{ route.distance_km }} km</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">ETA:</span>
@@ -241,7 +241,8 @@
         <div class="inner-content">
             <header class="settings-header">
                 <div class="settings-header-container">
-                    <h1>Welcome, {{ session.get("preferred_name") }}</h1>
+                    <h1>Welcome,</h1>
+                    <h1 style="margin-left: .75rem;" >{{ session.get("preferred_name") }}</h1>
                     <div id="settings-close-button-container">
                         <a class="settingCloseButton" id="settings-close-button">&times;</a>
                     </div>

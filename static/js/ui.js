@@ -40,6 +40,10 @@ import {
   clearManualRouteState,
   manualRouteState,
   setLastKnownDistanceKm,
+  getLastAutoRouteStats,
+  setLastLoadedRouteStats,
+  getLastLoadedRouteStats,
+  setLastAutoRouteStats,
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -47,9 +51,9 @@ import {
   setCursor,
   forceApplyCursor,
 } from "./cursorManager.js";
-import { setOnDistanceUnitChange } from "./settings.js";
+import { setOnDistanceUnitChange, setOnAutoDistanceUnitChange, setOnLoadedDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
-import { displayLoadedRouteOnMap } from "./routes/loadRoute.js";
+import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 
 export const defaultCentre = [-357428, 7256794];
 
@@ -474,8 +478,9 @@ async function handleAutoRouteGeneration() {
   try {
     const response = await calculatePath(startPoint, endPoint);
     const routeStats = displayPath(response);
-    setLastKnownDistanceKm(routeStats.total_distance)
-    setAutoRouteStatDisplay(routeStats);
+    setLastKnownDistanceKm(routeStats.total_distance);
+    setLastAutoRouteStats(routeStats);
+    setAutoRouteStatDisplay(getLastAutoRouteStats());
     if (saveRouteDiv) saveRouteDiv.style.display = "block";
   } catch (error) {
     console.error(error);
@@ -751,6 +756,8 @@ export function initUi() {
   initPointDeleteHandlers();
 
   setOnDistanceUnitChange(() => updateManualRoute());
+  setOnAutoDistanceUnitChange(() => setAutoRouteStatDisplay(getLastAutoRouteStats()))
+  setOnLoadedDistanceUnitChange(() => displayLoadedRouteStats(getLastLoadedRouteStats()))
   addClickListener(setStartCoordButton, setStartCoord, "click");
   addClickListener(setEndCoordButton, setEndCoord, "click");
   addClickListener(autoOpenNavButton, openNav, "click");
