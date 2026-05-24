@@ -812,9 +812,6 @@ def load_route():
     
     json_coords = json.loads(route.coordinates)
 
-
-    
-    
     
     # success, coordinates, file_type = db_manager.load_route(route_name)
     coordinates = json_coords
@@ -874,12 +871,12 @@ def load_route():
 
         # data collected directly from database values
         ETA = route.ETA
-        distance = route.distance
+        distance = route.distance_km
         elevation_change = route.elevation_change
         
         # route statistics to pass to frontend
         route_stats = {
-            "total_distance": distance,
+            "total_distance": distance if distance is not None else 0,
             "eta": ETA,
             "elevation_change": elevation_change
         }
@@ -896,35 +893,6 @@ def load_route():
     except Exception:
         return jsonify({"success": False, "message": "The route could not be loaded"})
 
-# flask-route which retrieves saved points to be used in the front
-@app.route("/get_saved_points", methods=["GET"])
-def get_saved_points():
-
-    user = get_current_user()
-    if user:
-        points = Point.query.filter_by(user_id=user.id).all()
-    
-    if not points:
-        return jsonify({"points": []})
-    
-    web_mercator_points = []
-    for point in points:
-        try:
-            bng_x, bng_y = json.loads(point.coordinates)
-
-            web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-
-            web_mercator_points.append({
-                "name": point.name,
-                "coordinates": [web_mercator_x, web_mercator_y]
-            })
-        except Exception as e:
-            print(f"Skipping points due to conversion error: {e}")
-            continue
-    
-
-    return jsonify({"points": web_mercator_points})
-
 # flask-route which retreives saved routes to be used in the front-end
 @app.route("/get_routes", methods=["GET"])
 def get_routes():
@@ -940,13 +908,13 @@ def get_routes():
             "filename": f"{route.name}.{route.format}",
             "elevationChange": route.elevation_change,
             "eta": route.ETA,
-            "distance": route.distance,
-            "route_distance_km": route.distance_km,
+            "route_distance_km": route.distance_km if route.distance_km is not None else 0,
             "created": route.created_at.strftime("%d/%m/%y")
         })
     
     return jsonify({"routes": routes_list, "success": True})
 
+# flask route which returns a raw binary file of the route in either GPX or GeoJSON format
 @app.route("/download_route", methods=["POST"])
 def download_route():
     data = request.get_json(silent=True) or {} # silent to prevent errors and return None
@@ -1001,6 +969,36 @@ def download_route():
     except Exception as e:
         print(f"Error whilst downloading {route_name}:", e)
         return jsonify({"success": False, "message": "Failed to generate file"}), 500
+
+
+# flask-route which retrieves saved points to be used in the front
+@app.route("/get_saved_points", methods=["GET"])
+def get_saved_points():
+
+    user = get_current_user()
+    if user:
+        points = Point.query.filter_by(user_id=user.id).all()
+    
+    if not points:
+        return jsonify({"points": []})
+    
+    web_mercator_points = []
+    for point in points:
+        try:
+            bng_x, bng_y = json.loads(point.coordinates)
+
+            web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
+
+            web_mercator_points.append({
+                "name": point.name,
+                "coordinates": [web_mercator_x, web_mercator_y]
+            })
+        except Exception as e:
+            print(f"Skipping points due to conversion error: {e}")
+            continue
+    
+
+    return jsonify({"points": web_mercator_points})
 
 # route which deletes a saved point that is passed into the back-end from the front-end
 @app.route("/delete_point", methods=['POST'])

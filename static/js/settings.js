@@ -97,12 +97,7 @@ function handleDistanceUnitChange() {
     console.warn("[settings] failed to save to server:", err);
     // UI still updated locally; user can retry by toggling again
   });
-
-  // re-format any currently visible distance numbers that were rendered with old unit
-  // (safe on initial load; for live toggles after a route is shown the caller of onChange
-  //  (updateManualRoute) will recompute from source data so we don't parse ambiguous text)
-  refreshStaticDistanceDisplaysIfSafe();
-
+  
   // notify listeners (manual route, etc.)
   if (onDistanceUnitChange) {
     try {
@@ -111,23 +106,6 @@ function handleDistanceUnitChange() {
       console.error("onDistanceUnitChange handler threw", e);
     }
   }
-}
-
-/**
- * Best-effort refresh of #route-distance-display elements.
- * Only safe when we know the numeric value inside is still the original km value
- * (i.e. right after page load before any toggle). After first toggle we rely on recompute paths in ui.js instead of parsing formatted strings.
- */
-function refreshStaticDistanceDisplaysIfSafe() {
-  const els = document.querySelectorAll("#route-distance-display");
-  els.forEach((el) => {
-    const raw = (el.textContent || "").replace(/[^\d.]/g, "");
-    const num = parseFloat(raw);
-    if (!Number.isNaN(num)) {
-      // assume the value was produced from km source data at render time
-      el.textContent = formatDistance(num);
-    }
-  });
 }
 
 /**
