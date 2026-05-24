@@ -117,13 +117,6 @@ def get_current_user():
         return None
     return User.query.filter_by(username=username).first()
 
-# SAVED POINTS DASHBOARD
-@app.route("/saved_routes")
-def saved_routes():
-    user = get_current_user()
-    available_routes = Route.query.filter_by(user_id=user.id).all()
-    return render_template("saved_routes.html", available_routes=available_routes)
-
 # STRFTIME FILTER
 @app.template_filter("strftime")
 def strftime_filter(date, format: str):
