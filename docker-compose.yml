@@ -5,6 +5,11 @@ services:
       - .env
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"] 
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
   web:
@@ -16,7 +21,7 @@ services:
       - ./config.py:/app/config.py
       - ./templates:/app/templates
       - ./static:/app/static
-      - ./Pathfinding/better_path_graph.pkl:/app/Pathfinding/better_path_graph.pkl:ro
+      - ./migrations:/app/migrations
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - FLASK_ENV=development
@@ -26,7 +31,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:

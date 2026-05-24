@@ -328,7 +328,6 @@ class NodeFinder:
                     "  3. If the file still doesn't appear inside the container,\n"
                     "     go to Docker Desktop → Settings → Resources → File sharing\n"
                     "     and make sure the project folder is listed, then Apply & Restart.\n\n"
-                    "The graph must be the real ~195MB better_path_graph.pkl (with elevation).\n"
                 )
 
             with open(self.graph_path, "rb") as file:
@@ -503,6 +502,8 @@ class NodeFinder:
         return map_center, map_zoom
 
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
+if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
+    service.load_graph()
 
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)

@@ -234,7 +234,7 @@ export function mapClickHandler(event) {
 }
 
 function openNav() {
-  navBar.style.width = "250px";
+  navBar.style.width = "17rem";
 }
 
 export function closeNav() {

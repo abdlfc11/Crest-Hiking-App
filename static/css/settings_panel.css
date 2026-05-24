@@ -67,6 +67,8 @@
     transition: transform 0.2s ease, color 0.2s ease;
     display: inline-flex;
     align-items: center;
+    padding: 5px 7px;
+    border-radius: 5px;
 }
 
 .settingCloseButton:hover {
@@ -454,6 +456,7 @@ html.dark .settingCloseButton {
 
 html.dark .settingCloseButton:hover {
     color: #f3f4f6;
+    background-color: rgba(255, 255, 255, 0.12)
 }
 
 html.dark .settings-item {

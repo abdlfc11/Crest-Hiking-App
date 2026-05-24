@@ -562,6 +562,11 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.home-button i {
+    width: 20px;
+    height: 20px;
+}
+
 .home-button:hover {
     background: #475569;
     transform: translateY(-1px);
@@ -1001,6 +1006,9 @@ select.coord-input:focus {
   transition: 0.3s;
   width: max-content;
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  gap: .5rem;
 }
 
 .sidenav a:not(.closebtn) {
@@ -1013,6 +1021,13 @@ select.coord-input:focus {
 .sidenav a:hover {
   color: #000000;
   background-color: #d1d5db;
+}
+
+.sidenav a i {
+    justify-content: center;
+    align-items: center;
+    width: 1em;
+    height: 1em;
 }
 
 .sidenav .closebtn {

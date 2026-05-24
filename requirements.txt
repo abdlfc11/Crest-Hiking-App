@@ -48,3 +48,4 @@ urllib3==2.6.0
 Werkzeug==3.1.4
 wrapt==2.1.2
 gpxpy==1.6.2
+gunicorn>=22.0.0
