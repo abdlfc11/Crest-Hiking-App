@@ -1124,6 +1124,11 @@ html.dark .manual-instruction {
     color: #9ca3af;
 }
 
+html.dark .manual-instruction {
+    background-color: #1e293b;
+    border-color: #1e293b;
+}
+
 html.dark .coord-input {
     background: #374151;
     color: #f3f4f6;
