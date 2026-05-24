@@ -1,6 +1,6 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
 import { formatDistance, getRouteStrokeStyle, showToast } from "../utils.js";
-import { setCurrentPathData, setLoadedRouteCoordinates } from "./routeState.js";
+import { setCurrentPathData, setLastKnownDistanceKm, setLoadedRouteCoordinates } from "./routeState.js";
 import { deleteRoute, loadRoute, fetchRoutes } from "./routeApi.js";
 
 
@@ -62,6 +62,8 @@ export function displayLoadedRouteOnMap(data) {
   }
 
   if (!data.route_stats) return;
+
+  setLastKnownDistanceKm(data.route_stats.total_distance);
 
   const statsHtml = `
     <div id="route-stats">

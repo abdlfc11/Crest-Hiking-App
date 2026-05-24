@@ -3,6 +3,7 @@
 let currentPathData = null;
 let loadedRouteCoordinates = null;
 let currentMode = "auto";
+let lastKnownDistanceKm = null;
 
 export const manualRouteState = {
   userClicks: [],
@@ -32,6 +33,14 @@ export function getLoadedRouteCoordinates() {
 
 export function setLoadedRouteCoordinates(coords) {
   loadedRouteCoordinates = coords;
+}
+
+export function setLastKnownDistanceKm(value) {
+  lastKnownDistanceKm = value;
+}
+
+export function getLastKnownDistanceKm () {
+  return lastKnownDistanceKm;
 }
 
 export function clearPathState() {

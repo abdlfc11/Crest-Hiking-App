@@ -415,7 +415,7 @@ class NodeFinder:
 
     def calculate_route_distance(self, path):
         # calculates total distance of the route in metres
-        total_distance = 0
+        total_distance_metres = 0
         if len(path) > 1:
             for i in range(1, len(path)):
                 if len(path[i]) == 2 and len(path[i-1]) == 2:
@@ -427,8 +427,8 @@ class NodeFinder:
                     continue
                 
                 segment_distance = ((x2 - x1)**2 + (y2 - y1)**2)**0.5
-                total_distance += segment_distance
-        return total_distance
+                total_distance_metres += segment_distance
+        return total_distance_metres
 
     def calculate_eta(self, path, graph):
         total_seconds = sum(

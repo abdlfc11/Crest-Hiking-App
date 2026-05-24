@@ -1,4 +1,4 @@
-import { getCurrentMode, getCurrentPathData, getLoadedRouteCoordinates, manualRouteState } from "./routeState.js";
+import { getCurrentMode, getCurrentPathData, getLastKnownDistanceKm, getLoadedRouteCoordinates, manualRouteState } from "./routeState.js";
 import { defaultCentre, homeButtonFunction, } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
@@ -21,7 +21,7 @@ function handleSaveRoute(e) {
   const routeName = document.getElementById("route-name")?.value;
   const format = document.getElementById("route-format")?.value;
   const messageDiv = document.getElementById("save-message");
-  const distance = document.getElementById("route-distance-display")?.textContent;
+  const distanceLegacyString = document.getElementById("route-distance-display")?.textContent;
   const eta = document.getElementById("route-eta-display")?.textContent;
   const elevationChange = document.getElementById("route-elevation-change-display")?.textContent;
   const allRoutesContainer = document.getElementById("all-routes-container");
@@ -46,6 +46,12 @@ function handleSaveRoute(e) {
     return;
   }
 
+  const rawDistanceKm = getLastKnownDistanceKm();
+
+  if (rawDistanceKm === null || isNaN(rawDistanceKm)) {
+    messageDiv.innerHTML = '<span style="color: red;">No valid route distance to save.</span>';
+  }
+
   const url = window.appConfig.apiSaveRouteUrl;
 
   fetch(url, {
@@ -55,7 +61,7 @@ function handleSaveRoute(e) {
       route_name: routeName,
       format: format,
       coordinates: pathCoordinates,
-      route_distance: distance,
+      route_distance_km: rawDistanceKm,
       route_ETA: eta,
       elevation_change: elevationChange,
     }),
@@ -93,7 +99,7 @@ function handleSaveRoute(e) {
                               <div class="route-card-stats">
                                   <div class="stat-item">
                                       <span class="stat-label">Distance:</span>
-                                      <span class="stat-value">${distance}</span>
+                                      <span class="stat-value">${distanceLegacyString}</span>
                                   </div>
                                   <div class="stat-item">
                                       <span class="stat-label">ETA:</span>

@@ -39,6 +39,7 @@ import {
   clearPathState,
   clearManualRouteState,
   manualRouteState,
+  setLastKnownDistanceKm,
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -473,6 +474,7 @@ async function handleAutoRouteGeneration() {
   try {
     const response = await calculatePath(startPoint, endPoint);
     const routeStats = displayPath(response);
+    setLastKnownDistanceKm(routeStats.total_distance)
     setAutoRouteStatDisplay(routeStats);
     if (saveRouteDiv) saveRouteDiv.style.display = "block";
   } catch (error) {
@@ -598,6 +600,8 @@ export function updateManualRoute() {
   const etaDisplay = calculateEta(totalDistanceKm);
   const isSnapped = checkIfCircularRoute();
   const features = [];
+
+  setLastKnownDistanceKm(totalDistanceKm);
 
   userClicks.forEach((point, index) => {
     const feature = new ol.Feature({

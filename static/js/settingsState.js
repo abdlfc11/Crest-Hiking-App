@@ -1,7 +1,7 @@
 /**
  * settingsState.js
  * Central in-memory + persisted (localStorage + server) store for user app preferences.
- * Currently supports only `distanceUnit` ("km" | "miles"), plans to add more such as dark / light / system theme,
+ * Supports `distanceUnit` ("km" | "miles"), Theme {dark, light and system}
  * Other modules import getAppSettings() for read-only access (e.g. formatDistance).
  *
  * @module settingsState
