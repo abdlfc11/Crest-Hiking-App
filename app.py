@@ -500,6 +500,10 @@ if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 
+# helper function which returns true if the first coordinate has 3 values (i.e x, y and z)
+def check_elevation(coords):
+    return bool(coords) and len(coords[0]) == 3
+
 def parse_elevation(elevation_string: str):
     if not elevation_string:
         return None
@@ -535,11 +539,20 @@ def generate_geojson(route):
     # converts the raw coords into a list
     raw_coords = json.loads(raw_coordinates_str)
     
-    # changes every coord into lon/lat
     corrected_coords = []
-    for x, y in raw_coords:
-        lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-        corrected_coords.append([lon, lat])
+    
+    has_elevation = check_elevation(raw_coords)
+        
+    for coord in raw_coords:
+        if has_elevation:
+            x, y, elevation = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            corrected_coords.append([lon, lat, elevation])
+        else:
+            x, y = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            corrected_coords.append([x, y])
+
         
     # constructs the geojson dict
     geojson_feature = {
@@ -565,12 +578,24 @@ def generate_gpx(route):
 
     coords = json.loads(route.coordinates)
 
-    for x, y in coords: # loops through each coord in one sub array in the coords array
-        lon, lat = service.convert_web_mercator_to_wgs84(x, y) # converts to lat and lon (needed for gpx)
-        segment.points.append(gpxpy.gpx.GPXTrackPoint(
-            latitude=lat,
-            longitude=lon
-        ))
+    has_elevation = check_elevation(coords)
+
+    for coord in coords: # loops through each coord in one sub array in the coords array
+        if has_elevation:
+            x, y, elevation = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y) # converts to lat and lon (needed for gpx)
+            segment.points.append(gpxpy.gpx.GPXTrackPoint(
+                latitude=lat,
+                longitude=lon,
+                elevation=elevation
+            ))
+        else:
+            x, y = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            segment.points.append(gpxpy.gpx.GPXTrackPoint(
+                latitude=lat,
+                longitude=lon
+            ))
 
     return gpx.to_xml()
 
