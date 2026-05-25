@@ -46,6 +46,10 @@ import {
   setLastAutoRouteStats,
   clearLastAutoRouteStats,
   clearLastLoadedRouteStats,
+  hasElevation, 
+  extractElevation,
+  extractElevationProfile,
+  getElevationRange
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -482,7 +486,7 @@ async function handleAutoRouteGeneration() {
   generatePathButton.classList.add("loading");
 
   try {
-    const response = await calculatePath(startPoint, endPoint);
+    const response = await calculatePath(startPoint, endPoint); // response.coordinates may return coordinates whereby each element has 3 values (x, y and elevation)
     const routeStats = displayPath(response);
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
@@ -528,7 +532,8 @@ function displayPath(data) {
   });
 
   source.addFeature(feature);
-  setCurrentPathData(data.coordinates);
+  setCurrentPathData(data.coordinates); // data.coordinates may be either 2 elements (x and y) or 3 elements (x, y and elevation)
+
 
   setTimeout(() => {
     map.getView().fit(source.getExtent(), {

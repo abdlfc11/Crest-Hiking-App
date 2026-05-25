@@ -38,8 +38,11 @@ async function onLoadClick(event) {
   await closeNav();
   const data = await loadRoute(route.routeName);
   await displayLoadedRouteOnMap(data);
+
+  // both set calls could set coords whereby each coord is formed of 3 elements i.e (x, y and elevation)
   await setLoadedRouteCoordinates(data.coordinates);
   await setCurrentPathData(data.coordinates);
+
   event.preventDefault();
 }
 

@@ -1,4 +1,13 @@
-import { getCurrentMode, getCurrentPathData, getLastKnownDistanceKm, getLoadedRouteCoordinates, manualRouteState } from "./routeState.js";
+import { getCurrentMode, 
+  getCurrentPathData, 
+  getLastKnownDistanceKm, 
+  getLoadedRouteCoordinates, 
+  hasElevation, 
+  manualRouteState,
+  extractElevation,
+  extractElevationProfile,
+  getElevationRange
+ } from "./routeState.js";
 import { defaultCentre, homeButtonFunction, } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
@@ -37,8 +46,7 @@ function handleSaveRoute(e) {
   if (mode === "manual" && manualRouteState.pathCoords.length > 0) {
     pathCoordinates = manualRouteState.pathCoords;
   } else {
-    pathCoordinates =
-      getCurrentPathData() || getLoadedRouteCoordinates() || [];
+    pathCoordinates = getCurrentPathData() || getLoadedRouteCoordinates() || []; // coords in these arrays may now have elevation data
   }
 
   if (pathCoordinates.length === 0) {
