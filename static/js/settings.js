@@ -19,11 +19,12 @@ import {
 import { formatDistance } from "./utils.js";
 import { logout, deleteAccount } from "./auth.js";
 import { applyTheme } from "./ui.js";
+import { hasActiveRouteStatsPanel } from "./routes/routeState.js";
 
 /** @type {(() => void) | null} */
 let onDistanceUnitChange = null;
-let onAutoDistanceUnitChange = null;
-let onLoadedDistanceUnitChange = null;
+
+const routeStatPanel = document.getElementById('route-stats');
 
 /**
  * Register callback invoked after distance unit is toggled.
@@ -33,14 +34,6 @@ let onLoadedDistanceUnitChange = null;
  */
 export function setOnDistanceUnitChange(handler) {
   onDistanceUnitChange = handler;
-}
-
-export function setOnAutoDistanceUnitChange(handler) {
-  onAutoDistanceUnitChange = handler;
-}
-
-export function setOnLoadedDistanceUnitChange (handler) {
-  onLoadedDistanceUnitChange = handler;
 }
 
 /**
@@ -108,28 +101,14 @@ function handleDistanceUnitChange() {
     // UI still updated locally; user can retry by toggling again
   });
   
-  // notify listeners (manual route, etc.)
-  if (onDistanceUnitChange) {
-    try {
-      onDistanceUnitChange();
-    } catch (e) {
-      console.error("onDistanceUnitChange handler threw", e);
-    }
-  }
-
-  if (onAutoDistanceUnitChange) {
-    try {
-      onAutoDistanceUnitChange();
-    } catch (e) {
-      console.error("onAutoDistanceUnitChange handler threw", e);
-    }
-  }
-
-  if (onLoadedDistanceUnitChange) {
-    try {
-      onLoadedDistanceUnitChange();
-    } catch (e) {
-      console.error("onLoadedDistanceUnitChange handler threw", e);
+  if (hasActiveRouteStatsPanel()) {
+    // notify listeners (manual route, etc.)
+    if (onDistanceUnitChange) {
+      try {
+        onDistanceUnitChange();
+      } catch (e) {
+        console.error("onDistanceUnitChange handler threw", e);
+      }
     }
   }
 }

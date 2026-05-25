@@ -44,6 +44,8 @@ import {
   setLastLoadedRouteStats,
   getLastLoadedRouteStats,
   setLastAutoRouteStats,
+  clearLastAutoRouteStats,
+  clearLastLoadedRouteStats,
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -51,7 +53,7 @@ import {
   setCursor,
   forceApplyCursor,
 } from "./cursorManager.js";
-import { setOnDistanceUnitChange, setOnAutoDistanceUnitChange, setOnLoadedDistanceUnitChange } from "./settings.js";
+import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 
@@ -340,6 +342,8 @@ export function clearAutoRoute() {
 
   document.getElementById("route-stats")?.remove();
 
+  clearLastAutoRouteStats();
+
   if (startCoordEntry) startCoordEntry.value = "";
   if (endCoordEntry) endCoordEntry.value = "";
   if (selectedRouteName) selectedRouteName.value = "";
@@ -384,6 +388,8 @@ export function homeButtonFunction() {
   generatePathButton?.classList.remove("loading");
 
   clearManualRoute();
+  clearAutoRoute();
+  clearLastLoadedRouteStats();
 
   const layersToRemove = [];
   map.getLayers().forEach((layer) => {
@@ -741,6 +747,21 @@ export function applyTheme(theme) {
   document.documentElement.classList.toggle("dark", effective === "dark");
 }
 
+// ##### HANDLING TOGGLING OF DISTANCE UNITS #####
+function handleDistanceUnitToggle() {
+
+  // if there is a manual route present
+  if (manualRouteState.pathCoords.length > 0) {
+    updateManualRoute();
+  }
+  else if (getLastAutoRouteStats()) {
+    setAutoRouteStatDisplay(getLastAutoRouteStats());
+  }
+  else if (getLastLoadedRouteStats) {
+    displayLoadedRouteStats(getLastLoadedRouteStats());
+  }
+};
+
 
 export function initUi() {
   // Initialise cursor manager this takes over all cursor control
@@ -755,9 +776,7 @@ export function initUi() {
   initSaveRoute();
   initPointDeleteHandlers();
 
-  setOnDistanceUnitChange(() => updateManualRoute());
-  setOnAutoDistanceUnitChange(() => setAutoRouteStatDisplay(getLastAutoRouteStats()))
-  setOnLoadedDistanceUnitChange(() => displayLoadedRouteStats(getLastLoadedRouteStats()))
+  setOnDistanceUnitChange(() => handleDistanceUnitToggle());
   addClickListener(setStartCoordButton, setStartCoord, "click");
   addClickListener(setEndCoordButton, setEndCoord, "click");
   addClickListener(autoOpenNavButton, openNav, "click");

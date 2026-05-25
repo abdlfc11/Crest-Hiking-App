@@ -80,3 +80,7 @@ export function clearManualRouteState() {
   manualRouteState.pathCoords = [];
   manualRouteState.manualRoutePoints = [];
 }
+
+export function hasActiveRouteStatsPanel() {
+  return manualRouteState.pathCoords > 0 || lastAutoRouteStats !== null || lastLoadedRouteStats !== null; 
+};

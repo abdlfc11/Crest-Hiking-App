@@ -123,11 +123,11 @@ function handleSaveRoute(e) {
         initSavedRoutesDashboard();
         homeButtonFunction();
       } else {
-        messageDiv.innerHTML = `<span style="color: red;">✗ ${data.message}</span>`;
+        messageDiv.innerHTML = `<span style="color: red;">${data.message}</span>`;
       }
     })
     .catch((error) => {
-      messageDiv.innerHTML = `<span style="color: red;">✗ Error saving route: ${error.message}</span>`;
+      messageDiv.innerHTML = `<span style="color: red;">Error saving route: ${error.message}</span>`;
       console.error("Error saving route:", error);
     });
 }
