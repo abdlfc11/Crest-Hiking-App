@@ -504,6 +504,13 @@ transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 def check_elevation(coords):
     return bool(coords) and len(coords[0]) == 3
 
+# if a coord is over 180 degrees then it is definitely not wgs84 (181 used as buffer for edge cases)
+# this helper thus returns true if a coord is web mercator and false if it isn't (and thus is wgs84)
+def check_web_mercator(coord):
+    if coord is None:
+        return False
+    return abs(coord[0]) > 181 or abs(coord[1]) > 181
+
 def parse_elevation(elevation_string: str):
     if not elevation_string:
         return None
@@ -845,42 +852,36 @@ def load_route():
     
     # success, coordinates, file_type = db_manager.load_route(route_name)
     coordinates = json_coords
-    file_type = route.format
+
+    has_elevation = check_elevation(coordinates)
     
     try:
         # converts wgs84 coordinates to web mercator for display
         web_mercator_coordinates = []
-        bng_coordinates = []
-        
-        try:
-            for coord in coordinates:
-                if len(coord) < 2:
-                    continue
-                    
-                lon, lat = coord[0], coord[1]
-                
-                # checks if coords are large (meaning they are either bng or web mercator and are not wgs84)
-                if abs(lon) > 1000 or abs(lat) > 1000:
-                    web_x, web_y = lon, lat 
-                    
-                    # converts web mercator coords into bng
-                    bng_x, bng_y = service.convert_web_mercator_to_bng(lon, lat)
-                    bng_coordinates.append([bng_x, bng_y])
 
+        if check_web_mercator(coordinates[0]):
+            web_mercator_coordinates = coordinates
+        else:
+            for coord in coordinates:
+                if has_elevation:
+                    lon, lat, elevation = coord
+                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
+
+                    # validation checks
+                    if math.isnan(web_x) or math.isnan(web_y) or math.isinf(web_x) or math.isinf(web_y):
+                        continue
+
+                    web_mercator_coordinates.append([web_x, web_y, elevation])
                 else:
-                    # small numbers are assumed to be wgs84
-                    bng_x, bng_y = service.convert_wgs84_to_bng(lon, lat)
-                    bng_coordinates.append([bng_x, bng_y])
-                    web_x, web_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-                
-                # validation checks
-                if math.isnan(web_x) or math.isnan(web_y) or math.isinf(web_x) or math.isinf(web_y):
-                    continue
+                    lon, lat = coord
+                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
+
+                    # validation checks
+                    if math.isnan(web_x) or math.isnan(web_y) or math.isinf(web_x) or math.isinf(web_y):
+                        continue
                     
-                web_mercator_coordinates.append([web_x, web_y])
-        
-        except Exception as e:
-            return jsonify({"success": False, "message": f"Error converting coordinates: {str(e)}"})
+                    web_mercator_coordinates.append([web_x, web_y])
+                
         
         if not web_mercator_coordinates:
             return jsonify({"success": False, "message": "No valid coordinates found in route file"})
