@@ -11,6 +11,7 @@ export const manualRouteState = {
   userClicks: [],
   pathCoords: [],
   manualRoutePoints: [],
+  initialElevation: 0,
 };
 
 export function getLastAutoRouteStats() {

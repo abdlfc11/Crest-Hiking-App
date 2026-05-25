@@ -640,12 +640,20 @@ def calculate_path():
 
     web_mercator_coordinates = [] # array used to hold coords which will be displayed on the map
     
-    for coord in path:  # converts path coordinates from bng to web mercator for display
+    for node in path:  # converts path coordinates from bng to web mercator for display
 
-        x, y = coord  
-        
-        web_x, web_y = service.convert_bng_to_web_mercator(x, y)  # converts bng to web mercator
-        web_mercator_coordinates.append([web_x, web_y]) # appends coords converted into web mercator into array
+        x, y = node  
+
+        web_x, web_y = service.convert_bng_to_web_mercator(x, y)
+
+        elev = graph.nodes.get(node, {}).get('elev')
+        if elev is not None:
+            web_mercator_coordinates.append([web_x, web_y, elev])
+        else:
+            web_mercator_coordinates.append([web_x, web_y]) # appends coords converted into web mercator into array
+    
+    start_coords = web_mercator_coordinates[0]
+    end_coords = web_mercator_coordinates[-1]
     
     # calculates distance and eta statistics
     total_distance = service.calculate_route_distance(path)

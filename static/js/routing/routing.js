@@ -92,6 +92,7 @@ export async function addManualPoint(x, y) {
       const newSegment = data.coordinates;
       manualRouteState.pathCoords.push(...newSegment.slice(1));
       userClicks.push(finalClick);
+      manualRouteState.initialElevation = manualRouteState.initialElevation + data.route_stats.elevation_change;
       const { updateManualRoute } = await import("../ui.js");
       updateManualRoute();
     } else {
