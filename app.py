@@ -504,6 +504,12 @@ transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 def check_elevation(coords):
     return bool(coords) and len(coords[0]) == 3
 
+# returns the x and y coords of a coordinate that may be 2D or 3D
+def get_xy(coord):
+    if len(coord) >= 2:
+        return coord[0], coord[1]
+    return coord
+
 # if a coord is over 180 degrees then it is definitely not wgs84 (181 used as buffer for edge cases)
 # this helper thus returns true if a coord is web mercator and false if it isn't (and thus is wgs84)
 def check_web_mercator(coord):
@@ -624,20 +630,19 @@ def calculate_path():
         if not start_coords or not end_coords:
             raise ValueError("Start and end coordinates are required")
 
-        if len(start_coords) != 2 or len(end_coords) != 2:
+        if len(start_coords) < 2 or len(end_coords) < 2:
             raise ValueError("Coordinates must be in format 'x, y'")
 
         # forms variables containing each value of the start and end coordinates with suffixes removed so that they can be used in input validaton
-        start_coords_x = start_coords[0]
-        start_coords_y = start_coords[1]
+        start_coords_x, start_coords_y = get_xy(start_coords)
+        
 
         # debug statement to ensure that start_coords_x and y are in the required format 
         print(start_coords_x, start_coords_y)
 
-        end_coords_x = end_coords[0]
-        end_coords_y = end_coords[1]
+        end_coords_x, end_coords_y = get_xy(end_coords)
 
-        all_coords = start_coords + end_coords
+        all_coords = [start_coords_x, start_coords_y, end_coords_x, end_coords_y]
         if not all(isinstance(num, (int, float)) for num in all_coords):
             raise ValueError("Coordinates must be valid numbers")
         
