@@ -624,8 +624,14 @@ export function updateManualRoute() {
   const totalDistanceKm = calculateTotalDistance(pathCoords) / 1000;
   const distanceDisplay = formatDistance(totalDistanceKm);
   const etaDisplay = calculateEta(totalDistanceKm);
-  const isSnapped = checkIfCircularRoute();
+  const isSnappedToEnd = checkIfCircularRoute();
   const features = [];
+  let elevationDisplay = "N/A";
+  const range = getElevationRange(pathCoords);
+  if (range && typeof range.min === 'number' && typeof range.max === 'number') {
+    const change = range.max - range.min;
+    elevationDisplay = `${change >= 0 ? '+' : ''}${change}m`
+  }
 
   setLastKnownDistanceKm(totalDistanceKm);
 
@@ -656,7 +662,7 @@ export function updateManualRoute() {
         const isStart = index === 0;
         const isEnd = index === userClicks.length - 1;
 
-        if (isSnapped) {
+        if (isSnappedToEnd) {
           if (isStart) return createManualPointStyle("Start/End", "#8145d4");
           if (isEnd) return createManualPointStyle("", "#8145d4", 0);
         }
@@ -694,7 +700,7 @@ export function updateManualRoute() {
       </div>
       <div class="stat-row">
         <span class="stat-label">Elevation Change:</span>
-        <span class="stat-value" id="route-elevation-change-display">N/A</span>
+        <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
       </div>
     </div>
   `;

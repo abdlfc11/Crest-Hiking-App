@@ -12,6 +12,7 @@ export const manualRouteState = {
   pathCoords: [],
   manualRoutePoints: [],
   initialElevation: 0,
+  isSnapped: false
 };
 
 export function getLastAutoRouteStats() {
@@ -82,6 +83,8 @@ export function clearManualRouteState() {
   manualRouteState.userClicks = [];
   manualRouteState.pathCoords = [];
   manualRouteState.manualRoutePoints = [];
+  manualRouteState.initialElevation = 0;
+  manualRouteState.isSnapped = false;
 }
 
 export function hasActiveRouteStatsPanel() {
