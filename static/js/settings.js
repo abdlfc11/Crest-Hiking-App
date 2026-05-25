@@ -101,7 +101,6 @@ function handleDistanceUnitChange() {
     // UI still updated locally; user can retry by toggling again
   });
   
-   {
     // notify listeners (manual route, etc.)
     if (onDistanceUnitChange) {
       try {
@@ -113,7 +112,6 @@ function handleDistanceUnitChange() {
         console.error("onDistanceUnitChange handler threw", e);
       }
     }
-  }
 }
 
 /**

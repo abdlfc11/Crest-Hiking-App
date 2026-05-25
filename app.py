@@ -84,7 +84,6 @@ class Route(db.Model):
     format = db.Column(db.String(25), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     ETA = db.Column(db.String(100), nullable=False)
-    distance = db.Column(db.String(100), nullable=True) 
     distance_km = db.Column(db.Float, nullable=True)
     elevation_change = db.Column(db.String(20), nullable=False)
 
@@ -774,7 +773,6 @@ def save_route():
             return jsonify({"success": False, "message": "Error whilst saving route: cannot convert distance to float"})
         
         distance_km_value = float(route_distance_km)
-        distance_string = str(round(distance_km_value, 2))
                     
         route = Route(
             name=route_name, 
@@ -783,7 +781,6 @@ def save_route():
             user_id=user.id, 
             ETA=ETA, 
             distance_km=distance_km_value, 
-            distance=distance_string, 
             elevation_change=elevation_change
         )
         
