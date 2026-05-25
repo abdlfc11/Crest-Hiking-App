@@ -2,6 +2,7 @@ import { getCurrentMode, getCurrentPathData, getLastKnownDistanceKm, getLoadedRo
 import { defaultCentre, homeButtonFunction, } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
+import { formatDistance } from "../utils.js";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
@@ -91,7 +92,7 @@ function handleSaveRoute(e) {
           "year": "2-digit"
         }).format(today);
 
-        const routeCard = `<div class="route-card" data-route-name="${routeName} data-route-type="${format}">
+        const routeCard = `<div class="route-card" data-route-name="${routeName}">
                               <div class="route-card-header">
                                   <h3 class="route-card-name">${routeName}</h3>
                                   <span class="route-card-date">Saved on ${formattedToday}</span>
@@ -99,7 +100,7 @@ function handleSaveRoute(e) {
                               <div class="route-card-stats">
                                   <div class="stat-item">
                                       <span class="stat-label">Distance:</span>
-                                      <span class="stat-value">${distanceLegacyString}</span>
+                                      <span class="stat-value">${formatDistance(rawDistanceKm)}</span>
                                   </div>
                                   <div class="stat-item">
                                       <span class="stat-label">ETA:</span>
