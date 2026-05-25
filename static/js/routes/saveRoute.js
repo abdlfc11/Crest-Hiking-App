@@ -100,7 +100,7 @@ function handleSaveRoute(e) {
                               <div class="route-card-stats">
                                   <div class="stat-item">
                                       <span class="stat-label">Distance:</span>
-                                      <span class="stat-value">${formatDistance(rawDistanceKm)}</span>
+                                      <span class="stat-value" data-distance-km="${rawDistanceKm}">${formatDistance(rawDistanceKm)}</span>
                                   </div>
                                   <div class="stat-item">
                                       <span class="stat-label">ETA:</span>

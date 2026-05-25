@@ -82,5 +82,5 @@ export function clearManualRouteState() {
 }
 
 export function hasActiveRouteStatsPanel() {
-  return manualRouteState.pathCoords > 0 || lastAutoRouteStats !== null || lastLoadedRouteStats !== null; 
+  return manualRouteState.pathCoords.length > 0 || lastAutoRouteStats !== null || lastLoadedRouteStats !== null; 
 };

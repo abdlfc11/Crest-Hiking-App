@@ -596,6 +596,16 @@ function removeExistingStats() {
   return true;
 }
 
+export function updateSavedRouteCards() {
+  const statValues = document.querySelectorAll('[data-distance-km]');
+  statValues.forEach(value => {
+    const rawKm = parseFloat(value.dataset.distanceKm);
+    if (isNaN(rawKm)) return;
+    const formattedValue = formatDistance(rawKm);
+    value.textContent = formattedValue;
+  });
+}
+
 export function updateManualRoute() {
   const map = getMap();
   if (!map) return;
@@ -775,6 +785,8 @@ export function initUi() {
 
   initSaveRoute();
   initPointDeleteHandlers();
+
+  updateSavedRouteCards();
 
   setOnDistanceUnitChange(() => handleDistanceUnitToggle());
   addClickListener(setStartCoordButton, setStartCoord, "click");

@@ -18,7 +18,7 @@ import {
 } from "./settingsState.js";
 import { formatDistance } from "./utils.js";
 import { logout, deleteAccount } from "./auth.js";
-import { applyTheme } from "./ui.js";
+import { applyTheme, updateSavedRouteCards } from "./ui.js";
 import { hasActiveRouteStatsPanel } from "./routes/routeState.js";
 
 /** @type {(() => void) | null} */
@@ -101,11 +101,14 @@ function handleDistanceUnitChange() {
     // UI still updated locally; user can retry by toggling again
   });
   
-  if (hasActiveRouteStatsPanel()) {
+   {
     // notify listeners (manual route, etc.)
     if (onDistanceUnitChange) {
       try {
-        onDistanceUnitChange();
+        if (hasActiveRouteStatsPanel()) {
+          onDistanceUnitChange();
+        }
+        updateSavedRouteCards();
       } catch (e) {
         console.error("onDistanceUnitChange handler threw", e);
       }
