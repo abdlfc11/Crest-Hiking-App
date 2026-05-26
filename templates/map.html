@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/saved_routes.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings_panel.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/statsPanel.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -146,6 +147,7 @@
         <div id="route-stats">
             <div class="stats-header">
                 <span class="stats-title">Route Information</span>
+                <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
             </div>
             <div class="stats-content">
                 <div class="stat-row">
@@ -160,6 +162,10 @@
                   <span class="stat-label">Elevation Change:</span>
                   <span class="stat-value" id="route-elevation-change-display">{{ route_stats.elevation_change }}</span>
                 </div>
+            </div>
+
+            <div id="elevation-chart-container">
+                <canvas id="elevation-chart" width="400" height="200"></canvas>
             </div>
         </div>
         {% endif %}
@@ -354,6 +360,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/routes/savedRoutesDashboard.js') }}"></script>
     <script>lucide.createIcons();</script>

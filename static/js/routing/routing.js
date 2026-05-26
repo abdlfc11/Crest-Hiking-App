@@ -1,4 +1,9 @@
-import { manualRouteState } from "../routes/routeState.js";
+import { manualRouteState,
+  hasElevation,
+  extractElevation,
+  extractElevationProfile,
+  getElevationRange
+} from "../routes/routeState.js";
 
 export async function calculatePath(startPoint, endPoint) {
   const url = window.appConfig.apiCalculatePathUrl;
@@ -89,11 +94,21 @@ export async function addManualPoint(x, y) {
     const data = await getPathSegment(lastClickedPoint, finalClick);
 
     if (data?.success) {
-      const newSegment = data.coordinates;
+      const newSegment = data.coordinates; // contains [x, y and elevation]
+
+
       manualRouteState.pathCoords.push(...newSegment.slice(1));
       userClicks.push(finalClick);
+
+      // this updates elevation change
+      manualRouteState.initialElevation += data.route_stats.elevation_change;
+
+      // this marks the route as snapped to prevent future mixing
+      manualRouteState.isSnapped = true;
+
       const { updateManualRoute } = await import("../ui.js");
       updateManualRoute();
+
     } else {
       console.warn("Could not find a path to that location");
     }

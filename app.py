@@ -500,6 +500,23 @@ if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 
+# helper function which returns true if the first coordinate has 3 values (i.e x, y and z)
+def check_elevation(coords):
+    return bool(coords) and len(coords[0]) == 3
+
+# returns the x and y coords of a coordinate that may be 2D or 3D
+def get_xy(coord):
+    if len(coord) >= 2:
+        return coord[0], coord[1]
+    return coord
+
+# if a coord is over 180 degrees then it is definitely not wgs84 (181 used as buffer for edge cases)
+# this helper thus returns true if a coord is web mercator and false if it isn't (and thus is wgs84)
+def check_web_mercator(coord):
+    if coord is None:
+        return False
+    return abs(coord[0]) > 181 or abs(coord[1]) > 181
+
 def parse_elevation(elevation_string: str):
     if not elevation_string:
         return None
@@ -535,11 +552,20 @@ def generate_geojson(route):
     # converts the raw coords into a list
     raw_coords = json.loads(raw_coordinates_str)
     
-    # changes every coord into lon/lat
     corrected_coords = []
-    for x, y in raw_coords:
-        lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-        corrected_coords.append([lon, lat])
+    
+    has_elevation = check_elevation(raw_coords)
+        
+    for coord in raw_coords:
+        if has_elevation:
+            x, y, elevation = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            corrected_coords.append([lon, lat, elevation])
+        else:
+            x, y = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            corrected_coords.append([x, y])
+
         
     # constructs the geojson dict
     geojson_feature = {
@@ -565,12 +591,24 @@ def generate_gpx(route):
 
     coords = json.loads(route.coordinates)
 
-    for x, y in coords: # loops through each coord in one sub array in the coords array
-        lon, lat = service.convert_web_mercator_to_wgs84(x, y) # converts to lat and lon (needed for gpx)
-        segment.points.append(gpxpy.gpx.GPXTrackPoint(
-            latitude=lat,
-            longitude=lon
-        ))
+    has_elevation = check_elevation(coords)
+
+    for coord in coords: # loops through each coord in one sub array in the coords array
+        if has_elevation:
+            x, y, elevation = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y) # converts to lat and lon (needed for gpx)
+            segment.points.append(gpxpy.gpx.GPXTrackPoint(
+                latitude=lat,
+                longitude=lon,
+                elevation=elevation
+            ))
+        else:
+            x, y = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            segment.points.append(gpxpy.gpx.GPXTrackPoint(
+                latitude=lat,
+                longitude=lon
+            ))
 
     return gpx.to_xml()
 
@@ -592,20 +630,19 @@ def calculate_path():
         if not start_coords or not end_coords:
             raise ValueError("Start and end coordinates are required")
 
-        if len(start_coords) != 2 or len(end_coords) != 2:
+        if len(start_coords) < 2 or len(end_coords) < 2:
             raise ValueError("Coordinates must be in format 'x, y'")
 
         # forms variables containing each value of the start and end coordinates with suffixes removed so that they can be used in input validaton
-        start_coords_x = start_coords[0]
-        start_coords_y = start_coords[1]
+        start_coords_x, start_coords_y = get_xy(start_coords)
+        
 
         # debug statement to ensure that start_coords_x and y are in the required format 
         print(start_coords_x, start_coords_y)
 
-        end_coords_x = end_coords[0]
-        end_coords_y = end_coords[1]
+        end_coords_x, end_coords_y = get_xy(end_coords)
 
-        all_coords = start_coords + end_coords
+        all_coords = [start_coords_x, start_coords_y, end_coords_x, end_coords_y]
         if not all(isinstance(num, (int, float)) for num in all_coords):
             raise ValueError("Coordinates must be valid numbers")
         
@@ -640,12 +677,20 @@ def calculate_path():
 
     web_mercator_coordinates = [] # array used to hold coords which will be displayed on the map
     
-    for coord in path:  # converts path coordinates from bng to web mercator for display
+    for node in path:  # converts path coordinates from bng to web mercator for display
 
-        x, y = coord  
-        
-        web_x, web_y = service.convert_bng_to_web_mercator(x, y)  # converts bng to web mercator
-        web_mercator_coordinates.append([web_x, web_y]) # appends coords converted into web mercator into array
+        x, y = node  
+
+        web_x, web_y = service.convert_bng_to_web_mercator(x, y)
+
+        elev = graph.nodes.get(node, {}).get('elev')
+        if elev is not None:
+            web_mercator_coordinates.append([web_x, web_y, elev])
+        else:
+            web_mercator_coordinates.append([web_x, web_y]) # appends coords converted into web mercator into array
+    
+    start_coords = web_mercator_coordinates[0]
+    end_coords = web_mercator_coordinates[-1]
     
     # calculates distance and eta statistics
     total_distance = service.calculate_route_distance(path)
@@ -812,43 +857,31 @@ def load_route():
     
     # success, coordinates, file_type = db_manager.load_route(route_name)
     coordinates = json_coords
-    file_type = route.format
+
+    has_elevation = check_elevation(coordinates)
     
     try:
         # converts wgs84 coordinates to web mercator for display
         web_mercator_coordinates = []
-        bng_coordinates = []
-        
-        try:
-            for coord in coordinates:
-                if len(coord) < 2:
-                    continue
-                    
-                lon, lat = coord[0], coord[1]
-                
-                # checks if coords are large (meaning they are either bng or web mercator and are not wgs84)
-                if abs(lon) > 1000 or abs(lat) > 1000:
-                    web_x, web_y = lon, lat 
-                    
-                    # converts web mercator coords into bng
-                    bng_x, bng_y = service.convert_web_mercator_to_bng(lon, lat)
-                    bng_coordinates.append([bng_x, bng_y])
 
+        if check_web_mercator(coordinates[0]):
+            # already in web mercator so this block just normalises the lengths
+            for coord in coordinates:
+                x, y = coord[0], coord[1]
+                z = coord[2] if len(coord) >= 3 else 0   # default elevation = 0
+                web_mercator_coordinates.append([x, y, z])
+        else:
+            # this block converts wgs84 to web mercator
+            for coord in coordinates:
+                if has_elevation and len(coord) >= 3:
+                    lon, lat, elevation = coord[:3]
+                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
+                    web_mercator_coordinates.append([web_x, web_y, elevation])
                 else:
-                    # small numbers are assumed to be wgs84
-                    bng_x, bng_y = service.convert_wgs84_to_bng(lon, lat)
-                    bng_coordinates.append([bng_x, bng_y])
-                    web_x, web_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-                
-                # validation checks
-                if math.isnan(web_x) or math.isnan(web_y) or math.isinf(web_x) or math.isinf(web_y):
-                    continue
-                    
-                web_mercator_coordinates.append([web_x, web_y])
-        
-        except Exception as e:
-            return jsonify({"success": False, "message": f"Error converting coordinates: {str(e)}"})
-        
+                    lon, lat = coord[:2]
+                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
+                    web_mercator_coordinates.append([web_x, web_y, 0])
+
         if not web_mercator_coordinates:
             return jsonify({"success": False, "message": "No valid coordinates found in route file"})
         

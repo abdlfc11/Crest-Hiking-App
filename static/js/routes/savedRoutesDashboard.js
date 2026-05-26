@@ -7,6 +7,7 @@ import { deleteRoute, downloadRoute, loadRoute } from "./routeApi.js";
 import { addClickListener, closeNav, closeSavedRoutesDash,  } from "../ui.js"
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
+import { createElevationProfile, initChartToggleListener } from "../elevationChart.js";
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 
@@ -38,8 +39,13 @@ async function onLoadClick(event) {
   await closeNav();
   const data = await loadRoute(route.routeName);
   await displayLoadedRouteOnMap(data);
+  await initChartToggleListener();
+  await createElevationProfile(data.coordinates)
+
+  // both set calls could set coords whereby each coord is formed of 3 elements i.e (x, y and elevation)
   await setLoadedRouteCoordinates(data.coordinates);
   await setCurrentPathData(data.coordinates);
+
   event.preventDefault();
 }
 

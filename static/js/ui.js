@@ -46,6 +46,10 @@ import {
   setLastAutoRouteStats,
   clearLastAutoRouteStats,
   clearLastLoadedRouteStats,
+  hasElevation, 
+  extractElevation,
+  extractElevationProfile,
+  getElevationRange
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -56,6 +60,7 @@ import {
 import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
+import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
 
 export const defaultCentre = [-357428, 7256794];
 
@@ -482,11 +487,13 @@ async function handleAutoRouteGeneration() {
   generatePathButton.classList.add("loading");
 
   try {
-    const response = await calculatePath(startPoint, endPoint);
+    const response = await calculatePath(startPoint, endPoint); // response.coordinates may return coordinates whereby each element has 3 values (x, y and elevation)
     const routeStats = displayPath(response);
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     setAutoRouteStatDisplay(getLastAutoRouteStats());
+    initChartToggleListener();
+    createElevationProfile(response.coordinates);
     if (saveRouteDiv) saveRouteDiv.style.display = "block";
   } catch (error) {
     console.error(error);
@@ -528,7 +535,8 @@ function displayPath(data) {
   });
 
   source.addFeature(feature);
-  setCurrentPathData(data.coordinates);
+  setCurrentPathData(data.coordinates); // data.coordinates may be either 2 elements (x and y) or 3 elements (x, y and elevation)
+
 
   setTimeout(() => {
     map.getView().fit(source.getExtent(), {
@@ -546,6 +554,7 @@ function setAutoRouteStatDisplay(routeStats) {
     <div id="route-stats">
       <div class="stats-header">
         <span class="stats-title">Route Information</span>
+        <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
       </div>
       <div class="stats-content">
         <div class="stat-row">
@@ -561,6 +570,11 @@ function setAutoRouteStatDisplay(routeStats) {
           <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
         </div>
       </div>
+
+      <div id="elevation-chart-container">
+          <canvas id="elevation-chart" width="400" height="200"></canvas>
+      </div>
+
     </div>
   `;
 
@@ -619,8 +633,14 @@ export function updateManualRoute() {
   const totalDistanceKm = calculateTotalDistance(pathCoords) / 1000;
   const distanceDisplay = formatDistance(totalDistanceKm);
   const etaDisplay = calculateEta(totalDistanceKm);
-  const isSnapped = checkIfCircularRoute();
+  const isSnappedToEnd = checkIfCircularRoute();
   const features = [];
+  let elevationDisplay = "N/A";
+  const range = getElevationRange(pathCoords);
+  if (range && typeof range.min === 'number' && typeof range.max === 'number') {
+    const change = range.max - range.min;
+    elevationDisplay = `${change >= 0 ? '+' : ''}${change}m`
+  }
 
   setLastKnownDistanceKm(totalDistanceKm);
 
@@ -651,7 +671,7 @@ export function updateManualRoute() {
         const isStart = index === 0;
         const isEnd = index === userClicks.length - 1;
 
-        if (isSnapped) {
+        if (isSnappedToEnd) {
           if (isStart) return createManualPointStyle("Start/End", "#8145d4");
           if (isEnd) return createManualPointStyle("", "#8145d4", 0);
         }
@@ -677,6 +697,7 @@ export function updateManualRoute() {
   statsDiv.innerHTML = `
     <div class="stats-header">
       <span class="stats-title">Route Information</span>
+      <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
     </div>
     <div class="stats-content">
       <div class="stat-row">
@@ -689,10 +710,17 @@ export function updateManualRoute() {
       </div>
       <div class="stat-row">
         <span class="stat-label">Elevation Change:</span>
-        <span class="stat-value" id="route-elevation-change-display">N/A</span>
+        <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
       </div>
+
+      <div id="elevation-chart-container">
+          <canvas id="elevation-chart" width="400" height="200"></canvas>
+      </div>
+
     </div>
   `;
+  initChartToggleListener();
+  createElevationProfile(pathCoords);
 }
 
 function showPointDeleteDialog(show) {

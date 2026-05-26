@@ -1,4 +1,15 @@
-import { getCurrentMode, getCurrentPathData, getLastKnownDistanceKm, getLoadedRouteCoordinates, manualRouteState } from "./routeState.js";
+import { getCurrentMode, 
+  getCurrentPathData, 
+  getLastKnownDistanceKm, 
+  getLoadedRouteCoordinates, 
+  hasElevation, 
+  manualRouteState,
+  extractElevation,
+  extractElevationProfile,
+  getElevationRange,
+  setCurrentPathData, 
+  normaliseCoordLength
+ } from "./routeState.js";
 import { defaultCentre, homeButtonFunction, } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
@@ -37,9 +48,14 @@ function handleSaveRoute(e) {
   if (mode === "manual" && manualRouteState.pathCoords.length > 0) {
     pathCoordinates = manualRouteState.pathCoords;
   } else {
-    pathCoordinates =
-      getCurrentPathData() || getLoadedRouteCoordinates() || [];
+    pathCoordinates = getCurrentPathData() || getLoadedRouteCoordinates() || []; // coords in these arrays may now have elevation data
   }
+
+  console.log("Before normalisation:", pathCoordinates.slice(0, 3)); // debug
+
+  pathCoordinates = normaliseCoordLength(pathCoordinates);
+
+  console.log("After normalisation:", pathCoordinates.slice(0, 3)); // debug
 
   if (pathCoordinates.length === 0) {
     messageDiv.innerHTML =
@@ -120,7 +136,6 @@ function handleSaveRoute(e) {
                           </div>
                           `;
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
-        initSavedRoutesDashboard();
         homeButtonFunction();
       } else {
         messageDiv.innerHTML = `<span style="color: red;">${data.message}</span>`;
@@ -129,5 +144,5 @@ function handleSaveRoute(e) {
     .catch((error) => {
       messageDiv.innerHTML = `<span style="color: red;">Error saving route: ${error.message}</span>`;
       console.error("Error saving route:", error);
-    });
+    })
 }

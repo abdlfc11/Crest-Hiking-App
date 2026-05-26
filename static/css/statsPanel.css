@@ -1,0 +1,20 @@
+.stats-button {
+    font-size: 13px;
+    padding: 4px 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.stats-button:hover {
+    background: #1e40af;
+}
+
+#elevation-chart-container {
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+    display: none;
+    margin-top: 12px;
+}
