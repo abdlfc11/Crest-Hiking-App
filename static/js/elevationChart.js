@@ -119,18 +119,15 @@ function toggleElevationChart() {
     const container = document.getElementById('elevation-chart-container');
     if (!container) return;
 
-    const isHidden = container.style.display === 'none' || container.style.display === '';
     
-    if (isHidden) {
-        container.style.display = 'block';
-
+    const isActive = container.classList.toggle('active'); // adds class if it is missing and returns True if it is added and False if it is removed
+    
+    if (isActive) {
         if (currentCoordinates && currentCoordinates.length >= 2) {
             createElevationProfile(currentCoordinates);
         } else {
-            console.log("Chart container visible, waiting for route coords")
+            console.log("Chart container visible, waiting for route coords");
         }
-    } else {
-         container.style.display = 'none';
     }
 }
 
