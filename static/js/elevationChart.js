@@ -4,6 +4,8 @@ import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
 let elevationChart = null;
 let currentCoordinates = null;
 const toggleElevationChartButton = document.getElementById('toggle-elevation-chart');
+const dimCheckbox = document.getElementById('toggle-chart-dim');
+const chartCanvas = document.getElementById('elevation-chart');
 
 export function createElevationProfile(coordinates) {
     const ctx = document.getElementById('elevation-chart');
@@ -135,6 +137,16 @@ export function initChartToggleListener() {
     const toggleButton = document.getElementById('toggle-elevation-chart');
     if (toggleButton) {
         toggleButton.onclick = toggleElevationChart;
+    }
+    if (dimCheckbox && chartCanvas) {
+        dimCheckbox.addEventListener('change', function() {
+            // checked = hide chart || unchecked = show chart
+            if (this.checked) {
+                chartCanvas.classList.add('dimmed');
+            } else {
+                chartCanvas.classList.remove('dimmed');
+            }
+        });
     }
 }
 

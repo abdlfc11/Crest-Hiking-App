@@ -80,28 +80,31 @@ export function displayLoadedRouteStats(routeStats) {
   const statsHtml = `
     <div id="route-stats">
       <div class="stats-header">
-        <span class="stats-title">Route Information</span>
-        <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
+          <span class="stats-title">Route Information</span>
+          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
       </div>
-      <div class="stats-content">
-        <div class="stat-row">
-          <span class="stat-label">Distance:</span>
-          <span class="stat-value">${formatDistance(parseFloat(routeStats.total_distance))}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">ETA:</span>
-          <span class="stat-value">${routeStats.eta}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Elevation Change:</span>
-          <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change || "N/A"}</span>
-        </div>
-      </div>
+      <div id="stat-content-and-chart-container">
+          <div class="stats-content">
+              <div class="stat-row">
+                  <span class="stat-label">Distance:</span>
+                  <span class="stat-value" id="route-distance-display">${formatDistance(parseFloat(routeStats.total_distance))}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">ETA:</span>
+                  <span class="stat-value" id="route-eta-display">${routeStats.eta}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">Elevation Change:</span>
+                  <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
+              </div>
+          </div>
 
-      <div id="elevation-chart-container">
-          <canvas id="elevation-chart" width="400" height="200"></canvas>
+          <div class="chart-wrapper"> 
+              <div id="elevation-chart-container">
+                  <canvas id="elevation-chart"></canvas>
+              </div>
+          </div>
       </div>
-
     </div>
   `;
   const existingStats = document.getElementById("route-stats");
