@@ -540,7 +540,7 @@ function displayPath(data) {
 
   setTimeout(() => {
     map.getView().fit(source.getExtent(), {
-      padding: [80, 350, 80, 300],
+      padding: [50, 100, 100, 430],
       duration: 1200,
     });
     map.render();
@@ -553,28 +553,31 @@ function setAutoRouteStatDisplay(routeStats) {
   const statsHtml = `
     <div id="route-stats">
       <div class="stats-header">
-        <span class="stats-title">Route Information</span>
-        <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
+          <span class="stats-title">Route Information</span>
+          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
       </div>
-      <div class="stats-content">
-        <div class="stat-row">
-          <span class="stat-label">Distance:</span>
-          <span class="stat-value" id="route-distance-display">${formatDistance(parseFloat(routeStats.total_distance))}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">ETA:</span>
-          <span class="stat-value" id="route-eta-display">${routeStats.eta}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Elevation Change:</span>
-          <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
-        </div>
-      </div>
+      <div id="stat-content-and-chart-container">
+          <div class="stats-content">
+              <div class="stat-row">
+                  <span class="stat-label">Distance:</span>
+                  <span class="stat-value" id="route-distance-display">${formatDistance(parseFloat(routeStats.total_distance))}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">ETA:</span>
+                  <span class="stat-value" id="route-eta-display">${routeStats.eta}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">Elevation Change:</span>
+                  <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
+              </div>
+          </div>
 
-      <div id="elevation-chart-container">
-          <canvas id="elevation-chart" width="400" height="200"></canvas>
+          <div class="chart-wrapper"> 
+              <div id="elevation-chart-container">
+                  <canvas id="elevation-chart"></canvas>
+              </div>
+          </div>
       </div>
-
     </div>
   `;
 
@@ -695,28 +698,33 @@ export function updateManualRoute() {
   }
 
   statsDiv.innerHTML = `
-    <div class="stats-header">
-      <span class="stats-title">Route Information</span>
-      <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-    </div>
-    <div class="stats-content">
-      <div class="stat-row">
-        <span class="stat-label">Distance:</span>
-        <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">ETA:</span>
-        <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Elevation Change:</span>
-        <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
-      </div>
+    <div id="route-stats">
+        <div class="stats-header">
+            <span class="stats-title">Route Information</span>
+            <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
+        </div>
+        <div id="stat-content-and-chart-container">
+            <div class="stats-content">
+                <div class="stat-row">
+                    <span class="stat-label">Distance:</span>
+                    <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">ETA:</span>
+                    <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Elevation Change:</span>
+                    <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
+                </div>
+            </div>
 
-      <div id="elevation-chart-container">
-          <canvas id="elevation-chart" width="400" height="200"></canvas>
-      </div>
-
+            <div class="chart-wrapper"> 
+                <div id="elevation-chart-container">
+                    <canvas id="elevation-chart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
   `;
   initChartToggleListener();

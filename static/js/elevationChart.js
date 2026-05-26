@@ -4,6 +4,8 @@ import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
 let elevationChart = null;
 let currentCoordinates = null;
 const toggleElevationChartButton = document.getElementById('toggle-elevation-chart');
+const dimCheckbox = document.getElementById('toggle-chart-dim');
+const chartCanvas = document.getElementById('elevation-chart');
 
 export function createElevationProfile(coordinates) {
     const ctx = document.getElementById('elevation-chart');
@@ -119,18 +121,15 @@ function toggleElevationChart() {
     const container = document.getElementById('elevation-chart-container');
     if (!container) return;
 
-    const isHidden = container.style.display === 'none' || container.style.display === '';
     
-    if (isHidden) {
-        container.style.display = 'block';
-
+    const isActive = container.classList.toggle('active'); // adds class if it is missing and returns True if it is added and False if it is removed
+    
+    if (isActive) {
         if (currentCoordinates && currentCoordinates.length >= 2) {
             createElevationProfile(currentCoordinates);
         } else {
-            console.log("Chart container visible, waiting for route coords")
+            console.log("Chart container visible, waiting for route coords");
         }
-    } else {
-         container.style.display = 'none';
     }
 }
 
@@ -138,6 +137,16 @@ export function initChartToggleListener() {
     const toggleButton = document.getElementById('toggle-elevation-chart');
     if (toggleButton) {
         toggleButton.onclick = toggleElevationChart;
+    }
+    if (dimCheckbox && chartCanvas) {
+        dimCheckbox.addEventListener('change', function() {
+            // checked = hide chart || unchecked = show chart
+            if (this.checked) {
+                chartCanvas.classList.add('dimmed');
+            } else {
+                chartCanvas.classList.remove('dimmed');
+            }
+        });
     }
 }
 

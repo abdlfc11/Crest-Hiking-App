@@ -1,3 +1,74 @@
+#route-stats {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+    background: rgb(255 255 255 / 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    /* this ensures that the main panel expands dynamically based on children width */
+    max-width: calc(100% - 40px); 
+}
+
+.stats-header {
+    background: rgb(241 245 249 / 0.75);
+    padding: 12px 16px;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.stats-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1e293b;
+    letter-spacing: -0.01em;
+}
+
+.stats-content {
+    padding: 12px 16px;
+    flex-grow: 0; /* this prevents the text container from stretching */
+    flex-shrink: 0; /* this prevents the text container from getting crushed */
+    width: 220px; /* this gives a fixed width so rows have room to space out */
+    box-sizing: border-box;
+}
+
+/* this is to ensure that the space-between layout works inside the fixed text block */
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.stat-row:last-child {
+    margin-bottom: 0;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.stat-value.gain {
+    color: #28a745;
+}
+
+.stat-value.loss {
+    color: #dc3545;
+}
+
 .stats-button {
     font-size: 13px;
     padding: 4px 10px;
@@ -6,15 +77,52 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    transition: all 0.1s ease-in-out;
 }
 
 .stats-button:hover {
-    background: #1e40af;
+    background: #314ca5;
+    transform: translateY(-1px);
+}
+
+#elevation-chart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-wrapper {
+    display: flex;
+    flex-grow: 1; /* this tells the wrapper to claim the remaining space to the right */
 }
 
 #elevation-chart-container {
-    border-top: 1px solid #ddd;
-    padding-top: 10px;
-    display: none;
-    margin-top: 12px;
+    width: 0;
+    height: 220px; /* this is to match the desired height on the screen ( under the generate route panel ) */
+    opacity: 0;
+    overflow: hidden;
+    border-left: 1px solid transparent;
+    transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    box-sizing: border-box;
+}
+
+#elevation-chart-container.active {
+    opacity: 1;
+    width: 800px; /* this is to  expand size */
+    max-width: 100%; /* this prevents it from spilling off the right screen boundary */
+    padding: 0 1rem;
+    border-left: 1px solid #e2e8f0; 
+}
+
+#stat-content-and-chart-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch; /* this is so that it matches the height of the stats text side */
+}
+
+
+/* DARK MODE */ 
+
+html.dark #route-stats .stat-value,
+html.dark #route-stats .stat-label {
+    color: #f3f4f6;
 }
