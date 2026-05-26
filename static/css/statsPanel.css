@@ -10,9 +10,8 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     border: 1px solid #e2e8f0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    
-    /* this ensures that the main panel expands dynamically based on children width */
-    max-width: calc(100% - 40px); 
+
+    min-width: 5rem;
 }
 
 .stats-header {

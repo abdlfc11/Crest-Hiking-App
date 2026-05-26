@@ -1,5 +1,6 @@
 import { getDistance } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/sphere.js';
 import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
+import { normaliseCoordLength } from './routes/routeState.js';
 
 let elevationChart = null;
 let currentCoordinates = null;
@@ -8,6 +9,9 @@ const dimCheckbox = document.getElementById('toggle-chart-dim');
 const chartCanvas = document.getElementById('elevation-chart');
 
 export function createElevationProfile(coordinates) {
+
+    coordinates = normaliseCoordLength(coordinates)
+
     const ctx = document.getElementById('elevation-chart');
     if (!ctx) {
         console.warn("Elevation chart canvas not found");
