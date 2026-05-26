@@ -865,29 +865,23 @@ def load_route():
         web_mercator_coordinates = []
 
         if check_web_mercator(coordinates[0]):
-            web_mercator_coordinates = coordinates
-        else:
+            # already in web mercator so this block just normalises the lengths
             for coord in coordinates:
-                if has_elevation:
-                    lon, lat, elevation = coord
+                x, y = coord[0], coord[1]
+                z = coord[2] if len(coord) >= 3 else 0   # default elevation = 0
+                web_mercator_coordinates.append([x, y, z])
+        else:
+            # this block converts wgs84 to web mercator
+            for coord in coordinates:
+                if has_elevation and len(coord) >= 3:
+                    lon, lat, elevation = coord[:3]
                     web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
-
-                    # validation checks
-                    if math.isnan(web_x) or math.isnan(web_y) or math.isinf(web_x) or math.isinf(web_y):
-                        continue
-
                     web_mercator_coordinates.append([web_x, web_y, elevation])
                 else:
-                    lon, lat = coord
+                    lon, lat = coord[:2]
                     web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
+                    web_mercator_coordinates.append([web_x, web_y, 0])
 
-                    # validation checks
-                    if math.isnan(web_x) or math.isnan(web_y) or math.isinf(web_x) or math.isinf(web_y):
-                        continue
-                    
-                    web_mercator_coordinates.append([web_x, web_y])
-                
-        
         if not web_mercator_coordinates:
             return jsonify({"success": False, "message": "No valid coordinates found in route file"})
         

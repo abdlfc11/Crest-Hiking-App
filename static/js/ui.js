@@ -60,6 +60,7 @@ import {
 import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
+import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
 
 export const defaultCentre = [-357428, 7256794];
 
@@ -491,6 +492,8 @@ async function handleAutoRouteGeneration() {
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     setAutoRouteStatDisplay(getLastAutoRouteStats());
+    initChartToggleListener();
+    createElevationProfile(response.coordinates);
     if (saveRouteDiv) saveRouteDiv.style.display = "block";
   } catch (error) {
     console.error(error);
@@ -551,6 +554,7 @@ function setAutoRouteStatDisplay(routeStats) {
     <div id="route-stats">
       <div class="stats-header">
         <span class="stats-title">Route Information</span>
+        <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
       </div>
       <div class="stats-content">
         <div class="stat-row">
@@ -566,6 +570,11 @@ function setAutoRouteStatDisplay(routeStats) {
           <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
         </div>
       </div>
+
+      <div id="elevation-chart-container">
+          <canvas id="elevation-chart" width="400" height="200"></canvas>
+      </div>
+
     </div>
   `;
 
@@ -688,6 +697,7 @@ export function updateManualRoute() {
   statsDiv.innerHTML = `
     <div class="stats-header">
       <span class="stats-title">Route Information</span>
+      <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
     </div>
     <div class="stats-content">
       <div class="stat-row">
@@ -702,8 +712,15 @@ export function updateManualRoute() {
         <span class="stat-label">Elevation Change:</span>
         <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
       </div>
+
+      <div id="elevation-chart-container">
+          <canvas id="elevation-chart" width="400" height="200"></canvas>
+      </div>
+
     </div>
   `;
+  initChartToggleListener();
+  createElevationProfile(pathCoords);
 }
 
 function showPointDeleteDialog(show) {

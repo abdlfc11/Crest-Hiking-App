@@ -17,6 +17,9 @@ let updateLoadRouteVisibilityCallback = null;
 
 
 export function displayLoadedRouteOnMap(data) {
+
+  console.log(data.pathGeoJSON)
+
   const map = getMap();
   const routeLayer = getRouteLayer();
   if (!map || !routeLayer) return;
@@ -29,6 +32,11 @@ export function displayLoadedRouteOnMap(data) {
     dataProjection: "EPSG:3857",
     featureProjection: "EPSG:3857",
   });
+
+  console.log('First feature geometry:', features[0]?.getGeometry()?.getCoordinates().slice(0, 5));
+  console.log('Extent:', vectorSource.getExtent());
+
+  console.log(features)
 
   features.forEach((feature) => {
     feature.setStyle(
@@ -73,6 +81,7 @@ export function displayLoadedRouteStats(routeStats) {
     <div id="route-stats">
       <div class="stats-header">
         <span class="stats-title">Route Information</span>
+        <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
       </div>
       <div class="stats-content">
         <div class="stat-row">
@@ -88,9 +97,13 @@ export function displayLoadedRouteStats(routeStats) {
           <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change || "N/A"}</span>
         </div>
       </div>
+
+      <div id="elevation-chart-container">
+          <canvas id="elevation-chart" width="400" height="200"></canvas>
+      </div>
+
     </div>
   `;
-
   const existingStats = document.getElementById("route-stats");
   if (existingStats) existingStats.remove();
   document.body.insertAdjacentHTML("beforeend", statsHtml);

@@ -137,3 +137,36 @@ export function getElevationRange(coords) {
     return range;
   }, { min: null, max: null})
 }
+
+/**
+ * Ensures every coordinate is [x, y, elevation]
+ * - First point gets elevation from second point if it's 0
+ * - Forces numbers and consistent 3-element arrays
+ */
+export function normaliseCoordLength(coords) {
+  if (!coords || coords.length === 0) return [];
+
+  let normalisedCoords = coords.map(coord => {
+    if (Array.isArray(coord) && coord.length >= 3) {
+      return [Number(coord[0]), Number(coord[1]), Number(coord[2]) || 0];
+    } else if (Array.isArray(coord) && coord.length === 2) {
+      return [Number(coord[0]), Number(coord[1]), 0];
+    } else {
+      console.warn("Invalid coord:", coord);
+      return [0, 0, 0];
+    }
+  });
+
+  // this forces first point to use second point's elevation if first is 0
+  if (normalisedCoords.length >= 2) {
+    const firstElev = normalisedCoords[0][2];
+    const secondElev = normalisedCoords[1][2];
+
+    if (firstElev === 0 && secondElev !== 0) { // check if the first coord element doesn't have elevation AND that there is second Elevation
+      console.log(`Copied elevation ${secondElev} to first point`); // for debugging
+      normalisedCoords[0][2] = secondElev;
+    }
+  }
+
+  return normalisedCoords;
+}

@@ -6,7 +6,9 @@ import { getCurrentMode,
   manualRouteState,
   extractElevation,
   extractElevationProfile,
-  getElevationRange
+  getElevationRange,
+  setCurrentPathData, 
+  normaliseCoordLength
  } from "./routeState.js";
 import { defaultCentre, homeButtonFunction, } from "../ui.js";
 import { getMap } from "../map.js";
@@ -48,6 +50,12 @@ function handleSaveRoute(e) {
   } else {
     pathCoordinates = getCurrentPathData() || getLoadedRouteCoordinates() || []; // coords in these arrays may now have elevation data
   }
+
+  console.log("Before normalisation:", pathCoordinates.slice(0, 3)); // debug
+
+  pathCoordinates = normaliseCoordLength(pathCoordinates);
+
+  console.log("After normalisation:", pathCoordinates.slice(0, 3)); // debug
 
   if (pathCoordinates.length === 0) {
     messageDiv.innerHTML =
@@ -128,7 +136,6 @@ function handleSaveRoute(e) {
                           </div>
                           `;
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
-        initSavedRoutesDashboard();
         homeButtonFunction();
       } else {
         messageDiv.innerHTML = `<span style="color: red;">${data.message}</span>`;
@@ -137,5 +144,5 @@ function handleSaveRoute(e) {
     .catch((error) => {
       messageDiv.innerHTML = `<span style="color: red;">Error saving route: ${error.message}</span>`;
       console.error("Error saving route:", error);
-    });
+    })
 }
