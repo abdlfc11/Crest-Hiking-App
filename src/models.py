@@ -75,3 +75,15 @@ class Settings(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     user: Optional[User] = Relationship(back_populates="settings")
 
+# BETA CODE TABLE
+class BetaCode(SQLModel, table=True):
+    
+    #name
+    __tablename__ = "betacode"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    code: str = Field(unique=True, index=True, nullable=False)
+    used: bool = Field(nullable=False, default=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
