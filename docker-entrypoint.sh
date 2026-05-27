@@ -12,7 +12,7 @@ until pg_isready -h "$DB_HOST" -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" > /
 done
 
 echo "PostgreSQL is ready. Running the database migration..."
-flask --app app.py db upgrade
+alembic upgrade heads
 
 echo "Starting application..."
 exec "$@"

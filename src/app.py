@@ -1,22 +1,32 @@
-from pathfinder import a_star, snap_to_largest_component, build_global_kdtree  # responsible for path generation
-from flask import Flask, render_template, request, jsonify, session, send_file  # flask runs the local website
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import select, func, cast, JSON, TEXT
-import pickle as pkl  # responsible for loading the graph file saved in a pickle file
-import time
-from pyproj import Transformer  # responsible for coordinate system conversions
-import json  # responsible for json operations used when storing the route file
-import math  # responsible for converting coordinates
-from datetime import datetime, timezone  # responsible for setting a time created entry for routes saved
-from scipy.spatial import KDTree # used to implement a more efficient A* algorithm
-from werkzeug.security import generate_password_hash, check_password_hash
+# IMPORTS 
+from src.pathfinder import a_star, snap_to_largest_component, build_global_kdtree
+
+from flask import Flask, render_template, request, jsonify, session, send_file
+
+import sys
 import os
+
+sys.path.insert(0, "/app/src")
+
+# SQLModel + DB
+from sqlmodel import Session, select
+from db import engine
+
+from src.models import User, Route, Point, Settings
+
+import pickle as pkl
+import time
+from pyproj import Transformer
+import json
+import math
+from datetime import datetime, timezone
+from scipy.spatial import KDTree
+from werkzeug.security import generate_password_hash, check_password_hash
 import requests 
 from dotenv import load_dotenv
-from config import Config
+from src.config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_migrate import Migrate
 import networkx as nx
 from datetime import timedelta
 import gpxpy
@@ -25,11 +35,12 @@ import io
 import re
 
 
-
 # default map centre (BNG coordinates)
 default_centre = [333543, 505910]
 
-app = Flask(__name__)
+app = Flask(__name__,
+            template_folder='../templates',
+            static_folder='../static')
 
 if os.environ.get("FLASK_ENV") == "development":
     app.debug = True
@@ -47,8 +58,7 @@ locationiq_api_key = Config.LOCATIONIQ_API_KEY
 
 # binds for multiple databases
 app.config["SQLALCHEMY_DATABASE_URI"] = Config.DATABASE_URI
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+
 
 # Session security settings for production
 app.config.update(
@@ -66,47 +76,6 @@ limiter = Limiter(
 )
 
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(25), nullable=False, index=True, unique=True)
-    preferred_name = db.Column(db.String(30), nullable=True, unique=False)
-    password_hashed = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    routes = db.relationship("Route", back_populates="user")
-    points = db.relationship("Point", back_populates="user")
-    settings = db.relationship("Settings", back_populates="user")
-
-class Route(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
-    coordinates = db.Column(db.Text, nullable=False)
-    format = db.Column(db.String(25), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    ETA = db.Column(db.String(100), nullable=False)
-    distance_km = db.Column(db.Float, nullable=True)
-    elevation_change = db.Column(db.String(20), nullable=False)
-
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    user = db.relationship("User", back_populates="routes")
-
-class Point(db.Model):          
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50), nullable=False, unique=True)
-    coordinates = db.Column(db.String(1000), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    user = db.relationship("User", back_populates="points")
-
-class Settings(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    key = db.Column(db.String, nullable=False)
-    value = db.Column(db.String, nullable=False)
-
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    user = db.relationship("User", back_populates="settings")
-
 # useful helper for getting the current user during route and point creation as well as logging in and out 
 def get_current_user():
     username = session.get("username")
@@ -114,7 +83,8 @@ def get_current_user():
     if not username:
         print("no username detected")
         return None
-    return User.query.filter_by(username=username).first()
+    with Session(engine) as db:
+        return db.exec(select(User).where(User.username == username)).first()
 
 # STRFTIME FILTER
 @app.template_filter("strftime")
@@ -130,10 +100,18 @@ def strftime_filter(date, format: str):
 @app.route("/login", methods=["POST"])
 @limiter.limit("10 per minute")
 def login():
+
     data = request.get_json()
     username = data.get("username", "").strip()
     password = data.get("password", "")
-    user = User.query.filter_by(username=username).first()
+
+    if not username or not password:
+        return jsonify({"success": False, "message": "Username and Password are required"})
+
+    with Session(engine) as db:
+        user = db.exec(
+            select(User).where(User.username == username)
+        ).first()
 
     if user and check_password_hash(user.password_hashed, password):
         session["username"] = username
@@ -166,8 +144,10 @@ def registering():
 
     if not username or len(username) <= 7:
         return jsonify({"success": False, "message": "Username must have at least 8 characters"})
+    
     if p1 != p2:
         return jsonify({"success": False, "message": "The passwords must match each other"})
+    
     if len(p1) <= 11:
         return jsonify({"success": False, "message": "Passwords must have at least 12 characters"})
     
@@ -179,23 +159,31 @@ def registering():
     
     if not any(character in p1 for character in special_characters):
         return jsonify({"success": False, "message": "Passwords must have at least one special character"})
+
+    with Session(engine) as db:
+        existing_user = db.exec(
+            select(User).where(User.username == username)
+        ).first()
+
     
-    check_user = User.query.filter_by(username=username).first()
-    if check_user:
-        return jsonify({"success": False, "message": "Someone has already chosen this username"})
-    
-    try:
-        new_user = User(
-            username = username,
-            preferred_name = preferred_name,
-            password_hashed = generate_password_hash(p1)
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify({"success": True, "message": "Successfully registered"})
-    
-    except Exception:
-        return jsonify({"success": False, "message": "There was an unexpected error with our database"})
+        if existing_user:
+            return jsonify({"success": False, "message": "Someone has already chosen this username"})
+        
+        try:
+            new_user = User(
+                username = username,
+                preferred_name = preferred_name,
+                password_hashed = generate_password_hash(p1)
+            )
+
+            db.add(new_user)
+            db.commit()
+            return jsonify({"success": True, "message": "Successfully registered"})
+        
+        except Exception as error:
+            db.rollback()
+            print("Registration error: ", error)
+            return jsonify({"success": False, "message": "There was an unexpected error with our database"})
 
 #endregion
 
@@ -1103,30 +1091,42 @@ def map_view():
         available_routes = []
         saved_points = []
         return render_template("/login.html")
-    else:
-        available_routes = Route.query.filter_by(user_id=user.id).all()
-        saved_points = Point.query.filter_by(user_id=user.id).all()
-
-    web_mercator_points = []
-    for point in saved_points:
-        try:
-            bng_x, bng_y = json.loads(point.coordinates)
-            web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-            web_mercator_points.append({
-                "name": point.name,
-                "coordinates": [web_mercator_x, web_mercator_y]
-            })
-        except Exception as e:
-            print(f"Error in conversion: {e}")
-            continue
     
-    return render_template("map.html",
-                           map_centre = web_mercator_center,
-                           map_zoom = 10,
-                           current_path = session.get('current_path', None),
-                           available_routes=available_routes,
-                           saved_points=web_mercator_points,
-                           logged_in = (user is not None))
+    with Session(engine) as db:
+        try: 
+            available_routes = db.exec(
+                select(Route)
+                .where(Route.user_id == user.id)
+                .order_by(Route.created_at.desc())
+            ).all()
+            saved_points = db.exec(
+                select(Point)
+                .where(Point.user_id == user.id)
+                .order_by(Point.created_at.desc())
+            ).all()
+
+            web_mercator_points = []
+            for point in saved_points:
+                try:
+                    bng_x, bng_y = json.loads(point.coordinates)
+                    web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
+                    web_mercator_points.append({
+                        "name": point.name,
+                        "coordinates": [web_mercator_x, web_mercator_y]
+                    })
+                except Exception as e:
+                    print(f"Error in conversion: {e}")
+                    continue
+            
+            return render_template("map.html",
+                                map_centre = web_mercator_center,
+                                map_zoom = 10,
+                                current_path = session.get('current_path', None),
+                                available_routes=available_routes,
+                                saved_points=web_mercator_points,
+                                logged_in = (user is not None))
+        except Exception as error:
+            return jsonify({"success": False, "message": f"Error whilst getting map: {error}"})
 
 
 @app.route("/reset", methods=["GET"])

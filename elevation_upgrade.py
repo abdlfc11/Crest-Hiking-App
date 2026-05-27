@@ -1,4 +1,4 @@
-from app import NodeFinder as n
+from src.app import NodeFinder as n
 import rasterio as r
 import numpy as np
 import pickle as p

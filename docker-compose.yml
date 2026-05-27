@@ -16,18 +16,21 @@ services:
     build: .
     command: flask run --host=0.0.0.0 --port=5000 --debug 
     volumes:
-      - ./app.py:/app/app.py
-      - ./pathfinder.py:/app/pathfinder.py
-      - ./config.py:/app/config.py
+      # this mounts the entire src (backend python flask / FastAPI) folder
+      - ./src:/app/src
+
+      # this mounts other important folders
       - ./templates:/app/templates
       - ./static:/app/static
       - ./migrations:/app/migrations
-      - ./Pathfinding:/app/Pathfinding 
+      - ./Pathfinding:/app/Pathfinding
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - FLASK_DEBUG=1
       - LOAD_GRAPH_ON_IMPORT=0 
+      - FLASK_ENV=development
+      - PYTHONPATH=/app/src
     ports:
       - "5000:5000"
     env_file:

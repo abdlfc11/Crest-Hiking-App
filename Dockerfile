@@ -1,5 +1,6 @@
 # Use official Python image
-FROM python:3.14
+FROM python:3.11-slim-bookworm
+
 
 # Set working directory
 WORKDIR /app
@@ -23,13 +24,19 @@ RUN mkdir -p /app/Pathfinding
 
 COPY Pathfinding/better_path_graph.pkl /app/Pathfinding/better_path_graph.pkl
 
-# this copies the rest of the app into the container
-COPY app.py config.py pathfinder.py /app/
+# this copies python backend 
+COPY src/ /app/src/
 
 # this puts my js, html and css into the container 
 COPY templates/ templates/
 COPY static/ static/
+
+# database copies 
+COPY alembic.ini /app/alembic.ini
 COPY migrations/ migrations/
+
+# this sets the python path so imports are clean
+ENV PYTHONPATH=/app/src
 
 # allows app to run on the localhost:5000 port
 EXPOSE 5000
@@ -38,4 +45,6 @@ EXPOSE 5000
 COPY docker-entrypoint.sh /app/
 RUN chmod +x /app/docker-entrypoint.sh
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
-CMD [ "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--preload", "--access-logfile", "-", "app:app" ]
+
+# default command
+CMD [ "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--preload", "--access-logfile", "-", "src.app:app" ]
