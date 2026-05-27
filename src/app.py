@@ -9,7 +9,7 @@ import os
 sys.path.insert(0, "/app/src")
 
 # SQLModel + DB
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 from db import engine
 
 from src.models import User, Route, Point, Settings
@@ -193,19 +193,32 @@ def registering():
 def delete_account():
     username = session.get('username')
 
-    user = User.query.filter_by(username=username).first()
-    if user:
-        try:
-            Route.query.filter_by(user_id=user.id).delete()
-            Point.query.filter_by(user_id=user.id).delete()
+    with Session(engine) as db:
 
-            db.session.delete(user)
-            db.session.commit()
-            session.pop('username', None)
-            return jsonify({"success": True, "message": "Successfully deleted your account"})
-        except Exception as e:
-            print("ERROR:", e)
-            return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
+       
+        user = get_current_user()
+
+        if user:
+            try:
+                
+                db.delete(user)
+
+                db.exec(
+                    delete(Route)
+                    .where(Route.user_id == user.id)
+                )
+                db.exec(
+                    delete(Point)
+                    .where(Point.user_id == user.id)
+                )
+                
+                db.commit()
+                session.pop('username', None)
+                return jsonify({"success": True, "message": "Successfully deleted your account"})
+            except Exception as e:
+                db.rollback()
+                print("ERROR:", e)
+                return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
 
 #endregion
@@ -221,17 +234,22 @@ def get_settings():
         return jsonify({"success": False, "message": "Error: no user found"}), 401
 
     try:
-        # all setting records are queried
-        existing_records = Settings.query.filter_by(user_id=user.id).all()
-        
-        # makes key value pairs in the structure (setting: user_choice)
-        settings_payload = {record.key: record.value for record in existing_records}
-        
-        # returns data in a valid format
-        return jsonify({
-            "success": True, 
-            "settings_dict": settings_payload
-        }), 200
+        with Session(engine) as db:
+
+            # all setting records are queried
+            existing_records = db.exec(
+                select(Settings)
+                .where(Settings.user_id == user.id)
+            ).all()
+
+            # makes key value pairs in the structure (setting: user_choice)
+            settings_payload = {record.key: record.value for record in existing_records}
+            
+            # returns data in a valid format
+            return jsonify({
+                "success": True, 
+                "settings_dict": settings_payload
+            }), 200
 
     except Exception as error:
         print("ERROR WHILE RETRIEVING SETTINGS: ", error)
@@ -247,26 +265,40 @@ def save_settings():
         return jsonify({"success": False, "message": "Error: no user found"}), 401
 
     try:
-        existing_records = Settings.query.filter_by(user_id=user.id).all()
-        settings_dictionary = {record.key: record for record in existing_records}
-
-        db_changed = False 
-
-        for key, new_value in settings.items():
-            if key in settings_dictionary:
-                record = settings_dictionary[key]
-                if record.value != new_value:
-                    record.value = new_value
-                    db_changed = True
-            else:
-                new_record = Settings(user_id=user.id, key=key, value=new_value)
-                db.session.add(new_record)
-                db_changed = True 
         
-        if db_changed:
-            db.session.commit()
-        
-        return jsonify({"success": True, "message": "Successfully saved settings"}), 200
+        with Session(engine) as db:
+            
+            # get existing records (if any)
+            existing_records = db.exec(
+                select(Settings)
+                .where(Settings.user_id == user.id)
+            ).all()
+
+            # this creates a dictionary of settings based on the exisiting records retrieved
+            settings_dictionary = {record.key: record for record in existing_records}
+
+            # tracker used to check if the db changed so that it can be determined whether to take any action or not
+            db_changed = False 
+
+            # this for loop goes through each setting in local storage and checks if it is the same in the db records
+            # it then sets the db_changed tracker value to true if there is change detected
+            # it also adds any new settings detected
+            for key, new_value in settings.items():
+                if key in settings_dictionary:
+                    record = settings_dictionary[key]
+                    if record.value != new_value:
+                        record.value = new_value
+                        db_changed = True
+                else:
+                    new_record = Settings(user_id=user.id, key=key, value=new_value)
+                    db.add(new_record)
+                    db_changed = True 
+            
+            # the db's changes are committed if any changes have been detected
+            if db_changed:
+                db.commit()
+            
+            return jsonify({"success": True, "message": "Successfully saved settings"}), 200
 
     except Exception as error:
         db.session.rollback()
@@ -531,7 +563,8 @@ def parse_eta_to_seconds(eta_string: str):
 def generate_geojson(route):
    # this gets the raw coords text
     query = select(Route.coordinates).where(Route.id == route.id)
-    raw_coordinates_str = db.session.scalar(query)
+    with Session(engine) as db:
+        raw_coordinates_str = db.session.scalar(query)
     
     # check to ensure that the coords are retrieved
     if not raw_coordinates_str:
@@ -715,7 +748,11 @@ def calculate_path():
 
     user = get_current_user()
     if user:
-        available_routes = Route.query.filter_by(user_id=user.id).all() if user else []
+        with Session(engine) as db:
+            available_routes = db.exec(
+                select(Route)
+                .where(Route.user_id == user.id)
+            ).all()
     return jsonify({"success": True,
                      "pathGeoJSON": path_geojson,
                      "map_centre": map_centre,
@@ -752,11 +789,12 @@ def save_point():
 
         user = get_current_user()
         if user:
-            new_point = Point(name=point_name, coordinates=coords, user_id=user.id) 
-            db.session.add(new_point)
-            db.session.commit()
+            with Session(engine) as db:
+                new_point = Point(name=point_name, coordinates=coords, user_id=user.id) 
+                db.session.add(new_point)
+                db.session.commit()
 
-        return jsonify({"success": True, "message": 'Successfully saved the point'})
+            return jsonify({"success": True, "message": 'Successfully saved the point'})
         
     except ValueError:
         # if float() fails
@@ -817,11 +855,13 @@ def save_route():
             elevation_change=elevation_change
         )
         
-        db.session.add(route)
-        db.session.commit()
-        print(f"[DEBUG] Route successfully committed to database.")
 
-        return jsonify({"success": True, "message": "Successfully saved the route"})
+        with Session(engine) as db:
+            db.add(route)
+            db.commit()
+            print(f"[DEBUG] Route successfully committed to database.")
+
+            return jsonify({"success": True, "message": "Successfully saved the route"})
     except Exception as e:
         return jsonify({"success": False, "message": f"Error processing request: {str(e)}"})
 
@@ -995,7 +1035,11 @@ def get_saved_points():
 
     user = get_current_user()
     if user:
-        points = Point.query.filter_by(user_id=user.id).all()
+        with Session(engine) as db:
+            points = db.exec(
+                select(Point)
+                .where(Point.user_id == user.id)
+            ).all()
     
     if not points:
         return jsonify({"points": []})
@@ -1029,11 +1073,17 @@ def delete_point():
         return jsonify ({"success": False, "message": "Point name is missing"})
     
     try:
-        point_to_delete = Point.query.filter_by(name=point_name).first()
-        db.session.delete(point_to_delete)
-        db.session.commit()
+        with Session(engine) as db:
 
-        return jsonify({"success": True, "message": f"Successfully deleted the {point_name} point"})
+            point_to_delete = db.exec(
+                select(Point)
+                .where(Point.name == point_name)
+            ).first()
+
+            db.delete(point_to_delete)
+            db.commit()
+
+            return jsonify({"success": True, "message": f"Successfully deleted the {point_name} point"})
 
     except Exception:
         return jsonify({"success": False, "message": f"Could not successfully save the {point_name} point"})
@@ -1051,12 +1101,15 @@ def delete_route():
         return jsonify({"success": False, "message": "Route name is missing"}), 400
 
     try:
+        with Session(engine) as db:
+            route = db.exec(
+                select(Route)
+                .where(Route.name == route_name, Route.user_id == user.id)
+            ).first()
+            db.delete(route)
+            db.commit()
 
-        route = Route.query.filter_by(name=route_name, user_id=user.id).first()
-        db.session.delete(route)
-        db.session.commit()
-
-        return jsonify({"success": True, "message": f"Successfully saved the {route.name}"})
+            return jsonify({"success": True, "message": f"Successfully saved the {route.name}"})
     except Exception:
         return jsonify({"success": False, "message": "Could not delete the route."})
 
@@ -1207,7 +1260,5 @@ def search_area():
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=True)
 

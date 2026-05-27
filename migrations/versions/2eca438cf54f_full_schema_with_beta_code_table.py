@@ -1,19 +1,26 @@
-"""recreate tables with beta code"""
+"""full schema with beta code table
+
+Revision ID: 2eca438cf54f
+Revises: 
+Create Date: 2026-05-27 22:44:10.964319
+"""
 
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-from datetime import datetime
+from typing import Sequence, Union
 
 # revision identifiers
-revision = 'xxxxxxx'  # Alembic will fill this automatically
-down_revision = None
-branch_labels = None
-depends_on = None
+revision: str = '2eca438cf54f'
+down_revision: Union[str, Sequence[str], None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
-def upgrade():
-    # USER TABLE
+def upgrade() -> None:
+    """Upgrade schema."""
+
+    # ==================== USER TABLE ====================
     op.create_table('user',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('username', sa.String(25), nullable=False),
@@ -23,9 +30,9 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('username')
     )
-    op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
+    op.create_index('ix_user_username', 'user', ['username'], unique=True)
 
-    # ROUTE TABLE
+    # ==================== ROUTE TABLE ====================
     op.create_table('route',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('name', sa.String(100), nullable=False),
@@ -36,46 +43,47 @@ def upgrade():
         sa.Column('distance_km', sa.Float(), nullable=True),
         sa.Column('elevation_change', sa.String(30), nullable=False),
         sa.Column('user_id', sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(['user_id'], ['user.id']),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
     )
 
-    # POINT TABLE
+    # ==================== POINT TABLE ====================
     op.create_table('point',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('name', sa.String(50), nullable=False),
         sa.Column('coordinates', sa.String(1000), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('user_id', sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(['user_id'], ['user.id']),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
     )
 
-    # SETTINGS TABLE
+    # ==================== SETTINGS TABLE ====================
     op.create_table('settings',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('key', sa.String(), nullable=False),
         sa.Column('value', sa.String(), nullable=False),
         sa.Column('user_id', sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(['user_id'], ['user.id']),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')
     )
 
-    # BETA CODE TABLE
+    # ==================== BETA CODE TABLE ====================
     op.create_table('betacode',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('code', sa.String(), nullable=False),
-        sa.Column('used', sa.Boolean(), nullable=False, default=False),
+        sa.Column('used', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('code')
     )
-    op.create_index(op.f('ix_betacode_code'), 'betacode', ['code'], unique=True)
+    op.create_index('ix_betacode_code', 'betacode', ['code'], unique=True)
 
 
-def downgrade():
+def downgrade() -> None:
+    """Downgrade schema."""
     op.drop_table('betacode')
     op.drop_table('settings')
     op.drop_table('point')
