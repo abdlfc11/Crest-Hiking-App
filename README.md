@@ -2,8 +2,6 @@
 
 
 An open-source alternative to paid hiking apps, built for hikers who want to plan, save, and export routes without a subscription. Crest lets you generate optimal hiking routes within the county of Cumbria, save points of interest, and export your routes in standard formats compatible with GPS devices and popular mapping apps.
-~~Manual route creation as well as the plotting of points across the entire world is supported~~.
-After the addition of snap to paths in manual routing on 1st April 2026, manual routing is no longer possible outside of Cumbria. 
 
 > **Disclaimer:** Crest is intended as a desktop planning tool only. Always 
 carry an OS map and compass, check weather conditions, and do not rely solely 
@@ -53,9 +51,8 @@ You can start the app using docker-compose, the exact command is shown below
 docker-compose up --build
 ```
 ### Accessing the App
-The app should now be able to be accessed in your web browser at [](http://localhost:5000)
-=======
-The app should now be able to be accessed in your web browser at http://localhost:5000
+
+The app should now be able to be accessed in your web browser at [localhost:5000](http://localhost:5000)
 
 ### Choosing A Username and Password 
 Username and Password conditions are to be added to the login page as soon as possible but for now the conditions will be shown here
@@ -89,7 +86,7 @@ Conditions for a password are :
 | Layer | Technology |
 |---|---|
 | Frontend | HTML, CSS, JavaScript, OpenLayers |
-| Backend | Python, Flask |
+| Backend | Python, Flask, FastAPI (currently only  |
 | Database | PostgreSQL + SQLAlchemy ORM |
 | Pathfinding | Custom A\* algorithm + KDTree spatial indexing |
 | Map Data | OpenStreetMap (OSM) via XML parsing |
@@ -101,7 +98,44 @@ Conditions for a password are :
 ## Using the Route Maker
 
 ### Generating a Route 
-You can either enter coordinates directly, use the set by centre button, or use point names to generate routes
+
+#### Explanation of the panels during Automatic Route Generation
+
+
+<p align="center">
+  <img width="1470" height="833" alt="image" src="https://github.com/user-attachments/assets/305fe800-0f63-493b-b8d1-0798886bbaed" />
+  <br>
+  <sub>An image clearly showing each of the 4 distinct panels on the automatic route generation mode</sub>
+</p>
+
+##### Automatic and Manual toggles (In Red)
+This part of the UI is where you can easily switch between Automatic Route Generation and Manual Route Creation. 
+I often switch to manual routing whilst in automatic route generation when I find a more appealing path, and to reflect that the app fully handles switching modes smoothly.
+If you switch modes whilst a route is already loaded, the route is wiped and the UI is refreshed to include the new manual routing elements (more on that below)
+
+##### Main Routing Panel (In Yellow)
+This part of the UI is where you generate a route from. It includes the start and end coordinate entries as well as the corresponding set coordinate buttons. 
+It also includes a clear path button, which differs from the home button in that it doesn't zoom out to the centre of Cumbria, allowing you to continue routing without being disrupted. 
+It shares two things with the manual routing panel, of which is the home button and the menu button
+The home button clears all paths and entries and zooms out to the centre of the Lake District, allowing you to reset your session.
+The menu button (as the name suggests) opens a menu from the left hand side where you can access settings as well as the saved routes dashboards, where you can load, delete, and most importantly, export your created routes.
+
+##### Route Stats Panel
+This part of the UI is where you can view the details of your created or loaded routes. 
+
+It includes core details such as:
+
+- ETA: This is calculated using Naismith's rule and is different depending on descent or ascent
+- Distance: This is calculated via a complex web mercator equation I had to scour the internet for, I might make a blog post about it
+- Elevation Change: The elevation used for this is **_somewhat_** accurate ([NASA SRTM data for those interested](https://www.earthdata.nasa.gov/data/instruments/srtm). Better, more accurate datasets are being explored
+- Elevation profile: This was made available via chart.js and an image of an example of an elevation profile can be seen below
+<img width="1047" height="278" alt="image" src="https://github.com/user-attachments/assets/e8f44d82-001a-41a2-8b4a-f637e359b7d7" />
+
+
+
+#### Setting coordinates
+
+You can either enter coordinates directly, or use the set coord buttons, which allow you to click a point on the map to place a coordinate into the corresponding start / end entry
 
 Examples can be seen below:
 
