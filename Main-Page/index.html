@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crest</title>
+    <link rel="icon" href="static/Crest-Logo.png">
+    <meta name="description" content="A free, open‑source hiking platform built by hikers for hikers. 
+    Crest is a work‑in‑progress project focused on simple, reliable route planning without the paywalls.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav id="navbar">
+        <div id="left-nav-side" class="nav-sides">
+            <div id="navbar-logo-container">
+                <img src="images/Crest-Logo.png" id="navbar-logo-image">
+            </div>
+            <ul id="about-navbar-list" class="navbar-list">
+                <li class="navbar-item"><a href="#about-section" class="navbar-link">About</a></li>
+                <li class="navbar-item"><a href="https://crestr.co.uk/docs" class="navbar-link">Documentation</a></li>
+            </ul>
+        </div>
+        
+        <div id="centre-nav">
+            <span id="in-development">IN DEVELOPMENT</span>
+        </div>
+
+        <div id="right-nav-side" class="nav-sides">
+
+            <ul id="login-register-navbar-list" class="navbar-list">
+                <li id="login-link" class="navbar-item"><a href="/login-page" class="navbar-link">Login</a></li>
+                <li id="register-link" class="navbar-item"><a href="/register" class="navbar-link">Register</a></li>
+            </ul>
+            
+            <ul id="beta-navbar-list" class="navbar-list">
+                <li class="navbar-item">
+                    <a href="https://tally.so/r/44pAOY" class="navbar-link beta-link">Join Beta</a>
+                </li>
+            </ul>
+
+        </div>
+    </nav>
+    <!-- HERO SECTION-->
+    <section id="hero-section">
+        <div id="hero-image"></div>
+        <div id="hero-text-container">
+            <h1 id="top-hero-text" class="hero-text">Find your trail,</h1>
+            <h1 id="bottom-hero-text" class="hero-text">without the subscriptions</h1>
+
+            <!-- CTA button ( create a free account )-->
+            <button type="button" id="hero-create-account-button" onclick="switchToRegistering()">Create a free account</button>
+
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about-section">
+
+        <!-- main heading -->
+        <h1 id="about-heading">About Crest</h1>
+
+        <!-- each question is here -->
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">What is Crest ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    This is an open-source hiking app built for UK hikers. It allows the planning, saving, loading and downloading of routes through a modern interface without the clutter.
+                </p>
+            </article>
+        </div>
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">How does Crest generate hiking routes ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    Through open map data and a custom-made routing engine, Crest generates routes between your start and end points.
+                    The routing engine favours safer, and greener paths by default, and a filter allows the user to change what type of paths they prefer.
+                </p>
+            </article>
+        </div>
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">Is Crest really free ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    Yes, I built this app to make hiking more accessible, so the entire app is free.
+                    There are no paywalls, subscriptions or anything similar.
+                </p>
+            </article>
+        </div>
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">How is Crest different to other Hiking apps ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    This app is built for hikers, by a hiker.
+                    There are no advertisements nor subscriptions, only optional donations. 
+                </p>
+            </article>
+        </div>
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">Does Crest work across the entire UK ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    Not at the moment unfortunately, as I don't have the processing power needed to process paths across the Entire UK.
+                    The app works only in the county of Cumbria, however UK-wide support is planned for 2027.
+                </p>
+            </article>
+        </div>
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">Do I need an Account ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    Yes, however it is very fast to signup and register, and no unnecessary data is kept.
+                </p>
+            </article>
+        </div>
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">Can I use Crest offline ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    Not at the moment, though this is planned alongside a mobile app for the future.
+                    I'm working hard on it !
+                </p>
+            </article>
+        </div>
+        <div class="about-group-container">
+            <article class="about-group">
+                <button class="about-group-header-button">
+                    <h2 class="about-group-header">What features are planned for the future ?</h2>
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
+                </button>
+                <p class="about-group-text">
+                    As the project is still relatively new, there is a vast roadmap planned for the development of Crest.
+                    Some of these include a mobile app, offline support, improved elevation data for routes and a filter for easy, medium and hard difficulty routes.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <script src="main.js"></script>
+</body>
+</html>
