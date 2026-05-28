@@ -1,4 +1,4 @@
-# Crest — Hiking Route Finder
+# Crestr — Hiking Route Finder
 
 
 An open-source alternative to paid hiking apps, built for hikers who want to plan, save, and export routes without a subscription. Crest lets you generate optimal hiking routes within the county of Cumbria, save points of interest, and export your routes in standard formats compatible with GPS devices and popular mapping apps.
