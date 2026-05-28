@@ -3,17 +3,17 @@
 <head>
     <title>Crest</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="static/Crest-Logo.png">
+    <link rel="icon" href="{{ url_for('static', filename='Crest-Logo.png') }}">
     <meta name="description" content="A free, open‑source hiking platform built by hikers for hikers. 
     Crest is a work‑in‑progress project focused on simple, reliable route planning without the paywalls.">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 </head>
 <body>
     <!-- NAVBAR -->
     <nav id="navbar">
         <div id="left-nav-side" class="nav-sides">
             <div id="navbar-logo-container">
-                <img src="images/Crest-Logo.png" id="navbar-logo-image">
+                <img src="static/Crest-Logo.png" id="navbar-logo-image">
             </div>
             <ul id="about-navbar-list" class="navbar-list">
                 <li class="navbar-item"><a href="#about-section" class="navbar-link">About</a></li>
@@ -60,13 +60,25 @@
             <div class="feature-text">
                 <h2>Plan routes with precision</h2>
                 <p>
-                    Crest lets you generate accurate hiking routes with elevation‑aware pathfinding,
-                    clean GPX exports, and a simple interface designed for real hikers.
+                    Crestr generates an accurate elevation profile of automatically generated routes immediately upon the creation of the route.
                 </p>
             </div>
 
             <div class="feature-image">
-                <img src="https://files.catbox.moe/bjcza6.png" alt="Feature preview">
+                <img src="https://files.catbox.moe/oywsje.png" alt="Feature preview">
+            </div>
+        </div>
+
+        <div class="feature-block">
+            <div class="feature-text">
+                <h2>Save and Export Routes</h2>
+                <p>
+                    Crestr lets you save routes as well as export them in either GPX or GeoJSON for free 
+                </p>
+            </div>
+
+            <div class="feature-image">
+                <img src="https://files.catbox.moe/k143pc.jpeg" alt="Feature preview">
             </div>
         </div>
 
@@ -76,13 +88,13 @@
     <section id="about-section">
 
         <!-- main heading -->
-        <h1 id="about-heading">About Crest</h1>
+        <h1 id="about-heading">About Crestr</h1>
 
         <!-- each question is here -->
         <div class="about-group-container">
             <article class="about-group">
                 <button class="about-group-header-button">
-                    <h2 class="about-group-header">What is Crest ?</h2>
+                    <h2 class="about-group-header">What is Crestr ?</h2>
                     <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
                 </button>
                 <p class="about-group-text">
@@ -93,7 +105,7 @@
         <div class="about-group-container">
             <article class="about-group">
                 <button class="about-group-header-button">
-                    <h2 class="about-group-header">How does Crest generate hiking routes ?</h2>
+                    <h2 class="about-group-header">How does Crestr generate hiking routes ?</h2>
                     <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
                 </button>
                 <p class="about-group-text">
@@ -105,7 +117,7 @@
         <div class="about-group-container">
             <article class="about-group">
                 <button class="about-group-header-button">
-                    <h2 class="about-group-header">Is Crest really free ?</h2>
+                    <h2 class="about-group-header">Is Crestr really free ?</h2>
                     <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
                 </button>
                 <p class="about-group-text">
@@ -117,7 +129,7 @@
         <div class="about-group-container">
             <article class="about-group">
                 <button class="about-group-header-button">
-                    <h2 class="about-group-header">How is Crest different to other Hiking apps ?</h2>
+                    <h2 class="about-group-header">How is Crestr different to other Hiking apps ?</h2>
                     <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
                 </button>
                 <p class="about-group-text">
@@ -129,7 +141,7 @@
         <div class="about-group-container">
             <article class="about-group">
                 <button class="about-group-header-button">
-                    <h2 class="about-group-header">Does Crest work across the entire UK ?</h2>
+                    <h2 class="about-group-header">Does Crestr work across the entire UK ?</h2>
                     <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
                 </button>
                 <p class="about-group-text">
@@ -152,7 +164,7 @@
         <div class="about-group-container">
             <article class="about-group">
                 <button class="about-group-header-button">
-                    <h2 class="about-group-header">Can I use Crest offline ?</h2>
+                    <h2 class="about-group-header">Can I use Crestr offline ?</h2>
                     <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
                 </button>
                 <p class="about-group-text">
@@ -168,13 +180,13 @@
                     <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-up-icon lucide-arrow-big-up"><path d="M9 19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-6a1 1 0 0 1 1-1h3.293a.707.707 0 0 0 .5-1.207l-7.086-7.086a1 1 0 0 0-1.414 0l-7.086 7.086a.707.707 0 0 0 .5 1.207H8a1 1 0 0 1 1 1z"/></svg></span>
                 </button>
                 <p class="about-group-text">
-                    As the project is still relatively new, there is a vast roadmap planned for the development of Crest.
+                    As the project is still relatively new, there is a vast roadmap planned for the development of Crestr.
                     Some of these include a mobile app, offline support, improved elevation data for routes and a filter for easy, medium and hard difficulty routes.
                 </p>
             </article>
         </div>
     </section>
 
-    <script src="main.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
