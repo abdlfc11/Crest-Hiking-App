@@ -416,8 +416,15 @@ body {
         padding: 2rem;
     }
 
+    .feature-image {
+        width: 100%;
+    }
+
     .feature-image img {
-        max-width: 90%;
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        border-radius: 0;
     }
 }
 
