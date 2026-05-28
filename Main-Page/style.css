@@ -410,17 +410,17 @@ body {
 
 /* this makes the layout stack on mobile */
 @media (max-width: 768px) {
-    .feature-block {
-        flex-direction: column;
-        text-align: center;
-        padding: 2rem;
+    .feature-image {
+        width: 100%;
+        display: flex;
+        justify-content: center;
     }
 
     .feature-image img {
-        width: 100%;
         max-width: 100%;
+        width: 100%;
         height: auto;
-        object-fit: cover;
+        flex-shrink: 1;
     }
 }
 
