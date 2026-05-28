@@ -1,4 +1,3 @@
-
 /* MAIN SETTINGS */
 
 html {
@@ -8,6 +7,10 @@ html {
 body {
     background-color: #FFFFFF;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 /* NAVBAR */
@@ -116,6 +119,9 @@ body {
     border-radius: 12px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
 }
 
 .navbar-link:hover {
@@ -140,6 +146,7 @@ body {
     background-color: #3b82f6 !important;
     color: white !important;
     font-weight: 600;
+    min-height: 44px;
 }
 
 .beta-link:hover {
@@ -153,6 +160,8 @@ body {
     #navbar {
         padding: 0.65rem 1rem;
         border-radius: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     
     .nav-sides {
@@ -184,6 +193,33 @@ body {
     
     #navbar {
         padding: 0.65rem 1rem;
+    }
+
+    #login-register-navbar-list {
+        display: none;
+    }
+
+    #right-nav-side {
+        justify-content: center;
+    }
+
+    #left-nav-side {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    #navbar {
+        padding: 0.6rem 0.9rem;
+        gap: 0.6rem;
+    }
+    
+    #navbar-logo-image {
+        height: 2.9rem;
+    }
+    
+    .navbar-link {
+        padding: 0.5rem 0.9rem;
     }
 }
 
@@ -231,6 +267,7 @@ body {
     height: 100%;
     width: 100%;
     color: white;
+    padding: 1rem;
 }
 
 #hero-text-container h1 {
@@ -264,6 +301,9 @@ body {
     text-align: center;
     cursor: not-allowed;
     transition: transform 0.2s ease-in-out, box-shadow 0.05s ease-in-out;
+    min-height: 56px;
+    width: 90%;
+    max-width: 320px;
 }
 
 #hero-create-account-button:hover {
@@ -330,6 +370,7 @@ body {
     cursor: pointer;
     font-size: .8rem;
     transition: background-color 0.25s ease;
+    min-height: 60px;
 }
 
 .about-group-header-button:hover {
@@ -391,5 +432,13 @@ body {
 @media (max-width: 480px) {
     .about-group-container {
         margin-bottom: 0.75rem;
+    }
+    
+    .about-group-header-button {
+        padding: 1.25rem 1.1rem;
+    }
+    
+    #about-section {
+        padding: 3.5rem 0.8rem 4rem;
     }
 }
