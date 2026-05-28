@@ -3,18 +3,15 @@
 html {
     scroll-behavior: smooth;
 }
-
 body {
     background-color: #FFFFFF;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
-
 * {
     box-sizing: border-box;
 }
 
 /* NAVBAR */
-
 #navbar {
     display: flex;
     align-items: center;
@@ -84,7 +81,6 @@ body {
     object-fit: contain;
     display: block;
 }
-
 
 .navbar-list {
     display: flex;
@@ -156,71 +152,65 @@ body {
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-/* this is for a responsive design */
+/* --- MOBILE NAVBAR FIX --- */
 @media (max-width: 768px) {
+
+    /* Prevent clipping */
     #navbar {
+        position: static;
+        top: 0;
+        border-radius: 0;
         padding: 0.65rem 1rem;
-        border-radius: 16px;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.75rem;
+        max-width: 100%;
     }
-    
-    .nav-sides {
-        gap: 1.25rem;
-    }
-    
+
     #navbar-logo-image {
-        height: 3.2rem;
+        height: 2.6rem;
     }
-    
-    .navbar-link {
-        padding: 0.55rem 1rem;
-        font-size: 1rem;
-    }
-    
-    #left-nav-side {
+
+    .nav-sides {
         gap: 1rem;
+    }
+
+    .navbar-link {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.95rem;
+        min-height: 40px;
+    }
+
+    #left-nav-side,
+    #right-nav-side {
         justify-content: center;
     }
 
     #in-development {
-        font-size: 0.85rem;
-        padding: 0.3rem 0.8rem;
-    }
-    
-    .beta-link {
-        padding: 0.55rem 1rem !important;
-        font-size: 0.95rem;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.7rem;
     }
 
     #login-register-navbar-list {
         display: none;
     }
-
-    #right-nav-side {
-        justify-content: center;
-    }
 }
 
 @media (max-width: 480px) {
+
     #navbar {
-        padding: 0.55rem 0.9rem;
-        gap: 0.6rem;
+        padding: 0.55rem 0.8rem;
     }
-    
+
     #navbar-logo-image {
-        height: 2.8rem;
+        height: 2.3rem;
     }
-    
+
     .navbar-link {
-        padding: 0.5rem 0.9rem;
-        font-size: 0.95rem;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.9rem;
     }
-    
+
     #in-development {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.7rem;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.6rem;
     }
 }
 
@@ -320,7 +310,6 @@ body {
     box-shadow: none;
 }
 
-
 /* ABOUT SECTION */
 
 #about-section {
@@ -407,7 +396,7 @@ body {
     opacity: 0;
     transition: 
         max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.35s ease 0.05s,          /* slight delay on fade */
+        opacity 0.35s ease 0.05s,
         padding-bottom 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
