@@ -32,6 +32,7 @@ body {
     z-index: 1000;
     transition: all 0.3s ease;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .nav-sides {
@@ -162,6 +163,7 @@ body {
         border-radius: 16px;
         flex-wrap: wrap;
         justify-content: center;
+        gap: 0.75rem;
     }
     
     .nav-sides {
@@ -179,6 +181,7 @@ body {
     
     #left-nav-side {
         gap: 1rem;
+        justify-content: center;
     }
 
     #in-development {
@@ -190,10 +193,6 @@ body {
         padding: 0.55rem 1rem !important;
         font-size: 0.95rem;
     }
-    
-    #navbar {
-        padding: 0.65rem 1rem;
-    }
 
     #login-register-navbar-list {
         display: none;
@@ -202,24 +201,26 @@ body {
     #right-nav-side {
         justify-content: center;
     }
-
-    #left-nav-side {
-        justify-content: center;
-    }
 }
 
 @media (max-width: 480px) {
     #navbar {
-        padding: 0.6rem 0.9rem;
+        padding: 0.55rem 0.9rem;
         gap: 0.6rem;
     }
     
     #navbar-logo-image {
-        height: 2.9rem;
+        height: 2.8rem;
     }
     
     .navbar-link {
         padding: 0.5rem 0.9rem;
+        font-size: 0.95rem;
+    }
+    
+    #in-development {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.7rem;
     }
 }
 
@@ -267,7 +268,8 @@ body {
     height: 100%;
     width: 100%;
     color: white;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
+    text-align: center;
 }
 
 #hero-text-container h1 {
@@ -276,14 +278,16 @@ body {
 
 .hero-text {
     color: rgb(255, 255, 255);
-    font-size: clamp(2rem, 4vw, 5rem);
+    font-size: clamp(1.8rem, 7vw, 5rem);
     pointer-events: none;
+    line-height: 1.05;
 }
 
 #bottom-hero-text {
     font-weight: 500;
     font-style: italic;
-    font-size: clamp(1.75rem, 3.5vw, 4rem);
+    font-size: clamp(1.55rem, 5.5vw, 4rem);
+    line-height: 1.1;
 }
 
 /* create account button */
