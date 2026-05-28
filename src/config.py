@@ -1,7 +1,15 @@
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent  # go up from /app to project/
+
+env_path = BASE_DIR / ".env"
+example_path = BASE_DIR / ".env.example"
+
+dotenv_path = env_path if env_path.exists() else example_path
+
+load_dotenv(dotenv_path)
 
 class Config:
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY')

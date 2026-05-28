@@ -23,7 +23,6 @@ from datetime import datetime, timezone
 from scipy.spatial import KDTree
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests 
-from dotenv import load_dotenv
 from src.config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -562,46 +561,49 @@ def parse_eta_to_seconds(eta_string: str):
 
 def generate_geojson(route):
    # this gets the raw coords text
-    query = select(Route.coordinates).where(Route.id == route.id)
-    with Session(engine) as db:
-        raw_coordinates_str = db.session.scalar(query)
-    
-    # check to ensure that the coords are retrieved
-    if not raw_coordinates_str:
-        return None
-
-    # converts the raw coords into a list
-    raw_coords = json.loads(raw_coordinates_str)
-    
-    corrected_coords = []
-    
-    has_elevation = check_elevation(raw_coords)
+   with Session(engine) as db:
+        query = db.exec(select(Route.coordinates).where(Route.id == route.id))
+        with Session(engine) as db:
+            raw_coordinates_str = db.session.scalar(query)
         
-    for coord in raw_coords:
-        if has_elevation:
-            x, y, elevation = coord
-            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-            corrected_coords.append([lon, lat, elevation])
-        else:
-            x, y = coord
-            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-            corrected_coords.append([x, y])
+        # check to ensure that the coords are retrieved
+        if not raw_coordinates_str:
+            return None
 
+        # converts the raw coords into a list
+        raw_coords = json.loads(raw_coordinates_str)
         
-    # constructs the geojson dict
-    geojson_feature = {
-        "type": "Feature",
-        "geometry": {
-            "type": "LineString",
-            "coordinates": corrected_coords
-        },
-        "properties": {
-            "route_id": route.id
+        corrected_coords = []
+        
+        has_elevation = check_elevation(raw_coords)
+            
+        for coord in raw_coords:
+            if has_elevation:
+                x, y, elevation = coord
+                lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+                corrected_coords.append([lon, lat, elevation])
+            else:
+                x, y = coord
+                lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+                corrected_coords.append([x, y])
+
+            
+        # constructs the geojson dict
+        geojson_feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": corrected_coords
+            },
+            "properties": {
+                "route_id": route.id,
+                "distance_km": route.distance_km,
+                "created_at": route.created_at
+            }
         }
-    }
-    
-    # returns as JSON string
-    return json.dumps(geojson_feature)
+        
+        # returns as JSON string
+        return json.dumps(geojson_feature)
 
 def generate_gpx(route):
     gpx = gpxpy.gpx.GPX() # initialises container
