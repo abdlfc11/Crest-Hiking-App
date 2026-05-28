@@ -1,6 +1,7 @@
 import { getDistance } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/sphere.js';
 import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
 import { normaliseCoordLength } from './routes/routeState.js';
+import { getTheme } from './settingsState.js';
 
 let elevationChart = null;
 let currentCoordinates = null;
@@ -52,12 +53,23 @@ export function createElevationProfile(coordinates) {
             x: parseFloat(cumulativeDistance.toFixed(2)),
             y: p2[2]
         });
-    }
+    }  
+
+    // light / dark mode logic 
+
+
+    const theme = getTheme(); // "light" | "dark"
+    const isDark = theme === "dark";
+
+    const text = isDark ? "#ffffff" : "#1f2937";
+    const grid = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+    const border = isDark ? "#2563eb" : "#1d4ed8";
+    const fill = isDark ? "rgba(37,99,235,0.25)" : "rgba(37,99,235,0.15)";
+
+
 
     // this destroys the old chart if there is a new one present
-    if (elevationChart) {
-        elevationChart.destroy();
-    }
+    if (elevationChart) elevationChart.destroy();
 
     elevationChart = new Chart(ctx, {
         type: 'line',
@@ -65,8 +77,8 @@ export function createElevationProfile(coordinates) {
             datasets: [{
                 label: 'Elevation (m)',
                 data: chartData,
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                borderColor: border,
+                backgroundColor: fill,
                 borderWidth: 1,
                 tension: 0.3,
                 fill: true,
@@ -92,11 +104,11 @@ export function createElevationProfile(coordinates) {
                     title: { 
                         display: true, 
                         text: 'Distance (km)', 
-                        color: '#ffffff',
+                        color: text,
                         font: { size: 13 }
                     },
                     ticks: {
-                        color: '#e0e0e0',
+                        color: text,
                         font: { size: 12 },
                         callback: function(value) {
                             return Math.round(value);
@@ -104,17 +116,17 @@ export function createElevationProfile(coordinates) {
                         stepSize: 1,
                         maxTicksLimit: 12
                     },
-                    grid: { color: 'rgba(255,255,255,0.08)' }
+                    grid: { color: grid }
                 },
                 y: {
                     title: { 
                         display: true, 
                         text: 'Elevation (m)', 
-                        color: '#ffffff',
+                        color: text,
                         font: { size: 13 }
                     },
-                    ticks: { color: '#e0e0e0' },
-                    grid: { color: 'rgba(255,255,255,0.08)' }
+                    ticks: { color: text },
+                    grid: { grid }
                 }
             }
         }
