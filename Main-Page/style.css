@@ -350,6 +350,8 @@ body {
     box-shadow: none;
 }
 
+/* FEATURE CARDS */
+
 /* FEATURE BLOCK */
 .feature-block {
     display: flex;
@@ -370,6 +372,7 @@ body {
     margin: 0;
     color: #1f2937;
     text-align: center;
+    font-size: clamp(1.8rem, 2.5vw, 2.6rem);
 }
 
 /* Image */
