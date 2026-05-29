@@ -146,13 +146,7 @@ I used SRTM data via the [elevation library available in python](https://pypi.or
 
 ## Roadmap
 
-- [x] Add screenshots
-- [ ] Expand automatic route creation beyond the Lake District
-- [x] Route elevation profiles
-- [x] Snap to Paths for Manual Routing
-- [ ] Elevation data in Manual Routine
-- [ ] Tag Data (such as trail_visibility and surface) in Pathfinding
-- [ ] Transition to a Bi-Directional A* algorithm
+
 
 ---
 

@@ -56,5 +56,3 @@ Exported files contain:
 - Want a specific feature added (e.g., KML export, batch export)? Open an issue on GitHub or reach out to the Crestr team.
 
 ---
-
-**Happy exploring and safe travels!** 🗺️

@@ -38,6 +38,14 @@ name = "Switch to Light Mode"
 Home = "index.md"
 
 [[project.nav]]
+"Roadmap" = [
+    { "Overview" = "roadmap/overview.md" },
+    { "2025" = "roadmap/2025.md" },
+    { "2026" = "roadmap/2026.md" },
+    { "2027" = "roadmap/2027.md" }
+]
+
+[[project.nav]]
 "User Guide" = [
     { "Getting Started" = "user/getting-started.md" },
     { "Automatic Routing" = "user/automatic-routing.md" },
