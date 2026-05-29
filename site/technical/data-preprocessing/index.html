@@ -23,7 +23,7 @@
     
     
       
-        <title>Data preprocessing - Crestr Documentation</title>
+        <title>Data Preprocessing - Crestr Documentation</title>
       
     
     
@@ -78,7 +78,8 @@
     <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
     <div data-md-component="skip">
       
-        <a href="#__skip" class="md-skip">
+        
+        <a href="#data-preprocessing" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Data preprocessing
+              Data Preprocessing
             
           </span>
         </div>
@@ -746,6 +747,8 @@
       
       
       
+        
+      
       
       <a href="././" class="md-nav__link md-nav__link--active">
         
@@ -924,6 +927,8 @@
                     
                     
                     
+                      
+                    
                     
                   
                   <div class="md-sidebar__inner">
@@ -933,6 +938,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="On this page">
   
   
+  
+    
   
   
 </nav>
@@ -948,9 +955,67 @@
                 
                   
 
-  <h1 id="__skip">Data preprocessing</h1>
-
-
+<h1 id="data-preprocessing">Data Preprocessing<a class="headerlink" href="#data-preprocessing" title="Permanent link">&para;</a></h1>
+<h1 id="downloading-data">Downloading Data<a class="headerlink" href="#downloading-data" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>This section of data preprocessing focuses on obtaining .osm.pbf files that contain geographic information, which will then be used to form the graph used in pathfinding</p>
+</blockquote>
+<p>OSM (Open Street Map) data is installed via <a href="https://download.geofabrik.de">Geofabric</a></p>
+<h1 id="parsing-data">Parsing Data<a class="headerlink" href="#parsing-data" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>This section of data preprocessing focuses on converting the raw downloaded file and turning it into a graph which will then be used by the A* algorithm during routing</p>
+</blockquote>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The order of parsing the downloaded file is as such:</p>
+<ul>
+<li><strong>Osmium</strong>: This is where tags such as 'sac_scale', 'trail_visibility' and 'surface' are added to the osm.pbf file to be used in the calculation of cost multipliers</li>
+<li><strong>Graph Generation</strong>: This is where libraries such as <a href="https://networkx.org/en/">NetworkX</a>, <a href="https://pyrosm.readthedocs.io/en/latest/">Pyrosm</a> and <a href="https://shapely.readthedocs.io/en/stable/">Shapely</a> are used to create the directed graph that is then passed onto a second python script to add elevation data to the graph</li>
+<li><strong>Elevation Encrichment</strong>: This is where NASA SRTM elevation data is added to each node, as well as where a slope factor is set on each graph edge</li>
+</ul>
+<h2 id="osmium">Osmium<a class="headerlink" href="#osmium" title="Permanent link">&para;</a></h2>
+<p>This file is then passed through an <a href="https://osmcode.org">Osmium</a> <code>cat</code> command (see below).</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>osmium<span class="w"> </span>cat<span class="w"> </span><span class="o">[</span>INPUT<span class="w"> </span>FILE<span class="w"> </span>PATH<span class="o">]</span><span class="w"> </span>-o<span class="w"> </span><span class="o">[</span>OUTPUT<span class="w"> </span>FILE<span class="w"> </span>PATH<span class="o">]</span>
+</span></code></pre></div>
+<p>This is done so as to extract the metadata tags that are used in the calculation of cost multipliers to graph edges, whereby this is used to ensure that the A* algorithm routes around paths that are less safe. </p>
+<h2 id="python-scripts">Python Scripts<a class="headerlink" href="#python-scripts" title="Permanent link">&para;</a></h2>
+<p>Two python scripts are used to form the graph, with the first being used to extract geographic information from the .osm.pbf file outputted by the <code>osmium cat</code> command and the second being used to add downloaded elevation data into the graph, as well as for calculating slope factors (which will be/is used to provide a difficulty filter for users when routing)</p>
+<h3 id="graph-generation">Graph Generation<a class="headerlink" href="#graph-generation" title="Permanent link">&para;</a></h3>
+<p>NetworkX is used here to parse the osm.pbf file into a graph formed of nodes and edges. </p>
+<p>Each node is stored in the British National Grid format (EPSG: 27000) and in the following format: </p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Node<span class="w"> </span>:<span class="w"> </span><span class="o">(</span>x:<span class="w"> </span>float,<span class="w"> </span>y:<span class="w"> </span>float<span class="o">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">{</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="s1">&#39;elev&#39;</span>:<span class="w"> </span>float<span class="w"> </span><span class="c1"># elevation in metres</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="o">}</span>
+</span></code></pre></div>
+<p>Each node has 2 values, forming the x and y coordinate, stored as a float. </p>
+<p>They also have one attribute of which is an elevation attribute, also stored as a float in metres</p>
+<p>Each edge is stored in the following format:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Edge<span class="w"> </span>:<span class="w"> </span><span class="o">((</span>x1:<span class="w"> </span>float,<span class="w"> </span>y1:<span class="w"> </span>float<span class="o">)</span>,<span class="w"> </span><span class="o">(</span>x2:<span class="w"> </span>float,<span class="w"> </span>y2:<span class="w"> </span>float<span class="o">))</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">{</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="s1">&#39;length&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>,
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="s1">&#39;sac_scale&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>string<span class="o">]</span>,
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="s1">&#39;surface&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>string<span class="o">]</span>,
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="s1">&#39;trail_visibility&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>string<span class="o">]</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="o">}</span>
+</span></code></pre></div>
+<p>Each edge has 2 values of which are the start coordinates and the destination coordinates, with values within these being stored as a float.</p>
+<p>Each edge also has 4 attributes. </p>
+<p>The length attribute is the distance between the start and end coordinate in metres, whilst the other 3 attributes are meta tags and hold the strings of the tags, i.e 'gravel' for surface or 'poor' for trail_visibility. This is then converted into a cost during elevation enrichment.</p>
+<h3 id="elevation-enrichment">Elevation Enrichment<a class="headerlink" href="#elevation-enrichment" title="Permanent link">&para;</a></h3>
+<p>During elevation enrichment, a dictionary of costs are used, holding numbers that correspond to every possible value that each tag could hold. </p>
+<p>Each edge is looped through, and the value of each tag is passed into a handmade function which returns a multiplier value. </p>
+<p>The multiplier value is then mulitplied with the ascent value if the elevation difference is positive, or the descent value if the elevation difference is negative. The result is then added to the edge as a cost attribute.  </p>
+<p>After this, a slope ratio is calculated by dividing the elevation difference in metres by the length attribute of the edge (if the value of this attribute is greater than zero), with this then being set to the 'slope' attribute of the edge.</p>
+<p>The result is that each edge now has the following structure: </p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Edge<span class="w"> </span>:<span class="w"> </span><span class="o">((</span>x1:<span class="w"> </span>float,<span class="w"> </span>y1:<span class="w"> </span>float<span class="o">)</span>,<span class="w"> </span><span class="o">(</span>x2:<span class="w"> </span>float,<span class="w"> </span>y2:<span class="w"> </span>float<span class="o">))</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="o">{</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="s1">&#39;length&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>,<span class="w"> </span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="s1">&#39;cost&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>,<span class="w"> </span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="s1">&#39;slope&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="o">}</span>
+</span></code></pre></div>
 
 
 
