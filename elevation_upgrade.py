@@ -40,7 +40,7 @@ nodes = node_graph.nodes() # this is a live view of all the nodes in my graph
 BNG_extracted_node_coordinates = list(nodes) # this is list of all those nodes' coords so operations can be applied to them
 
 # the below function produces a node coord list of which the projection is WGS84 instead of BNG
-def translate_coords(coords_tuple):
+def translate_coords(coords_tuple: tuple) -> list:
     WGS84 = []
     for (easting, northing) in coords_tuple:
         lon, lat = node_finder.convert_bng_to_wgs84(easting, northing)
@@ -68,7 +68,7 @@ for (coord, elev) in zip(BNG_extracted_node_coordinates, elev_samples): # for ea
     node_graph.nodes[coord]['elev'] = float(val) # attaches the elevation in metres as an attribute to the node data item
 
 # this is a function used to calculate the weight of an edge using Naismith's rule
-def naismith_helper(horizontal_distance_metres, elevation_difference_metres): # takes euclidean distance and the elevation difference as parameters
+def naismith_helper(horizontal_distance_metres: float, elevation_difference_metres: float) -> dict: # takes euclidean distance and the elevation difference as parameters
     ascent_metres = max(0, elevation_difference_metres) # max is used to ensure there is only a positive value, rather than a negative value for the ASCENT
     descent_metres = abs(min(0, elevation_difference_metres)) # min is used to ensure there is only a negative, or zero, value for the DESCENT
     flat_time = horizontal_distance_metres / avg_walking_speed_metres # this is the time taken to walk the distance if it was a straight line
@@ -79,8 +79,8 @@ def naismith_helper(horizontal_distance_metres, elevation_difference_metres): # 
         "descent" : flat_time + descent_time
     }
 
-# this is a function used to calculate the addition to edge costs based on their surface and visibility tags
-def get_terrain_factor(sac_scale, trail_visibility, surface):
+# this is a function used to calculate the addition to edge costs based on their surface, sac_scale and visibility tag values
+def get_terrain_factor(sac_scale: str, trail_visibility: str, surface: str) -> float:
     factor = 1.0
     
     if sac_scale and sac_scale in terrain_costs:
@@ -94,8 +94,11 @@ def get_terrain_factor(sac_scale, trail_visibility, surface):
     
     return factor
 
+
+# ////// THIS IS WHERE THE ELEVATION ENRICHMENT BEGINS ////// 
+
 print("Edges starting to be modified")
-for (start_coord, end_coord, edge_data) in node_graph.edges(data=True): # for each edge, the starting coord, the end coord and the data of the edge (the data struct holding length)
+for (start_coord, end_coord, edge_data) in node_graph.edges(data=True): # for each starting coord, end coord and tags of the edge (the dict holding length)
     horizontal_distance_metres = edge_data['length'] # adds the horizontal distance to the edge data structure
 
     start_elevation = node_graph.nodes[start_coord]['elev'] # the elevation is added to the data struct holding the start coord
@@ -116,7 +119,7 @@ for (start_coord, end_coord, edge_data) in node_graph.edges(data=True): # for ea
         edge_data['cost'] = costs['ascent'] * terrain_factor
     else:
         edge_data['cost'] = costs['descent'] * terrain_factor
-        edge_data['terrain_factor'] = round(terrain_factor, 2)   # useful for debugging
+        edge_data['terrain_factor'] = round(terrain_factor, 2) 
 
     edge_data['slope'] = slope_ratio # slope ratio is added to the edge data struct
 
