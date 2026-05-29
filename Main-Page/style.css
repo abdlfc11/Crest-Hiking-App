@@ -350,52 +350,31 @@ body {
     box-shadow: none;
 }
 
-/* FEATURE SECTION */
-
-/* this styles the whole feature section */
-#feature-section {
-    width: 96%;
-    max-width: 1400px;
-    margin: 5rem auto;
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-}
-
-/* this styles each reusable feature block */
+/* FEATURE BLOCK */
 .feature-block {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2.5rem;
+    flex-direction: column; /* enforce top → bottom order */
+    gap: 1.5rem;
     background: white;
     padding: 2.5rem;
     border-radius: 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.06);
     border: 1px solid #e5e7eb;
+    margin: 5.5rem;
 }
 
-/* this styles the left text column */
-.feature-text {
-    flex: 1;
-    color: #1f2937;
-}
-
-.feature-text h2 {
-    margin: 0 0 1rem 0;
-    font-size: clamp(1.8rem, 2.5vw, 2.6rem);
+/* Heading */
+.feature-heading {
+    font-size: clamp(1.8rem, 2.25vw, 2.6rem);
     font-weight: 700;
+    margin: 0;
+    color: #1f2937;
+    text-align: center;
 }
 
-.feature-text p {
-    font-size: clamp(1rem, 1.2vw, 1.25rem);
-    line-height: 1.6;
-    color: #374151;
-}
-
-/* this styles the right image column */
+/* Image */
 .feature-image {
-    flex: 1;
+    width: 100%;
     display: flex;
     justify-content: center;
 }
@@ -408,20 +387,21 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-/* this makes the layout stack on mobile */
-@media (max-width: 768px) {
-    .feature-image {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
+/* Description */
+.feature-description {
+    font-size: clamp(1rem, 1.2vw, 1.25rem);
+    line-height: 1.6;
+    color: #374151;
+    text-align: center;
+}
 
-    .feature-image img {
-        max-width: 100%;
-        width: 100%;
-        height: auto;
-        flex-shrink: 1;
-    }
+#feature-heading {
+    font-size: clamp(2.2rem, 2.5vw, 3.2rem);
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 3.5rem;
+    text-align: center;
+    margin-top: 7rem;
 }
 
 /* ABOUT SECTION */
