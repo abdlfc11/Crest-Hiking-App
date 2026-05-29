@@ -750,6 +750,23 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Data Preprocessing
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="././" class="md-nav__link md-nav__link--active">
         
   
@@ -765,6 +782,170 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#node-and-edge-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Node and Edge Structure
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Node and Edge Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#node-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Node Structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-structure-before-elevation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edge Structure (Before Elevation Enrichment)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-structure-after-elevation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edge Structure (After Elevation Enrichment)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preprocessing-pipeline-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Preprocessing Pipeline Overview
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#osmium-tag-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Osmium Tag Extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Graph Generation
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Graph Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#node-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Node Creation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edge Creation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elevation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Elevation Enrichment
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Output
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Design Rationale
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -930,6 +1111,11 @@
                       
                     
                     
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
                   
                   <div class="md-sidebar__inner">
                     
@@ -941,6 +1127,158 @@
   
     
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#node-and-edge-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Node and Edge Structure
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Node and Edge Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#node-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Node Structure
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-structure-before-elevation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edge Structure (Before Elevation Enrichment)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-structure-after-elevation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edge Structure (After Elevation Enrichment)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preprocessing-pipeline-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Preprocessing Pipeline Overview
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#osmium-tag-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Osmium Tag Extraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Graph Generation
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Graph Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#node-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Node Creation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edge-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edge Creation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elevation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Elevation Enrichment
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Output
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Design Rationale
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -956,58 +1294,38 @@
                   
 
 <h1 id="data-preprocessing">Data Preprocessing<a class="headerlink" href="#data-preprocessing" title="Permanent link">&para;</a></h1>
-<h1 id="downloading-data">Downloading Data<a class="headerlink" href="#downloading-data" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p>This section of data preprocessing focuses on obtaining .osm.pbf files that contain geographic information, which will then be used to form the graph used in pathfinding</p>
-</blockquote>
-<p>OSM (Open Street Map) data is installed via <a href="https://download.geofabrik.de">Geofabric</a></p>
-<h1 id="parsing-data">Parsing Data<a class="headerlink" href="#parsing-data" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p>This section of data preprocessing focuses on converting the raw downloaded file and turning it into a graph which will then be used by the A* algorithm during routing</p>
-</blockquote>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The order of parsing the downloaded file is as such:</p>
-<ul>
-<li><strong>Osmium</strong>: This is where tags such as 'sac_scale', 'trail_visibility' and 'surface' are added to the osm.pbf file to be used in the calculation of cost multipliers</li>
-<li><strong>Graph Generation</strong>: This is where libraries such as <a href="https://networkx.org/en/">NetworkX</a>, <a href="https://pyrosm.readthedocs.io/en/latest/">Pyrosm</a> and <a href="https://shapely.readthedocs.io/en/stable/">Shapely</a> are used to create the directed graph that is then passed onto a second python script to add elevation data to the graph</li>
-<li><strong>Elevation Encrichment</strong>: This is where NASA SRTM elevation data is added to each node, as well as where a slope factor is set on each graph edge</li>
-</ul>
-<h2 id="osmium">Osmium<a class="headerlink" href="#osmium" title="Permanent link">&para;</a></h2>
-<p>This file is then passed through an <a href="https://osmcode.org">Osmium</a> <code>cat</code> command (see below).</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>osmium<span class="w"> </span>cat<span class="w"> </span><span class="o">[</span>INPUT<span class="w"> </span>FILE<span class="w"> </span>PATH<span class="o">]</span><span class="w"> </span>-o<span class="w"> </span><span class="o">[</span>OUTPUT<span class="w"> </span>FILE<span class="w"> </span>PATH<span class="o">]</span>
+<p>Crestr’s routing engine is built on a preprocessed graph derived from OpenStreetMap (OSM) data. This document outlines the full preprocessing pipeline, the structure of the resulting graph, and the reasoning behind the design choices. The aim is to give contributors a clear understanding of how raw geographic data becomes the elevation‑aware, cost‑weighted graph used by the A* routing engine.</p>
+<hr />
+<h2 id="node-and-edge-structure">Node and Edge Structure<a class="headerlink" href="#node-and-edge-structure" title="Permanent link">&para;</a></h2>
+<p>The graph is stored as a directed NetworkX graph. Nodes and edges follow a minimal, performance‑oriented schema.</p>
+<h3 id="node-structure">Node Structure<a class="headerlink" href="#node-structure" title="Permanent link">&para;</a></h3>
+<p>Nodes are stored as coordinate tuples in British National Grid (EPSG:27700):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Node<span class="w"> </span>:<span class="w"> </span><span class="o">(</span>x:<span class="w"> </span>float,<span class="w"> </span>y:<span class="w"> </span>float<span class="o">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="o">{</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="s1">&#39;elev&#39;</span>:<span class="w"> </span>float<span class="w"> </span><span class="c1"># elevation in metres</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="o">}</span>
 </span></code></pre></div>
-<p>This is done so as to extract the metadata tags that are used in the calculation of cost multipliers to graph edges, whereby this is used to ensure that the A* algorithm routes around paths that are less safe. </p>
-<h2 id="python-scripts">Python Scripts<a class="headerlink" href="#python-scripts" title="Permanent link">&para;</a></h2>
-<p>Two python scripts are used to form the graph, with the first being used to extract geographic information from the .osm.pbf file outputted by the <code>osmium cat</code> command and the second being used to add downloaded elevation data into the graph, as well as for calculating slope factors (which will be/is used to provide a difficulty filter for users when routing)</p>
-<h3 id="graph-generation">Graph Generation<a class="headerlink" href="#graph-generation" title="Permanent link">&para;</a></h3>
-<p>NetworkX is used here to parse the osm.pbf file into a graph formed of nodes and edges. </p>
-<p>Each node is stored in the British National Grid format (EPSG: 27000) and in the following format: </p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Node<span class="w"> </span>:<span class="w"> </span><span class="o">(</span>x:<span class="w"> </span>float,<span class="w"> </span>y:<span class="w"> </span>float<span class="o">)</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">{</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="s1">&#39;elev&#39;</span>:<span class="w"> </span>float<span class="w"> </span><span class="c1"># elevation in metres</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="o">}</span>
+<p><strong>Example:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Node<span class="w"> </span>:<span class="w"> </span><span class="o">(</span><span class="m">340590</span>.76,<span class="w"> </span><span class="m">481768</span>.28<span class="o">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="o">{</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span>‘elev’:<span class="w"> </span><span class="m">121</span>.0
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="o">}</span>
 </span></code></pre></div>
-<p>Each node has 2 values, forming the x and y coordinate, stored as a float. </p>
-<p>They also have one attribute of which is an elevation attribute, also stored as a float in metres</p>
-<p>Each edge is stored in the following format:</p>
+<h3 id="edge-structure-before-elevation-enrichment">Edge Structure (Before Elevation Enrichment)<a class="headerlink" href="#edge-structure-before-elevation-enrichment" title="Permanent link">&para;</a></h3>
+<p>Edges represent <strong>directed segments</strong> between nodes. During graph generation, edges may contain <strong>raw OSM metadata</strong> when available.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Edge<span class="w"> </span>:<span class="w"> </span><span class="o">((</span>x1:<span class="w"> </span>float,<span class="w"> </span>y1:<span class="w"> </span>float<span class="o">)</span>,<span class="w"> </span><span class="o">(</span>x2:<span class="w"> </span>float,<span class="w"> </span>y2:<span class="w"> </span>float<span class="o">))</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">{</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="s1">&#39;length&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>,
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="s1">&#39;sac_scale&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>string<span class="o">]</span>,
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="s1">&#39;surface&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>string<span class="o">]</span>,
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="s1">&#39;trail_visibility&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>string<span class="o">]</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="o">}</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="s1">&#39;length&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>,<span class="w"> </span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="s1">&#39;cost&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>,<span class="w"> </span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="s1">&#39;slope&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="o">}</span>
 </span></code></pre></div>
-<p>Each edge has 2 values of which are the start coordinates and the destination coordinates, with values within these being stored as a float.</p>
-<p>Each edge also has 4 attributes. </p>
-<p>The length attribute is the distance between the start and end coordinate in metres, whilst the other 3 attributes are meta tags and hold the strings of the tags, i.e 'gravel' for surface or 'poor' for trail_visibility. This is then converted into a cost during elevation enrichment.</p>
-<h3 id="elevation-enrichment">Elevation Enrichment<a class="headerlink" href="#elevation-enrichment" title="Permanent link">&para;</a></h3>
-<p>During elevation enrichment, a dictionary of costs are used, holding numbers that correspond to every possible value that each tag could hold. </p>
-<p>Each edge is looped through, and the value of each tag is passed into a handmade function which returns a multiplier value. </p>
-<p>The multiplier value is then mulitplied with the ascent value if the elevation difference is positive, or the descent value if the elevation difference is negative. The result is then added to the edge as a cost attribute.  </p>
-<p>After this, a slope ratio is calculated by dividing the elevation difference in metres by the length attribute of the edge (if the value of this attribute is greater than zero), with this then being set to the 'slope' attribute of the edge.</p>
-<p>The result is that each edge now has the following structure: </p>
+<p>These values are taken directly from OSM without transformation. Many edges will <strong>not</strong> contain these tags, as OSM coverage varies.</p>
+<h3 id="edge-structure-after-elevation-enrichment">Edge Structure (After Elevation Enrichment)<a class="headerlink" href="#edge-structure-after-elevation-enrichment" title="Permanent link">&para;</a></h3>
+<p>During elevation enrichment, raw tags are converted into numeric difficulty multipliers. The final graph used by the routing engine stores:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Edge<span class="w"> </span>:<span class="w"> </span><span class="o">((</span>x1:<span class="w"> </span>float,<span class="w"> </span>y1:<span class="w"> </span>float<span class="o">)</span>,<span class="w"> </span><span class="o">(</span>x2:<span class="w"> </span>float,<span class="w"> </span>y2:<span class="w"> </span>float<span class="o">))</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="o">{</span>
@@ -1016,6 +1334,90 @@
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="s1">&#39;slope&#39;</span>:<span class="w"> </span><span class="o">[</span>VALUE:<span class="w"> </span>float<span class="o">]</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="o">}</span>
 </span></code></pre></div>
+<p><strong>Example:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Edge<span class="w"> </span>:<span class="w"> </span><span class="o">((</span><span class="m">340590</span>.76,<span class="w"> </span><span class="m">481768</span>.28<span class="o">)</span>,<span class="w"> </span><span class="o">(</span><span class="m">340610</span>.26,<span class="w"> </span><span class="m">481735</span>.76<span class="o">))</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="o">{</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>‘length’:<span class="w"> </span><span class="m">37</span>.9183,
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span>‘cost’:<span class="w"> </span><span class="m">39</span>.0845,
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span>‘slope’:<span class="w"> </span><span class="m">0</span>.0527
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="o">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="preprocessing-pipeline-overview">Preprocessing Pipeline Overview<a class="headerlink" href="#preprocessing-pipeline-overview" title="Permanent link">&para;</a></h2>
+<p>The preprocessing workflow consists of three stages:</p>
+<ol>
+<li>
+<p><strong>Osmium Tag Extraction</strong><br />
+   Ensures that relevant OSM metadata is preserved before parsing.</p>
+</li>
+<li>
+<p><strong>Graph Generation</strong><br />
+   Converts OSM geometries into a directed graph using <a href="https://pyrosm.readthedocs.io/en/latest/">Pyrosm</a>, <a href="https://shapely.readthedocs.io/en/stable/">Shapely</a>, and <a href="https://networkx.org/en/">NetworkX</a>.</p>
+</li>
+<li>
+<p><strong>Elevation Enrichment</strong><br />
+   Adds <a href="https://www.earthdata.nasa.gov/data/instruments/srtm">NASA SRTM</a> elevation data, computes slope, and assigns cost values.</p>
+</li>
+</ol>
+<p>This pipeline produces a clean, lightweight graph optimised for hiking‑focused routing.</p>
+<hr />
+<h2 id="osmium-tag-extraction">Osmium Tag Extraction<a class="headerlink" href="#osmium-tag-extraction" title="Permanent link">&para;</a></h2>
+<p>Before parsing, the <code>.osm.pbf</code> file is passed through Osmium to ensure that metadata such as <code>sac_scale</code>, <code>trail_visibility</code>, and <code>surface</code> is retained.</p>
+<p>Command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>osmium<span class="w"> </span>cat<span class="w"> </span>input.osm.pbf<span class="w"> </span>-o<span class="w"> </span>output.osm.pbf
+</span></code></pre></div>
+<p>These tags are used later to influence cost multipliers, allowing the routing engine to avoid paths that are unsafe or technically difficult.</p>
+<hr />
+<h2 id="graph-generation">Graph Generation<a class="headerlink" href="#graph-generation" title="Permanent link">&para;</a></h2>
+<p>Graph generation is handled by a Python script that uses:</p>
+<ul>
+<li><strong>Pyrosm</strong> to extract highway geometries</li>
+<li><strong>Shapely</strong> to process LineString and MultiLineString geometry</li>
+<li><strong>NetworkX</strong> to construct the directed graph</li>
+</ul>
+<p>Each OSM way is split into coordinate pairs. Coordinates are rounded to two decimal places to reduce node duplication while maintaining spatial accuracy.</p>
+<h3 id="node-creation">Node Creation<a class="headerlink" href="#node-creation" title="Permanent link">&para;</a></h3>
+<p>Each coordinate pair becomes a node. At this stage, nodes contain only their coordinates; elevation is added later.</p>
+<h3 id="edge-creation">Edge Creation<a class="headerlink" href="#edge-creation" title="Permanent link">&para;</a></h3>
+<p>For each pair of consecutive coordinates, a directed edge is created in both directions. Attributes include:</p>
+<ul>
+<li>length: Euclidean distance in metres</li>
+<li>raw OSM tags (if present): sac_scale, surface, trail_visibility</li>
+</ul>
+<p>These tags remain as raw strings until elevation enrichment.</p>
+<hr />
+<h2 id="elevation-enrichment">Elevation Enrichment<a class="headerlink" href="#elevation-enrichment" title="Permanent link">&para;</a></h2>
+<p>A second script enriches the graph with elevation data from NASA SRTM tiles. This stage performs three tasks:</p>
+<p><strong>1. Elevation Assignment</strong></p>
+<p>Each node receives an elev attribute in metres.</p>
+<p><strong>2. Slope Calculation</strong></p>
+<p>For each edge:</p>
+<p><code>slope = (elevation difference) / length</code>   <strong>(only if length &gt; 0)</strong></p>
+<p><strong>3. Cost Calculation</strong></p>
+<p>A dictionary of difficulty multipliers maps raw OSM tag values to numeric weights.</p>
+<p>The multiplier is applied to ascent or descent depending on elevation change.</p>
+<p>The final cost is stored in the <strong>cost attribute</strong>.</p>
+<p>After enrichment, edges contain only <strong>length, slope, and cost</strong>, as these are the values required by the routing engine.</p>
+<hr />
+<h2 id="output">Output<a class="headerlink" href="#output" title="Permanent link">&para;</a></h2>
+<p>The final output is a <strong>directed, elevation‑aware NetworkX</strong> graph with approximately:</p>
+<ul>
+<li><strong>1,000,000</strong> nodes (for the Cumbria region)</li>
+<li><strong>2,000,000</strong> directed edges</li>
+<li><strong>elevation</strong>, <strong>slope</strong>, and <strong>cost</strong> attributes</li>
+</ul>
+<p>This graph is cached on disk and loaded once at backend startup.</p>
+<hr />
+<h2 id="design-rationale">Design Rationale<a class="headerlink" href="#design-rationale" title="Permanent link">&para;</a></h2>
+<p>The preprocessing pipeline is designed to keep the runtime graph as lightweight as possible:</p>
+<ul>
+<li>Nodes store only <strong>coordinates and elevatio</strong>n**.</li>
+<li>Edges store only the <strong>attributes required for routing</strong>.</li>
+<li>Raw OSM tags are used only during cost calculation and are <strong>not retained</strong> afterward.</li>
+<li>The graph is <strong>fully deterministic and reproducible</strong> from the preprocessing scripts.</li>
+</ul>
+<p>This structure ensures that A* remains <strong>fast and memory‑efficient</strong> even on large regional datasets.</p>
 
 
 
