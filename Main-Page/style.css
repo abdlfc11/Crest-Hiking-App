@@ -362,7 +362,7 @@ body {
     border-radius: 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.06);
     border: 1px solid #e5e7eb;
-    margin: 5.5rem;
+    margin: 5.5rem .5rem 5.5rem .5rem;
 }
 
 /* Heading */
