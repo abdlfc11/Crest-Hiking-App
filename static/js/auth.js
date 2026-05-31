@@ -33,6 +33,11 @@ const icons = document.querySelectorAll(".fa-eye");
 // deleting elements
 const deleteAccountButton = document.getElementById("delete-user-button");
 
+// beta code
+const betaCodeEntry = document.getElementById('beta-code-entry');
+const betaValidationLabel = document.getElementById('beta-validation-label');
+const betaButton = document.getElementById('beta-button');
+
 // ###########
 // ADDING EVENT LISTENERS 
 // ###########
@@ -61,6 +66,10 @@ if (registerButton) {
 
 if (deleteAccountButton) {
   deleteAccountButton.addEventListener('click', deleteAccount)
+}
+
+if (betaButton) {
+  betaButton.addEventListener('click', validateBetaCode)
 }
 
 if (window.location.pathname === "/login-page" || window.location.pathname === "/register") {
@@ -271,6 +280,32 @@ export function deleteAccount(skipConfirm = false) {
     console.error("Error", error);
   });
 }
+
+export async function validateBetaCode(event) {
+  event.preventDefault();
+
+  const betaCode = betaCodeEntry.value;
+
+  const response = await fetch('/beta-validate', {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ beta_code: betaCode })
+  });
+
+  if (response.redirected) {
+    window.location.href = response.url;
+    return;
+  }
+
+  const data = await response.json()
+
+  if (!data.success) {
+    userFeedback(betaValidationLabel, data.message, false);
+    return;
+  }
+};
 
 // Add event listeners to all password visibility toggle icons
 icons.forEach((icon) => {

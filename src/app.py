@@ -186,6 +186,10 @@ def registering():
 
 #endregion
 
+@app.route('/beta-page', methods=["GET"])
+def get_beta_page():
+    return render_template("beta-code.html")
+
 # region DELETING ACCOUNT
 @app.route("/delete_account", methods=["POST"])
 @limiter.limit("10 per minute")
