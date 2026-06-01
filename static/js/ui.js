@@ -260,8 +260,7 @@ function openSavedRoutesDash() {
 
 export function closeSavedRoutesDash() {
   savedRoutesDashContent.style.width = "0";
-  // Re-assert the correct cursor now that the map is fully visible again.
-  // forceApplyCursor ensures it happens even if no pointermove has fired yet.
+  // this reasserts the correct cursor now that the map is fully visible again.
   forceApplyCursor();
 }
 
@@ -788,6 +787,14 @@ function initPointDeleteHandlers() {
 // ##### LIGHT / DARK THEME #####
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
+  if (getTheme() === "dark") {
+    startCoordEntry.style.borderColor = "#4b5563";
+    endCoordEntry.style.borderColor = "#4b5563";
+  }
+  else {
+    startCoordEntry.style.borderColor = "#e1cbcb"
+    endCoordEntry.style.borderColor = "#e1cbcb"
+  }
   document.documentElement.classList.toggle("dark", effective === "dark");
 }
 
@@ -806,10 +813,9 @@ function handleDistanceUnitToggle() {
   }
 };
 
+// INITIALISATION OF EVENT LISTENERS + DOM ELEMENTS
 
 export function initUi() {
-  // Initialise cursor manager this takes over all cursor control
-  // so we beat OpenLayers' internal "pointer" on features.
   const map = getMap();
   if (map) {
     initCursorManager(map, getCurrentMode, getClickMode);
