@@ -312,7 +312,7 @@ def save_settings():
             return jsonify({"success": True, "message": "Successfully saved settings"}), 200
 
     except Exception as error:
-        db.session.rollback()
+        db.rollback()
         print("ERROR WHILE SAVING SETTINGS: ", error)
         return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
 #endregion
@@ -572,50 +572,48 @@ def parse_eta_to_seconds(eta_string: str):
         return None
 
 def generate_geojson(route):
-   # this gets the raw coords text
-   with Session(engine) as db:
-        query = db.exec(select(Route.coordinates).where(Route.id == route.id))
-        with Session(engine) as db:
-            raw_coordinates_str = db.session.scalar(query)
-        
-        # check to ensure that the coords are retrieved
-        if not raw_coordinates_str:
-            return None
 
-        # converts the raw coords into a list
-        raw_coords = json.loads(raw_coordinates_str)
-        
-        corrected_coords = []
-        
-        has_elevation = check_elevation(raw_coords)
-            
-        for coord in raw_coords:
-            if has_elevation:
-                x, y, elevation = coord
-                lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-                corrected_coords.append([lon, lat, elevation])
-            else:
-                x, y = coord
-                lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-                corrected_coords.append([x, y])
+    raw_coordinates_str = route.coordinates
 
-            
-        # constructs the geojson dict
-        geojson_feature = {
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": corrected_coords
-            },
-            "properties": {
-                "route_id": route.id,
-                "distance_km": route.distance_km,
-                "created_at": route.created_at
-            }
+    
+    # check to ensure that the coords are retrieved
+    if not raw_coordinates_str:
+        return None
+
+    # converts the raw coords into a list
+    raw_coords = json.loads(raw_coordinates_str)
+    
+    corrected_coords = []
+    
+    has_elevation = check_elevation(raw_coords)
+        
+    for coord in raw_coords:
+        if has_elevation:
+            x, y, elevation = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            corrected_coords.append([lon, lat, elevation])
+        else:
+            x, y = coord
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+            corrected_coords.append([x, y])
+
+        
+    # constructs the geojson dict
+    geojson_feature = {
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": corrected_coords
+        },
+        "properties": {
+            "route_id": route.id,
+            "distance_km": route.distance_km,
+            "created_at": route.created_at.isoformat()
         }
-        
-        # returns as JSON string
-        return json.dumps(geojson_feature)
+    }
+    
+    # returns as JSON string
+    return json.dumps(geojson_feature)
 
 def generate_gpx(route):
     gpx = gpxpy.gpx.GPX() # initialises container
@@ -805,8 +803,8 @@ def save_point():
         if user:
             with Session(engine) as db:
                 new_point = Point(name=point_name, coordinates=coords, user_id=user.id) 
-                db.session.add(new_point)
-                db.session.commit()
+                db.add(new_point)
+                db.commit()
 
             return jsonify({"success": True, "message": 'Successfully saved the point'})
         
@@ -889,81 +887,85 @@ def load_route():
     if not route_name:
         return jsonify({"success": False, "message": "Route name is required"})
     
-    route = Route.query.filter_by(name=route_name).first()
+    with Session(engine) as db:
+        route = db.exec(
+            select(Route)
+            .where(Route.name == route_name)
+        ).first()
 
-    if not route:
-        return jsonify({"success": False, "message": "Route not found"})
-    
-    json_coords = json.loads(route.coordinates)
-
-    
-    # success, coordinates, file_type = db_manager.load_route(route_name)
-    coordinates = json_coords
-
-    has_elevation = check_elevation(coordinates)
-    
-    try:
-        # converts wgs84 coordinates to web mercator for display
-        web_mercator_coordinates = []
-
-        if check_web_mercator(coordinates[0]):
-            # already in web mercator so this block just normalises the lengths
-            for coord in coordinates:
-                x, y = coord[0], coord[1]
-                z = coord[2] if len(coord) >= 3 else 0   # default elevation = 0
-                web_mercator_coordinates.append([x, y, z])
-        else:
-            # this block converts wgs84 to web mercator
-            for coord in coordinates:
-                if has_elevation and len(coord) >= 3:
-                    lon, lat, elevation = coord[:3]
-                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
-                    web_mercator_coordinates.append([web_x, web_y, elevation])
-                else:
-                    lon, lat = coord[:2]
-                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
-                    web_mercator_coordinates.append([web_x, web_y, 0])
-
-        if not web_mercator_coordinates:
-            return jsonify({"success": False, "message": "No valid coordinates found in route file"})
+        if not route:
+            return jsonify({"success": False, "message": "Route not found"})
         
-        # converts coordinates to geojson format for display
-        path_geojson = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "geometry": {"type": "LineString", "coordinates": web_mercator_coordinates},
-                "properties": {"color": "#2563eb"}
-            }]
-        }
-        
-        
-        # calculates midpoint for map centring
-        midpoint = web_mercator_coordinates[len(web_mercator_coordinates)//2] if web_mercator_coordinates else default_centre
+        json_coords = json.loads(route.coordinates)
 
-        # data collected directly from database values
-        ETA = route.ETA
-        distance = route.distance_km
-        elevation_change = route.elevation_change
         
-        # route statistics to pass to frontend
-        route_stats = {
-            "total_distance": distance if distance is not None else 0,
-            "eta": ETA,
-            "elevation_change": elevation_change
-        }
+        # success, coordinates, file_type = db_manager.load_route(route_name)
+        coordinates = json_coords
+
+        has_elevation = check_elevation(coordinates)
         
-        return jsonify({
-            "success": True, 
-            "message": f"Route '{route_name}' loaded successfully",
-            "pathGeoJSON": path_geojson,
-            "map_centre": midpoint,
-            "coordinates": web_mercator_coordinates,
-            "route_stats": route_stats
-        })
-    
-    except Exception:
-        return jsonify({"success": False, "message": "The route could not be loaded"})
+        try:
+            # converts wgs84 coordinates to web mercator for display
+            web_mercator_coordinates = []
+
+            if check_web_mercator(coordinates[0]):
+                # already in web mercator so this block just normalises the lengths
+                for coord in coordinates:
+                    x, y = coord[0], coord[1]
+                    z = coord[2] if len(coord) >= 3 else 0   # default elevation = 0
+                    web_mercator_coordinates.append([x, y, z])
+            else:
+                # this block converts wgs84 to web mercator
+                for coord in coordinates:
+                    if has_elevation and len(coord) >= 3:
+                        lon, lat, elevation = coord[:3]
+                        web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
+                        web_mercator_coordinates.append([web_x, web_y, elevation])
+                    else:
+                        lon, lat = coord[:2]
+                        web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
+                        web_mercator_coordinates.append([web_x, web_y, 0])
+
+            if not web_mercator_coordinates:
+                return jsonify({"success": False, "message": "No valid coordinates found in route file"})
+            
+            # converts coordinates to geojson format for display
+            path_geojson = {
+                "type": "FeatureCollection",
+                "features": [{
+                    "type": "Feature",
+                    "geometry": {"type": "LineString", "coordinates": web_mercator_coordinates},
+                    "properties": {"color": "#2563eb"}
+                }]
+            }
+            
+            
+            # calculates midpoint for map centring
+            midpoint = web_mercator_coordinates[len(web_mercator_coordinates)//2] if web_mercator_coordinates else default_centre
+
+            # data collected directly from database values
+            ETA = route.ETA
+            distance = route.distance_km
+            elevation_change = route.elevation_change
+            
+            # route statistics to pass to frontend
+            route_stats = {
+                "total_distance": distance if distance is not None else 0,
+                "eta": ETA,
+                "elevation_change": elevation_change
+            }
+            
+            return jsonify({
+                "success": True, 
+                "message": f"Route '{route_name}' loaded successfully",
+                "pathGeoJSON": path_geojson,
+                "map_centre": midpoint,
+                "coordinates": web_mercator_coordinates,
+                "route_stats": route_stats
+            })
+        
+        except Exception:
+            return jsonify({"success": False, "message": "The route could not be loaded"})
 
 # flask-route which retreives saved routes to be used in the front-end
 @app.route("/get_routes", methods=["GET"])
@@ -1007,40 +1009,44 @@ def download_route():
     if not user:
         return jsonify({"success": False, "message": "You must be logged in"}), 401
 
-    # both name and user id used to ensure only the specific user's route is deleted 
-    route = Route.query.filter_by(name=route_name, user_id=user.id).first()
-    
-    # ensures that a route is found before attempting to convert
-    if not route:
-        return jsonify({"success": False, "message": "Route not found or you don't own it"}), 404
+    with Session(engine) as db:
 
-    print(route.coordinates)
+        route = db.exec(
+            select(Route)
+            .where(Route.name == route_name, Route.user_id == user.id)
+        ).first()
+        
+        # ensures that a route is found before attempting to convert
+        if not route:
+            return jsonify({"success": False, "message": "Route not found or you don't own it"}), 404
 
-    try:
-        if file_type == "gpx":
-            content = generate_gpx(route)
-            mimetype = 'application/gpx+xml'
-            extension = 'gpx'
-        else:
-            content = generate_geojson(route)
-            mimetype = 'application/geo+json'
-            extension = 'geojson'
+        print(route.coordinates)
 
-        safe_name = "".join(
-            char if char.isalnum() or char in " -_()" else "_" 
-            for char in route.name
-        )
+        try:
+            if file_type == "gpx":
+                content = generate_gpx(route)
+                mimetype = 'application/gpx+xml'
+                extension = 'gpx'
+            else:
+                content = generate_geojson(route)
+                mimetype = 'application/geo+json'
+                extension = 'geojson'
 
-        return send_file(
-            io.BytesIO(content.encode('utf-8')),
-            mimetype=mimetype,
-            as_attachment=True,
-            download_name=f"{safe_name}.{extension}"
-        )
+            safe_name = "".join(
+                char if char.isalnum() or char in " -_()" else "_" 
+                for char in route.name
+            )
 
-    except Exception as e:
-        print(f"Error whilst downloading {route_name}:", e)
-        return jsonify({"success": False, "message": "Failed to generate file"}), 500
+            return send_file(
+                io.BytesIO(content.encode('utf-8')),
+                mimetype=mimetype,
+                as_attachment=True,
+                download_name=f"{safe_name}.{extension}"
+            )
+
+        except Exception as e:
+            print(f"Error whilst downloading {route_name}:", e)
+            return jsonify({"success": False, "message": "Failed to generate file"}), 500
 
 
 # flask-route which retrieves saved points to be used in the front

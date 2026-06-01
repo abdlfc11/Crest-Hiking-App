@@ -110,7 +110,7 @@ export function showToast(message, type = "info") {
   }, 4000);
 }
 
-export function moveMapToPosition(map, position = [-357428, 7256794], duration = 1200, zoom = 10) {
+export function moveMapToPosition(map, position = [-357428, 7256794], duration = 1200, zoom = 10.5) {
   if (!map) {
     console.warn("No map, returning");
     return;
