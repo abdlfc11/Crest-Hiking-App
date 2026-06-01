@@ -92,6 +92,14 @@ def strftime_filter(date, format: str):
         date = datetime.isoformat(date)
     return date.strftime(format)
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('Error-Pages/404.html')
+
+@app.errorhandler(500)
+def page_not_found(error):
+    return render_template('Error-Pages/500.html')
+
 # region AUTH FLASK ROUTES
 
 #region LOGGING IN AND OUT

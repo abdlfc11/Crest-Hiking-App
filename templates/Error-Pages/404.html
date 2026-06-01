@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>404: Page Not Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}">
+</head>
+<body>
+
+    <!-- reusable error containers -->
+    <div class="error-container">
+        <div class="error-code">404</div>
+        <div class="error-title">Page Not Found</div>
+        <div class="error-message">
+            The page you're looking for doesn't exist or may have been moved.
+        </div>
+        <button class="error-button" onclick="window.location.href='/map'">
+            Go to Map
+        </button>
+    </div>
+
+</body>
+</html>
