@@ -290,7 +290,7 @@
     padding: 0.55rem 1.1rem;
     font-size: 0.95rem;
     color: #111827;
-    width: 140px;
+    width: fit-content;
     max-width: 100%;
     box-sizing: border-box;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
