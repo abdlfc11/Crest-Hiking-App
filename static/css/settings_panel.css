@@ -437,8 +437,7 @@
     background-color: #059669;
 }
 
-/* ===== DARK THEME FOR SETTINGS PANEL ===== */
-/* Now included per updated scope — only the map itself stays light */
+/* DARK MODE */
 
 html.dark #settings-panel {
     background: rgba(17, 24, 39, 0.85);
@@ -460,6 +459,12 @@ html.dark .settingCloseButton {
 html.dark .settingCloseButton:hover {
     color: #f3f4f6;
     background-color: rgba(255, 255, 255, 0.12)
+}
+
+html.dark .settings-input {
+    background: #1f2937;
+    border-color: #374151;
+    color: white;
 }
 
 html.dark .settings-item {
