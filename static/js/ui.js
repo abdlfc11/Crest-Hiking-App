@@ -369,9 +369,6 @@ export function clearAutoRoute() {
 
   if (startCoordEntry) startCoordEntry.value = "";
   if (endCoordEntry) endCoordEntry.value = "";
-  if (selectedRouteName) selectedRouteName.value = "";
-  if (selectedRouteType) selectedRouteType.value = "";
-  if (selectedRouteDisplay) selectedRouteDisplay.textContent = "Choose a route";
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveRouteDiv) saveRouteDiv.style.display = "none";
   
@@ -437,17 +434,7 @@ export function homeButtonFunction() {
   if (startCoordEntry) startCoordEntry.value = "";
   if (endCoordEntry) endCoordEntry.value = "";
   if (searchEntry) searchEntry.value = "";
-  if (selectedRouteDisplay) selectedRouteDisplay.textContent = "Choose a route";
-  if (selectedRouteName) selectedRouteName.value = "";
-  if (selectedRouteType) selectedRouteType.value = "";
-  document
-    .querySelectorAll(".load-route-item")
-    .forEach((item) => item.classList.remove("selected"));
   if (routeNameEntry) routeNameEntry.value = "";
-
-  document
-    .querySelectorAll("#load-message, #save-message")
-    .forEach((el) => (el.innerHTML = ""));
 
   clearPathState();
   if (saveRouteDiv) saveRouteDiv.style.display = "none";
