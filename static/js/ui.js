@@ -82,28 +82,35 @@ const mapElement = document.getElementById("map");
 const searchEntry = document.getElementById("search-entry");
 const startCoordEntry = document.getElementById("start-point-entry");
 const endCoordEntry = document.getElementById("end-point-entry");
-const routeNameEntry = document.getElementById("route-name");
+
 const navBar = document.getElementById("the-sidenav");
+
+// automatic mode + manual mode contents i.e mode-specific panels
 const autoModeContent = document.getElementById("auto-mode-content");
 const manualModeContent = document.getElementById("manual-mode-content");
-const selectedRouteDisplay = document.getElementById("selected-route-display");
-const selectedRouteName = document.getElementById("selected-route-name");
-const selectedRouteType = document.getElementById("selected-route-type");
+
+// saved route div + saving routes
 const saveRouteDiv = document.getElementById("save-route");
+const routeNameEntry = document.getElementById("route-name");
+
+// delete point modal
 const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
 const pointDeleteModalNameDisplay = document.getElementById("point-name-display");
 const pointDeleteDeleteButton = document.getElementById("point-delete-delete-button");
 const pointDeleteExitButton = document.getElementById("point-delete-exit-button");
 const dialogWrapper = deletePointConfirmationDialog?.querySelector(".wrapper");
 
+// saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
 const closeSavedRoutesDashButton = document.getElementById('saved-routes-dash-go-back-button');
 const savedRoutesDashContent = document.getElementById('saved-routes-dashboard');
 
+// setting panel
 const settingOpenButton = document.getElementById("settings-open-button");
 const settingCloseButton = document.getElementById("settings-close-button");
 const settingPanel = document.getElementById("settings-panel");
 
+// route import panel
 const importRouteOpenButton = document.getElementById("import-route-open-button");
 const importRouteCloseButton = document.getElementById("import-route-close-button");
 const importRoutePanel = document.getElementById("import-route-panel");
@@ -116,7 +123,7 @@ export function getClickMode() {
   return clickMode;
 }
 
-// check if user is on mobile and take subsequent action to inform them of decision to make Crest desktop only for now
+// check if user is on mobile and take subsequent action to inform them of decision to make Crest desktop only on web
 function checkIfMobile() {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;   
 

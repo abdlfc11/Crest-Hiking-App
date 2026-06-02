@@ -354,12 +354,12 @@
 
                     <div class="settings-radio-pills">
                         <label class="radio-pill">
-                            <input type="radio" name="import-route-method" value="file" checked>
+                            <input id="file-route-input-type" type="radio" name="import-route-method" value="file" checked>
                             <span>File</span>
                         </label>
 
                         <label class="radio-pill">
-                            <input type="radio" name="import-route-method" value="url">
+                            <input id="url-route-input-type" type="radio" name="import-route-method" value="url">
                             <span>URL</span>
                         </label>
                     </div>
@@ -482,6 +482,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/routes/savedRoutesDashboard.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/importRoute.js') }}"></script>
     <script>lucide.createIcons();</script>
 
 </body>
