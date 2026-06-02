@@ -104,6 +104,10 @@ const settingOpenButton = document.getElementById("settings-open-button");
 const settingCloseButton = document.getElementById("settings-close-button");
 const settingPanel = document.getElementById("settings-panel");
 
+const importRouteOpenButton = document.getElementById("import-route-open-button");
+const importRouteCloseButton = document.getElementById("import-route-close-button");
+const importRoutePanel = document.getElementById("import-route-panel");
+
 let clickMode = null;
 let manualRouteLayer = null;
 let selectedPoint = null;
@@ -270,6 +274,14 @@ function openSettings() {
 
 export function closeSettings() {
   settingPanel.style.width = "0";
+}
+
+function openImportRoute() {
+  importRoutePanel.style.width = "100vw";
+}
+
+export function  closeImportRoute() {
+  importRoutePanel.style.width = "0";
 }
 
 function handleToggles(event) {
@@ -838,6 +850,8 @@ export function initUi() {
   addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click");
   addClickListener(settingOpenButton, openSettings, "click");
   addClickListener(settingCloseButton, closeSettings, "click");
+  addClickListener(importRouteOpenButton, openImportRoute, "click");
+  addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(autoModeOption, handleToggles, "click");
   addClickListener(manualModeOption, handleToggles, "click");
   addClickListener(autoModeOption, switchToAutoMode, "click");

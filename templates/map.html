@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/saved_routes.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings_panel.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/statsPanel.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/import-route.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -181,8 +182,9 @@
     <!-- ##### SIDE NAV BAR ##### -->
     <div id="the-sidenav" class="sidenav">
         <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-        <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i> Saved Routes</a>
-        <a id="settings-open-button"><i data-lucide="settings"></i> Settings</a>
+        <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
+        <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
+        <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
     </div>
 
     </div>
@@ -325,6 +327,118 @@
         </div>
     </div>
 
+    <!-- ##### IMPORT ROUTE ##### -->
+    <div id="import-route-panel">
+        <div class="import-route-inner">
+
+            <!-- HEADER -->
+            <header class="import-route-header">
+                <div class="import-route-header-container">
+                    <h1 class="import-route-title">Import Route</h1>
+
+                    <div class="import-route-close-container">
+                        <a id="import-route-close-button" class="import-route-close-button">&times;</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <section class="import-route-content">
+
+                <!-- Import method -->
+                <div class="import-route-item">
+                    <div class="import-route-text">
+                        <span class="import-route-item-title">Import method</span>
+                        <span class="import-route-item-description">Choose how you want to load your route</span>
+                    </div>
+
+                    <div class="settings-radio-pills">
+                        <label class="radio-pill">
+                            <input type="radio" name="import-route-method" value="file" checked>
+                            <span>File</span>
+                        </label>
+
+                        <label class="radio-pill">
+                            <input type="radio" name="import-route-method" value="url">
+                            <span>URL</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- file upload -->
+                <div class="import-route-item" id="import-route-file-row">
+                    <div class="import-route-text">
+                        <span class="import-route-item-title">Upload file</span>
+                        <span class="import-route-item-description">Supported: GPX, KML, FIT</span>
+                    </div>
+
+                    <input type="file" id="import-route-file-input" accept=".gpx,.kml,.fit" class="settings-input">
+                </div>
+
+                <!-- URL input -->
+                <div class="import-route-item" id="import-route-url-row" style="display: none;">
+                    <div class="import-route-text">
+                        <span class="import-route-item-title">Route URL</span>
+                        <span class="import-route-item-description">Paste a public route link</span>
+                    </div>
+
+                    <input 
+                        type="url" 
+                        id="import-route-url-input" 
+                        class="settings-input" 
+                        placeholder="https://example.com/route"
+                    >
+                </div>
+
+                <!-- route name -->
+                <div class="import-route-item">
+                    <div class="import-route-text">
+                        <span class="import-route-item-title">Route name</span>
+                        <span class="import-route-item-description">Name your imported route before saving</span>
+                    </div>
+
+                    <input 
+                        type="text" 
+                        id="import-route-name-input" 
+                        class="settings-input" 
+                        placeholder="My Route"
+                    >
+                </div>
+
+                <!-- recalculate elevation -->
+                <div class="import-route-item">
+                    <div class="import-route-text">
+                        <span class="import-route-item-title">Recalculate elevation</span>
+                        <span class="import-route-item-description">Use Crest’s elevation engine instead of file values</span>
+                    </div>
+
+                    <label class="import-route-toggle">
+                        <input type="checkbox" id="import-route-recalculate-elevation" checked>
+                        <span class="import-route-toggle-slider"></span>
+                    </label>
+                </div>
+
+            </section>
+
+            <!-- FOOTER -->
+            <div class="import-route-footer">
+                <button id="import-route-cancel-button" class="import-route-footer-button secondary">
+                    Cancel
+                </button>
+
+                <button id="import-route-save-button" class="import-route-footer-button primary">
+                    Save Route
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
 
     <!-- ##### AppConfig to access API Enpoint URLS ##### -->
     <script>
@@ -359,7 +473,8 @@
             mapPageUrl: "{{ url_for('map_view') }}",
             apiDownloadRouteUrl: "{{ url_for('download_route') }}",
             apiSaveSettings: "{{ url_for('save_settings') }}",
-            apiGetSettings: "{{ url_for('get_settings') }}"
+            apiGetSettings: "{{ url_for('get_settings') }}",
+            apiImportRoute: "{{ url_for('import_route') }}"
         };
     </script>
 

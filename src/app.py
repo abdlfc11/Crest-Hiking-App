@@ -1048,6 +1048,10 @@ def download_route():
             print(f"Error whilst downloading {route_name}:", e)
             return jsonify({"success": False, "message": "Failed to generate file"}), 500
 
+@app.route("/import_route")
+def import_route():
+    pass
+
 
 # flask-route which retrieves saved points to be used in the front
 @app.route("/get_saved_points", methods=["GET"])
