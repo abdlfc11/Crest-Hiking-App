@@ -49,22 +49,35 @@ export function displayLoadedRouteOnMap(data) {
   vectorSource.addFeatures(features);
 
   const view = map.getView();
-  if (view.getZoom() >= 6) {
+
+  // if zoom is greater than 10.5 (zoomed in)
+  if (view.getZoom() > 11) {
+
+    // zoom out slightly 
     view.animate(
       { center: view.getCenter(),
         duration: 1000,
-        zoom: 10 
-      },
-      () => view.fit(vectorSource.getExtent(), {
-              size: map.getSize(),
-              padding: [50, 100, 100, 430],
-              duration: 1000,
-            }),
+        zoom: 10.5 
+      }, 
+      
+      // then zoom into the route
+      function(complete) {
+        if (complete) {
+          view.fit(vectorSource.getExtent(), {
+            size: map.getSize(),
+            padding: [50, 100, 100, 430],
+            duration: 1000
+          })
+        }
+      }
     );
-  } else {
+  } 
+  
+  // otherwise, zoom into the route immediately
+  else {
     map.getView().fit(vectorSource.getExtent(), {
       size: map.getSize(),
-      padding: [50, 50, 50, 50],
+      padding: [50, 100, 100, 430],
       duration: 1000,
     });
   }

@@ -51,8 +51,8 @@ function createMap() {
       projection: "EPSG:3857",
       maxZoom: 17,
       minZoom: 0,
-      center: window.appConfig.mapInitialCenter,
-      zoom: window.appConfig.mapInitialZoom,
+      center: [-357428, 7256794],
+      zoom: 10.5,
     }),
   });
 }
