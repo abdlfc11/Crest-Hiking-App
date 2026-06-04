@@ -845,10 +845,6 @@ def save_route():
         # validates coords
         if not coordinates or len(coordinates) == 0:
             return jsonify({"success": False, "message": "No route data found to save. Please generate or load a path first."}), 400
-
-        # validates format type
-        if not format_type:
-            return jsonify({"success": False, "message": "Route format is required"})
         
         coordinates_json = json.dumps(coordinates)
 
@@ -860,7 +856,6 @@ def save_route():
         route = Route(
             name=route_name, 
             coordinates=coordinates_json, 
-            format=format_type, 
             user_id=user.id, 
             ETA=ETA, 
             distance_km=distance_km_value, 
