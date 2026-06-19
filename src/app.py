@@ -11,7 +11,6 @@ sys.path.insert(0, "/app/src")
 # SQLModel + DB
 from sqlmodel import Session, select, delete
 from db import engine
-
 from src.models import User, Route, Point, Settings, BetaCode
 
 import pickle as pkl
@@ -131,7 +130,7 @@ def validate_beta_code():
     
     session["beta_code"] = code
     session.permanent = True
-    
+
     return jsonify({"success": True, "message": "Beta Code validation was successful"})
         
 
@@ -227,9 +226,7 @@ def registering():
 
 #endregion
 
-@app.route('/beta-page', methods=["GET"])
-def get_beta_page():
-    return render_template("beta-code.html")
+
 
 # region DELETING ACCOUNT
 @app.route("/delete_account", methods=["POST"])
@@ -1173,15 +1170,31 @@ def delete_route():
 def main_page():
     return render_template("main.html")
 
+@app.route('/beta-page', methods=["GET"])
+def get_beta_page():
+    return render_template("beta-code.html")
+
 # first route 
 @app.route("/login-page")
 @limiter.exempt
 def login_page():
+
+    check = is_beta_code_validated()
+
+    if not check:
+        return render_template("beta-code.html")
+
     return render_template("login.html")
 
 @app.route("/register")
 @limiter.exempt
 def register_page():
+
+    check = is_beta_code_validated()
+
+    if not check:
+        return render_template("beta-code.html")
+
     return render_template("register.html")
 
 # After logging in
