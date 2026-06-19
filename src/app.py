@@ -12,7 +12,7 @@ sys.path.insert(0, "/app/src")
 from sqlmodel import Session, select, delete
 from db import engine
 
-from src.models import User, Route, Point, Settings
+from src.models import User, Route, Point, Settings, BetaCode
 
 import pickle as pkl
 import time
@@ -85,6 +85,15 @@ def get_current_user():
     with Session(engine) as db:
         return db.exec(select(User).where(User.username == username)).first()
 
+def is_beta_code_validated():
+    beta_code = session.get("beta_code")
+    print(beta_code)
+    if not beta_code:
+        print("No beta code detected")
+        return False
+    else:
+        return True
+
 # STRFTIME FILTER
 @app.template_filter("strftime")
 def strftime_filter(date, format: str):
@@ -101,6 +110,30 @@ def page_not_found(error):
     return render_template('Error-Pages/500.html')
 
 # region AUTH FLASK ROUTES
+
+# BETA CODE VALIDATION
+@app.route("/validate-beta-code", methods=['POST'])
+def validate_beta_code():
+    data = request.get_json()
+    code = data.get("beta_code", "").strip()
+
+    if not code:
+        return jsonify({"success": False, "message": "Beta code not received"})
+    
+    with Session(engine) as db:
+        db_code = db.exec(
+            select(BetaCode)
+            .where(BetaCode.code == code)
+        ).first()
+
+        if not db_code:
+            return jsonify({"success": False, "message": "Could not find beta code"})
+    
+    session["beta_code"] = code
+    session.permanent = True
+    
+    return jsonify({"success": True, "message": "Beta Code validation was successful"})
+        
 
 #region LOGGING IN AND OUT
 

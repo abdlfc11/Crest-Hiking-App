@@ -286,7 +286,7 @@ export async function validateBetaCode(event) {
 
   const betaCode = betaCodeEntry.value;
 
-  const response = await fetch('/beta-validate', {
+  const response = await fetch('/validate-beta-code', {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -294,12 +294,13 @@ export async function validateBetaCode(event) {
     body: JSON.stringify({ beta_code: betaCode })
   });
 
-  if (response.redirected) {
-    window.location.href = response.url;
+  const data = await response.json()
+
+  if (data.success) {
+    window.location.href = "/register";
     return;
   }
 
-  const data = await response.json()
 
   if (!data.success) {
     userFeedback(betaValidationLabel, data.message, false);
