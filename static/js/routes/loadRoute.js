@@ -18,10 +18,6 @@ let updateLoadRouteVisibilityCallback = null;
 
 export function displayLoadedRouteOnMap(data) {
 
-  console.log(data)
-
-  console.log(data.pathGeoJSON)
-
   const map = getMap();
   const routeLayer = getRouteLayer();
   if (!map || !routeLayer) return;
@@ -35,7 +31,6 @@ export function displayLoadedRouteOnMap(data) {
     featureProjection: "EPSG:3857",
   });
 
-  console.log(features)
 
   features.forEach((feature) => {
     feature.setStyle(
