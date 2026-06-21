@@ -540,6 +540,29 @@ function displayPath(data) {
   });
 
   source.addFeature(feature);
+
+  const coordinates = data.coordinates;
+
+
+  if (coordinates.length >= 2) {
+    const startCoord = coordinates[0];
+    const endCoord = coordinates[coordinates.length - 1];
+
+    const startPointFeature = new ol.Feature({
+      geometry: new ol.geom.Point([startCoord[0], startCoord[1]])
+    });
+    startPointFeature.setStyle(createManualPointStyle("Start", "#8145d4"));
+
+    const endPointFeature = new ol.Feature({
+      geometry: new ol.geom.Point([endCoord[0], endCoord[1]])
+    });
+    endPointFeature.setStyle(createManualPointStyle("End", "#8145d4"));
+
+    source.addFeature(startPointFeature);
+    source.addFeature(endPointFeature);
+
+  }
+
   setCurrentPathData(data.coordinates); // data.coordinates may be either 2 elements (x and y) or 3 elements (x, y and elevation)
 
 
