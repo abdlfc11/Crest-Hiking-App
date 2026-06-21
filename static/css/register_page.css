@@ -110,3 +110,31 @@
 #switch_to_login_button:hover {
     transform: translateY(-2px);
 }
+
+#password-requirements {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+#password-requirements ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 0.25rem;
+}
+
+#password-requirements .req {
+    margin-bottom: 4px;
+    transition: color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6;
+}
+
+#password-requirements .valid {
+    color: #2ecc71; /* green */
+    opacity: 1;
+}
+
+#password-requirements .invalid {
+    color: #ff4d4d; /* red */
+    opacity: 1;
+}

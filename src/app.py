@@ -1,7 +1,7 @@
 # IMPORTS 
 from src.pathfinder import a_star, snap_to_largest_component, build_global_kdtree
 
-from flask import Flask, render_template, request, jsonify, session, send_file
+from flask import Flask, render_template, request, jsonify, session, send_file, redirect, url_for
 
 import sys
 import os
@@ -1183,10 +1183,10 @@ def get_beta_page():
 @limiter.exempt
 def login_page():
 
-    check = is_beta_code_validated()
+    # check = is_beta_code_validated()
 
-    if not check:
-        return render_template("beta-code.html")
+    # if not check:
+        # return render_template("beta-code.html")
 
     return render_template("login.html")
 
@@ -1194,10 +1194,10 @@ def login_page():
 @limiter.exempt
 def register_page():
 
-    check = is_beta_code_validated()
+    #check = is_beta_code_validated()
 
-    if not check:
-        return render_template("beta-code.html")
+    #if not check:
+        #return redirect(url_for(get_beta_page))
 
     return render_template("register.html")
 
@@ -1212,7 +1212,7 @@ def map_view():
     if user is None:
         available_routes = []
         saved_points = []
-        return render_template("/login.html")
+        return redirect(url_for("login_page"))
     
     with Session(engine) as db:
         try: 

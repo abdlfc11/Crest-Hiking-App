@@ -18,6 +18,10 @@ const registerPasswordEntry1 = document.getElementById("register-password-entry1
 const registerPasswordEntry2 = document.getElementById("register-password-entry2");
 const registerUsernameEntry = document.getElementById("register-username-entry");
 const registerPreferredNameEntry = document.getElementById("register-preferred-name-entry");
+const reqLength = document.getElementById("req-length");
+const reqNumber = document.getElementById("req-number");
+const reqSpecial = document.getElementById("req-special");
+const reqMatch = document.getElementById("req-match");
 const specialCharacters = [
   "@", "#", "$", "%", "^",
   "&", "*", "(", ")", "_",
@@ -113,6 +117,35 @@ function switchToLoginFromRegister() {
 
 export function switchToRegistering() {
   window.location.href = "/register";
+}
+
+function validatePassword() {
+    const p1 = registerPasswordEntry1.value;
+    const p2 = registerPasswordEntry2.value;
+
+    // these are the requirements 
+    const lengthValid = p1.length >= 11;
+    const numberValid = /\d/.test(p1);
+    const thereIsSpecialCharacter = specialCharacters.some((word) =>
+      p1.includes(word),
+    );
+    const matchValid = p1 === p2 && p1.length > 0;
+
+    updateRequirement(reqLength, lengthValid);
+    updateRequirement(reqNumber, numberValid);
+    updateRequirement(reqSpecial, thereIsSpecialCharacter);
+    updateRequirement(reqMatch, matchValid);
+
+}
+
+function updateRequirement(element, condition) {
+    element.classList.remove("valid", "invalid");
+
+    if (condition) {
+        element.classList.add("valid");
+    } else {
+        element.classList.add("invalid");
+    }
 }
 
 
@@ -322,3 +355,6 @@ icons.forEach((icon) => {
     event.currentTarget.style.color = isPassword ? "rgb(86, 87, 89)" : "lightgray";
   });
 });
+
+registerPasswordEntry1.addEventListener("input", validatePassword);
+registerPasswordEntry2.addEventListener("input", validatePassword);
