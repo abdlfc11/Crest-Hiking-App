@@ -104,6 +104,7 @@ const dialogWrapper = deletePointConfirmationDialog?.querySelector(".wrapper");
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
 const closeSavedRoutesDashButton = document.getElementById('saved-routes-dash-go-back-button');
 const savedRoutesDashContent = document.getElementById('saved-routes-dashboard');
+const noRouteCreateButton = document.getElementById("no-route-create-button");
 
 // setting panel
 const settingOpenButton = document.getElementById("settings-open-button");
@@ -147,6 +148,11 @@ function checkIfMobile() {
           </div>
       `;
   }
+}
+
+function noRouteCreateFunction() {
+  closeNav();
+  closeSavedRoutesDash();
 }
 
 /**
@@ -877,6 +883,7 @@ export function initUi() {
   addClickListener(clearAutoRouteButton, clearAutoRoute, "click");
   addClickListener(clearManualRouteButton, clearManualRoute, "click");
   addClickListener(searchForAreaButton, searchArea, "click");
+  addClickListener(noRouteCreateButton, noRouteCreateFunction, "click");
   window.addEventListener('load', checkIfMobile);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", () => {
     applyTheme(getTheme())

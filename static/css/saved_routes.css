@@ -234,14 +234,51 @@ body {
     font-weight: 500;
 }
 
-.no-routes-message {
+.no-routes-wrapper {
     grid-column: 1 / -1;
-    padding: 2rem;
-    color: #475569;
-    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    padding-top: 80px;
 }
 
-/* ===== DARK THEME (only affects #saved-routes-dashboard per project scope) ===== */
+.no-routes-card {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 16px;
+    padding: 2.8rem 2.4rem;
+    max-width: 420px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.no-routes-title {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.no-routes-description {
+    font-size: 1.1rem;
+    color: #475569;
+    margin-bottom: 2rem;
+    line-height: 1.55;
+}
+
+.no-routes-create-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    border-radius: 10px;
+}
+
+
+
+
+
+/* ===== DARK THEME (only affects saved-routes-dashboard) ===== */
 html.dark #saved-routes-dashboard {
     background: #1f2937;
 }
@@ -278,4 +315,14 @@ html.dark #saved-routes-dashboard .closebtn:hover {
     color: #f3f4f6;
     background-color: rgba(255, 255, 255, 0.12);
     transform: scale(1.05);
+}
+
+html.dark .no-routes-card {
+    background: rgba(31, 41, 55, 0.55);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.dark .no-routes-title,
+html.dark .no-routes-description {
+    color: #f3f4f6;
 }

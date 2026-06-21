@@ -230,11 +230,21 @@
                     {% endfor %}
                 {% endif %}
 
-                <div class="saved-route-dash-no-route-content">
-                    <h3 class="saved-route-dash-no-routes-heading">Looks like you don't have any routes</h3>
-                    <h3 class="saved-route-dash-no-routes-heading">Create one below</h3>
-                    <button class="generate-button">Create a route</button>
+                <div class="no-routes-wrapper">
+                    <div class="no-routes-card">
+                        <h2 class="no-routes-title">No routes saved yet</h2>
+
+                        <p class="no-routes-description">
+                            You haven’t created any routes. Start planning your next adventure below.
+                        </p>
+
+                        <button id="no-route-create-button" class="no-routes-create-btn generate-button">
+                            Create a route
+                        </button>
+                    </div>
                 </div>
+
+
             </div>
         </div>
     </div>
