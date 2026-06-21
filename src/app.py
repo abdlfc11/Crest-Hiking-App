@@ -104,6 +104,10 @@ def strftime_filter(date, format: str):
 def page_not_found(error):
     return render_template('Error-Pages/404.html')
 
+@app.errorhandler(405)
+def page_not_found(error):
+    return render_template('Error-Pages/405.html')
+
 @app.errorhandler(500)
 def page_not_found(error):
     return render_template('Error-Pages/500.html')
