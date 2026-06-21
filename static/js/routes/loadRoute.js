@@ -1,5 +1,5 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
-import { formatDistance, getRouteStrokeStyle, showToast } from "../utils.js";
+import { formatDistance, getRouteStrokeStyle, showToast, createManualPointStyle } from "../utils.js";
 import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
 import { deleteRoute, loadRoute, fetchRoutes } from "./routeApi.js";
 
@@ -18,6 +18,8 @@ let updateLoadRouteVisibilityCallback = null;
 
 export function displayLoadedRouteOnMap(data) {
 
+  console.log(data)
+
   console.log(data.pathGeoJSON)
 
   const map = getMap();
@@ -33,9 +35,6 @@ export function displayLoadedRouteOnMap(data) {
     featureProjection: "EPSG:3857",
   });
 
-  console.log('First feature geometry:', features[0]?.getGeometry()?.getCoordinates().slice(0, 5));
-  console.log('Extent:', vectorSource.getExtent());
-
   console.log(features)
 
   features.forEach((feature) => {
@@ -46,7 +45,27 @@ export function displayLoadedRouteOnMap(data) {
     );
   });
 
+  const coordinates = data.coordinates;
+
+  const startCoord = coordinates[0];
+  const endCoord = coordinates[coordinates.length - 1]
+
+
+  const startFeature = new ol.Feature({
+    geometry: new ol.geom.Point([startCoord[0], startCoord[1]])
+  });
+  startFeature.setStyle(createManualPointStyle("Start", "#8145d4"));
+
+  const endFeature = new ol.Feature({
+    geometry: new ol.geom.Point([endCoord[0], endCoord[1]])
+  });
+  endFeature.setStyle(createManualPointStyle("End", "#8145d4"));
+
+
+
   vectorSource.addFeatures(features);
+  vectorSource.addFeature(startFeature);
+  vectorSource.addFeature(endFeature);
 
   const view = map.getView();
 
