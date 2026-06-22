@@ -58,8 +58,11 @@ export async function getPathSegment(start, end) {
 }
 
 export async function addManualPoint(x, y) {
-  const { userClicks, pathCoords } = manualRouteState;
+  const { userClicks, pathCoords, segmentCache } = manualRouteState;
   const currentClick = [x, y];
+
+  // this restores the redo stack
+  manualRouteState.redoStack = [];
 
   if (userClicks.length === 0) {
     userClicks.push(currentClick);
@@ -90,29 +93,49 @@ export async function addManualPoint(x, y) {
     return;
   }
 
+  const A = userClicks[userClicks.length - 1]; 
+  const B = finalClick;                        
+  const key = JSON.stringify([A, B]);
+
+  let segment;
+
   try {
-    const data = await getPathSegment(lastClickedPoint, finalClick);
 
-    if (data?.success) {
-      const newSegment = data.coordinates; // contains [x, y and elevation]
+    if (segmentCache[key]) { // this checks if the segment already exists in cache 
+      console.log("DEBUG: Found existing cache");
+      segment = segmentCache[key];
+    }
+    else {
+      console.log("DEBUG: no existing cache found");
+      const data = await getPathSegment(lastClickedPoint, finalClick);
 
+      if (!data.success) {
+        console.warn("Could not find a path in that location");
+        return;
+      }
 
-      manualRouteState.pathCoords.push(...newSegment.slice(1));
-      userClicks.push(finalClick);
+      segment = data.coordinates;
+
+      // this stores the segment in cache 
+      segmentCache[key] = segment;
 
       // this updates elevation change
       manualRouteState.initialElevation += data.route_stats.elevation_change;
 
-      // this marks the route as snapped to prevent future mixing
-      manualRouteState.isSnapped = true;
-
-      const { updateManualRoute } = await import("../ui.js");
-      updateManualRoute();
-
-    } else {
-      console.warn("Could not find a path to that location");
     }
-  } catch (error) {
-    console.warn("Could not find a path to that location", error);
   }
+  catch (error) {
+    console.warn("Could not find a path to that location", error);
+    return;
+  }
+
+  // this appends the segment to pathCoords (skips first point to prevent duplication)
+  manualRouteState.pathCoords.push(... segment.slice(1))
+
+  userClicks.push(finalClick);
+  manualRouteState.isSnapped = true;
+
+  // this updates the UI
+  const { updateManualRoute } = await import("../ui.js");
+  updateManualRoute();
 }

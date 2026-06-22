@@ -76,6 +76,14 @@ if (betaButton) {
   betaButton.addEventListener('click', validateBetaCode)
 }
 
+if (registerPasswordEntry1) {
+  registerPasswordEntry1.addEventListener("input", validatePassword);
+}
+
+if (registerPasswordEntry2) {
+  registerPasswordEntry2.addEventListener("input", validatePassword);
+}
+
 if (window.location.pathname === "/login-page" || window.location.pathname === "/register") {
   if (window.location.pathname === "/login-page") {
     document.addEventListener("keypress", (event) => {
@@ -119,7 +127,7 @@ export function switchToRegistering() {
   window.location.href = "/register";
 }
 
-function validatePassword() {
+export function validatePassword() {
     const p1 = registerPasswordEntry1.value;
     const p2 = registerPasswordEntry2.value;
 
@@ -356,5 +364,4 @@ icons.forEach((icon) => {
   });
 });
 
-registerPasswordEntry1.addEventListener("input", validatePassword);
-registerPasswordEntry2.addEventListener("input", validatePassword);
+

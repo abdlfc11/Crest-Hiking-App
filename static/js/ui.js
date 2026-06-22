@@ -49,7 +49,8 @@ import {
   hasElevation, 
   extractElevation,
   extractElevationProfile,
-  getElevationRange
+  getElevationRange,
+  calculateElevationChange
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -77,6 +78,8 @@ const manualHomeButton = document.getElementById("manual-home-button");
 const generatePathButton = document.getElementById("generate-path-button");
 const clearAutoRouteButton = document.getElementById("clear-auto-route-button");
 const clearManualRouteButton = document.getElementById("clear-manual-route");
+const undoManualRouteButton = document.getElementById("undo-manual-route");
+const redoManualRouteButton = document.getElementById("redo-manual-route");
 
 const mapElement = document.getElementById("map");
 const searchEntry = document.getElementById("search-entry");
@@ -151,8 +154,8 @@ function checkIfMobile() {
 }
 
 function noRouteCreateFunction() {
-  closeNav();
-  closeSavedRoutesDash();
+  closeNav()
+  closeSavedRoutesDash()
 }
 
 /**
@@ -763,6 +766,56 @@ export function updateManualRoute() {
   createElevationProfile(pathCoords);
 }
 
+export function undoManualRoutePoint() {
+
+  const { userClicks, segmentCache } = manualRouteState;
+
+  // this removes the last click
+  const removed = userClicks.pop();
+
+  // this adds the removed point to the redo stack
+  manualRouteState.redoStack.push(removed);
+
+  manualRouteState.pathCoords = []; // resets pathCoord array
+
+  // this updates the UI and exits if there are no clicks
+  if (userClicks.length === 0) {
+    updateManualRoute();
+    return;
+  }
+
+  // this pushes the first click
+  manualRouteState.pathCoords.push(userClicks[0]);
+
+  for (let i = 0; i < userClicks.length - 1; i++) {
+    const A = userClicks[i];
+    const B = userClicks[i + 1];
+
+    const key = JSON.stringify([A, B]);
+    const segment = manualRouteState.segmentCache[key]; // retrieves route segment already calculated from cache 
+
+    if (!segment) {
+      console.error("Missing cache segment for :", A, B)
+      continue;
+    }
+
+    // this pushes everything except the first point to avoid duplication of points 
+    manualRouteState.pathCoords.push(...segment.slice(1));
+  }
+
+  // this updates the UI
+  updateManualRoute();
+}
+
+function redoManualRoutePoint() {
+  const restoredPoint = manualRouteState.redoStack.pop();
+  
+  if (!restoredPoint) return;
+
+  addManualPoint(restoredPoint[0], restoredPoint[1]);
+}
+
+
 function showPointDeleteDialog(show) {
   if (!deletePointConfirmationDialog) return;
   show ? deletePointConfirmationDialog.showModal() : deletePointConfirmationDialog.close();
@@ -884,6 +937,8 @@ export function initUi() {
   addClickListener(clearManualRouteButton, clearManualRoute, "click");
   addClickListener(searchForAreaButton, searchArea, "click");
   addClickListener(noRouteCreateButton, noRouteCreateFunction, "click");
+  addClickListener(undoManualRouteButton, undoManualRoutePoint, "click");
+  addClickListener(redoManualRouteButton, redoManualRoutePoint, "click");
   window.addEventListener('load', checkIfMobile);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", () => {
     applyTheme(getTheme())

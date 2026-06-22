@@ -89,7 +89,11 @@
             </div>
             <div class="coords-content">
                 <p class="manual-instruction">Click on the map to place points</p>
-                <button type="button" id="clear-manual-route" class="generate-button">Clear Route</button>
+                <div style="display: flex; align-items: center; justify-content: center; gap: .5rem;">
+                    <button type="button" id="undo-manual-route" class="generate-button">Undo Point</button>
+                    <button type="button" id="redo-manual-route" class="generate-button">Redo Point</button>
+                </div>
+                <button type="button" id="clear-manual-route" class="generate-button" style="background-color: #b91c1c;">Clear Route</button>
             </div>
         </div>
         

@@ -12,7 +12,9 @@ export const manualRouteState = {
   pathCoords: [],
   manualRoutePoints: [],
   initialElevation: 0,
-  isSnapped: false
+  isSnapped: false,
+  segmentCache: {},
+  redoStack: []
 };
 
 export function getLastAutoRouteStats() {
@@ -136,6 +138,28 @@ export function getElevationRange(coords) {
     }
     return range;
   }, { min: null, max: null})
+}
+
+/**
+ * 
+ * @param {Array} coords 
+ * @returns The elevation change that the hiker would climb 
+*/
+export function calculateElevationChange(coords) {
+  if (!coords || coords.length < 2) return 0;
+
+  let totalChange = 0;
+
+  for (let i = 1; i < coords.length; i++) {
+    const prev = coords[i - 1];
+    const curr = coords[i];
+
+    if (prev.length === 3 && curr.length === 3) {
+      totalChange += curr[2] - prev[2];
+    }
+  }
+
+  return totalChange;
 }
 
 /**
