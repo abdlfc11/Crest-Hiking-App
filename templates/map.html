@@ -96,6 +96,11 @@
                 <button type="button" id="clear-manual-route" class="generate-button" style="background-color: #b91c1c;">Clear Route</button>
             </div>
         </div>
+
+        <!-- SAVE ROUTE DIV TOGGLE BUTTON -->
+        <div id="save-route-button-container">
+            <button id="save-route-toggle-button" class="closed"><i data-lucide="chevron-down"></i>Save Route</button>
+        </div>
         
         <!-- ##### SAVE ROUTE DIV ##### -->
         <div id="save-route" {% if not current_path %}style="display: none;"{% endif %}>
