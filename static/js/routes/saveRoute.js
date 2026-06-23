@@ -142,6 +142,7 @@ function handleSaveRoute(e) {
                           `;
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
         homeButtonFunction();
+        updateSaveRouteContainer();
       } else {
         messageDiv.innerHTML = `<span style="color: red;">${data.message}</span>`;
       }
@@ -152,6 +153,5 @@ function handleSaveRoute(e) {
     })
     .finally(() => {
       closeMessageDiv(messageDiv);
-      updateSaveRouteContainer();
     }) 
 }
