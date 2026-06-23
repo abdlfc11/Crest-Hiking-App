@@ -12,6 +12,7 @@ sys.path.insert(0, "/app/src")
 from sqlmodel import Session, select, delete
 from db import engine
 from src.models import User, Route, Point, Settings, BetaCode
+from sqlalchemy.exc import IntegrityError
 
 import pickle as pkl
 import time
@@ -903,7 +904,14 @@ def save_route():
             print(f"[DEBUG] Route successfully committed to database.")
 
             return jsonify({"success": True, "message": "Successfully saved the route"})
+    except IntegrityError as e:
+        db.rollback()
+
+        return jsonify({"success" : False, "message" : "Try again: a route already shares the same name"})
+
+
     except Exception as e:
+        db.rollback()
         return jsonify({"success": False, "message": f"Error processing request: {str(e)}"})
 
 # flask route which is used to retrieves a saved route that has been passed into the back-end from the PostgreSQL database
