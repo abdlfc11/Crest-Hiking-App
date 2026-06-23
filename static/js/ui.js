@@ -787,6 +787,7 @@ export function undoManualRoutePoint() {
   // this pushes the first click
   manualRouteState.pathCoords.push(userClicks[0]);
 
+  // this rebuilds the pathCoords array
   for (let i = 0; i < userClicks.length - 1; i++) {
     const A = userClicks[i];
     const B = userClicks[i + 1];
@@ -886,6 +887,65 @@ export function applyTheme(theme) {
   document.documentElement.classList.toggle("dark", effective === "dark");
 }
 
+// ##### KEYBOARD SHORTCUTS ##### 
+function handleKeyboardShortcuts(e) {
+
+  // this returns if the user is typing 
+  if (document.activeElement.tagName === "INPUT" || 
+      document.activeElement.tagName === "TEXTAREA") {
+        return;
+  };
+
+  // this gets the key that is pressed
+  const key = e.key.toLowerCase();
+  const mode = getCurrentMode();
+
+  // if ctrl / cmd key is pressed
+  if (e.ctrlKey || e.metaKey) {
+    
+    // this switches to auto mode if ctrl/cmd + a is pressed
+    if (key === 'a') {
+      e.preventDefault();
+      switchToAutoMode();
+      return;
+    };
+
+    if (key === 'k') {
+      e.preventDefault();
+      searchEntry.focus();
+    }
+     
+    // this switches to manual mode if ctrl/cmd + m is pressed
+    if (key === 'm' && e.shiftKey) {
+      e.preventDefault();
+      switchToManualMode();
+      return;
+    };
+
+    if (mode === "manual") {
+
+      // this un-does the last point if ctrl/cmd + z is clicked
+      if (key === "z") {
+        e.preventDefault();
+        undoManualRoutePoint();
+        return;
+      };
+       
+      
+      // this re-does the last undone point if ctrl/cmd + y is clicked
+      if (key === "y") {
+        e.preventDefault();
+        redoManualRoutePoint();
+        return;
+      };
+       
+    };
+
+  };
+
+};
+
+
 // ##### HANDLING TOGGLING OF DISTANCE UNITS #####
 function handleDistanceUnitToggle() {
 
@@ -939,6 +999,7 @@ export function initUi() {
   addClickListener(noRouteCreateButton, noRouteCreateFunction, "click");
   addClickListener(undoManualRouteButton, undoManualRoutePoint, "click");
   addClickListener(redoManualRouteButton, redoManualRoutePoint, "click");
+  addClickListener(document, handleKeyboardShortcuts, "keydown")
   window.addEventListener('load', checkIfMobile);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", () => {
     applyTheme(getTheme())
