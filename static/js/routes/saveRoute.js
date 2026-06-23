@@ -33,7 +33,6 @@ function handleSaveRoute(e) {
   const routeName = document.getElementById("route-name")?.value;
   const format = document.getElementById("route-format")?.value;
   const messageDiv = document.getElementById("save-message");
-  const distanceLegacyString = document.getElementById("route-distance-display")?.textContent;
   const eta = document.getElementById("route-eta-display")?.textContent;
   const elevationChange = document.getElementById("route-elevation-change-display")?.textContent;
   const allRoutesContainer = document.getElementById("all-routes-container");
