@@ -232,21 +232,24 @@
                         </div>
                     </div>
                     {% endfor %}
+                
+                {% else %}
+                    <div class="no-routes-wrapper">
+                        <div class="no-routes-card">
+                            <h2 class="no-routes-title">No routes saved yet</h2>
+
+                            <p class="no-routes-description">
+                                You haven’t created any routes. Start planning your next adventure below.
+                            </p>
+
+                            <button id="no-route-create-button" class="no-routes-create-btn generate-button">
+                                Create a route
+                            </button>
+                        </div>
+                    </div>
                 {% endif %}
 
-                <div class="no-routes-wrapper">
-                    <div class="no-routes-card">
-                        <h2 class="no-routes-title">No routes saved yet</h2>
-
-                        <p class="no-routes-description">
-                            You haven’t created any routes. Start planning your next adventure below.
-                        </p>
-
-                        <button id="no-route-create-button" class="no-routes-create-btn generate-button">
-                            Create a route
-                        </button>
-                    </div>
-                </div>
+                
 
 
             </div>
