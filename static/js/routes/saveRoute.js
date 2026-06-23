@@ -26,6 +26,12 @@ export function initSaveRoute() {
   }
 }
 
+function closeMessageDiv(messageDiv) {
+  setTimeout(() => {
+    messageDiv.style.display = 'none';
+  }, 3000);
+};
+
 function handleSaveRoute(e) {
   e.preventDefault();
 
@@ -144,4 +150,7 @@ function handleSaveRoute(e) {
       messageDiv.innerHTML = `<span style="color: red;">Error saving route: ${error.message}</span>`;
       console.error("Error saving route:", error);
     })
+    .finally(() => {
+      closeMessageDiv(messageDiv);
+    }) 
 }
