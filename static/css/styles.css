@@ -444,33 +444,25 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-#save-route {
-    position: fixed;
-    top: 10px;
-    right: 40px;
-    z-index: 1000;
-    background: rgb(255 255 255 / 0.65);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border: 1px solid #e2e8f0;
-    min-width: 250px;
-    max-width: 280px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+#save-route-container {
+    position: static;
 }
 
-/* save route toggle button styling */
-
+/* this container acts a wrapper for both the button and the panel */
 #save-route-button-container {
     position: absolute;
-    top: 2rem;
-    right: 3rem;
-    z-index: 1000;
+    right: 12rem;
+    width: 9rem;
+    z-index: 2000;
     display: flex;
+    flex-direction: column; /* to stack button + panel */
 }
 
 #save-route-toggle-button {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background: rgb(255 255 255 / 0.65);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -481,10 +473,38 @@ body {
     padding: 8px 14px;
     font-size: 14px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
     gap: 6px;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    z-index: 1501;
+    transition: all 0.15s ease-in-out;
+}
+
+#save-route-toggle-button i {
+    transition: transform 0.25s ease;
+}
+
+#save-route-toggle-button.opened i {
+    transform: rotate(180deg);
+}
+
+#save-route-toggle-button.opened {
+    border-radius: 8px 8px 0 0;
+}
+
+/* this panel sits below the button under the same container */
+#save-route {
+    overflow: hidden;
+    height: 0;
+    margin-right: .5rem;
+    background: rgb(255 255 255 / 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0 0 8px 8px;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 9rem;
+    z-index: 1500;
+    transition: height 0.15s ease;
 }
 
 #save-route-toggle-button:hover {
@@ -492,6 +512,7 @@ body {
     border-color: #cbd5e1;
     transform: scale(1.03);
 }
+
 
 #load-message, #save-message {
     margin-top: 10px;

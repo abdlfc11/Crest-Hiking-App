@@ -95,6 +95,9 @@ const manualModeContent = document.getElementById("manual-mode-content");
 // saved route div + saving routes
 const saveRouteDiv = document.getElementById("save-route");
 const routeNameEntry = document.getElementById("route-name");
+const saveContainer = document.getElementById('save-route-container');
+const saveRouteToggleButton = document.getElementById("save-route-toggle-button");
+const saveRouteButtonContainer = document.getElementById('save-route-toggle-button');
 
 // delete point modal
 const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
@@ -122,6 +125,13 @@ const importRoutePanel = document.getElementById("import-route-panel");
 let clickMode = null;
 let manualRouteLayer = null;
 let selectedPoint = null;
+
+// hides save route button + panel if there is no route
+if (!window.appConfig.initialCurrentPath) {
+    if (saveContainer) {
+        saveContainer.style.display = 'none';
+    }
+}
 
 export function getClickMode() {
   return clickMode;
@@ -300,6 +310,10 @@ export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
 }
 
+function openSaveRouteDiv() {
+  saveRouteDiv.style.height = "5rem"
+}
+
 function handleToggles(event) {
   manualModeOption.classList.remove("active");
   autoModeOption.classList.remove("active");
@@ -379,7 +393,7 @@ export function clearAutoRoute() {
   if (startCoordEntry) startCoordEntry.value = "";
   if (endCoordEntry) endCoordEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
-  if (saveRouteDiv) saveRouteDiv.style.display = "none";
+  if (saveContainer) saveContainer.style.display = "none";
   
 }
 
@@ -396,9 +410,7 @@ export function clearManualRoute() {
 
   document.getElementById("route-stats")?.remove();
 
-  if (saveRouteDiv && getCurrentMode() === "manual") {
-    saveRouteDiv.style.display = "none";
-  }
+  if (saveContainer) saveContainer.style.display = "none";
 
   clearPathState();
   getRouteLayer()?.getSource().clear();
@@ -446,7 +458,7 @@ export function homeButtonFunction() {
   if (routeNameEntry) routeNameEntry.value = "";
 
   clearPathState();
-  if (saveRouteDiv) saveRouteDiv.style.display = "none";
+  if (saveContainer) saveContainer.style.display = "none";
   
   loadAndDisplaySavedPoints();
   updateCursor();
@@ -508,7 +520,7 @@ async function handleAutoRouteGeneration() {
     setAutoRouteStatDisplay(getLastAutoRouteStats());
     initChartToggleListener();
     createElevationProfile(response.coordinates);
-    if (saveRouteDiv) saveRouteDiv.style.display = "block";
+    if (saveContainer) saveContainer.style.display = "flex";
   } catch (error) {
     console.error(error);
   } finally {
@@ -667,7 +679,7 @@ export function updateManualRoute() {
   if (manualRouteLayer) map.removeLayer(manualRouteLayer);
   if (!removeExistingStats()) return;
 
-  if (saveRouteDiv) saveRouteDiv.style.display = "block";
+  if (saveContainer) saveContainer.style.display = "flex";
 
   const { userClicks, pathCoords } = manualRouteState;
   const totalDistanceKm = calculateTotalDistance(pathCoords) / 1000;
@@ -814,6 +826,22 @@ function redoManualRoutePoint() {
   if (!restoredPoint) return;
 
   addManualPoint(restoredPoint[0], restoredPoint[1]);
+}
+
+export function updateSaveRouteContainer() {
+  const isOpen = saveRouteToggleButton.classList.toggle("opened");
+
+    if (isOpen) {
+        saveRouteButtonContainer.style.width = "17.5rem";
+        saveRouteDiv.style.width = "17.5rem"
+        saveRouteDiv.style.height = "12.625rem";
+        saveRouteButtonContainer.style.right = "13rem"
+    } else {
+        saveRouteButtonContainer.style.width = "9rem";
+        saveRouteDiv.style.height = "0px";
+        saveRouteDiv.style.width = "9rem"
+        saveRouteButtonContainer.style.right = "3rem";
+    }
 }
 
 
@@ -1000,6 +1028,7 @@ export function initUi() {
   addClickListener(undoManualRouteButton, undoManualRoutePoint, "click");
   addClickListener(redoManualRouteButton, redoManualRoutePoint, "click");
   addClickListener(document, handleKeyboardShortcuts, "keydown")
+  addClickListener(saveRouteToggleButton, updateSaveRouteContainer, "click");
   window.addEventListener('load', checkIfMobile);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", () => {
     applyTheme(getTheme())

@@ -97,29 +97,39 @@
             </div>
         </div>
 
-        <!-- SAVE ROUTE DIV TOGGLE BUTTON -->
-        <div id="save-route-button-container">
-            <button id="save-route-toggle-button" class="closed"><i data-lucide="chevron-down"></i>Save Route</button>
-        </div>
-        
-        <!-- ##### SAVE ROUTE DIV ##### -->
-        <div id="save-route" {% if not current_path %}style="display: none;"{% endif %}>
-            <div class="coords-header">
-                <span class="coords-title">Save Route</span>
-            </div>
-            <div class="coords-content">
-                <form id="save-route-form">
-                    <div class="coord-row">
-                        <label for="route-name" class="coord-label">Route Name:</label>
-                        <div class="coord-input-group">
-                            <input type="text" id="route-name" name="route_name" placeholder="Enter route name" required class="coord-input">
-                        </div>
+        <div id="save-route-container" {% if not current_path %}style="display: none;"{% endif %}>
+
+            <!-- toggle button container -->
+            <div id="save-route-button-container">
+
+                <!-- toggle button -->
+                <button id="save-route-toggle-button" class="closed">
+                    <i data-lucide="chevron-down"></i>
+                    <span>Save Route</span>
+                    <span></span>
+                </button>
+
+                <!-- dropdown save route panel -->
+                <div id="save-route">
+                    <div class="coords-content">
+                        <form id="save-route-form">
+                            <div class="coord-row">
+                                <label for="route-name" class="coord-label">Route Name:</label>
+                                <div class="coord-input-group">
+                                    <input type="text" id="route-name" name="route_name"
+                                        placeholder="Enter route name" required class="coord-input">
+                                </div>
+                            </div>
+                            <button type="submit" class="generate-button">Save Route</button>
+                        </form>
+                        <div id="save-message"></div>
                     </div>
-                    <button type="submit" class="generate-button">Save Route</button>
-                </form>
-                <div id="save-message"></div>
+                </div>
+
             </div>
+
         </div>
+
 
         <div id="remove-point">
             <button id="remove-point-button">remove</button>

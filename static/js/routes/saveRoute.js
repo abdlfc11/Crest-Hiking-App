@@ -10,7 +10,7 @@ import { getCurrentMode,
   setCurrentPathData, 
   normaliseCoordLength
  } from "./routeState.js";
-import { defaultCentre, homeButtonFunction, } from "../ui.js";
+import { defaultCentre, homeButtonFunction, updateSaveRouteContainer } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
 import { formatDistance } from "../utils.js";
@@ -152,5 +152,6 @@ function handleSaveRoute(e) {
     })
     .finally(() => {
       closeMessageDiv(messageDiv);
+      updateSaveRouteContainer();
     }) 
 }
