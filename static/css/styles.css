@@ -450,10 +450,10 @@ body {
 
 /* this container acts a wrapper for both the button and the panel */
 #save-route-button-container {
+    z-index: 1000;
     position: absolute;
     right: 12rem;
     width: 9rem;
-    z-index: 2000;
     display: flex;
     flex-direction: column; /* to stack button + panel */
 }
@@ -474,8 +474,7 @@ body {
     font-size: 14px;
     cursor: pointer;
     gap: 6px;
-    z-index: 1501;
-    transition: all 0.15s ease-in-out;
+    transition: all 0.1s ease-in-out;
 }
 
 #save-route-toggle-button i {
@@ -503,14 +502,17 @@ body {
     border-top: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     width: 9rem;
-    z-index: 1500;
-    transition: height 0.15s ease;
+    transition: height 0.1s ease-in-out;
 }
 
 #save-route-toggle-button:hover {
     background: rgb(255 255 255 / 0.75);
     border-color: #cbd5e1;
     transform: scale(1.03);
+}
+
+#save-route-toggle-button:active {
+    transform: scale(1);
 }
 
 
