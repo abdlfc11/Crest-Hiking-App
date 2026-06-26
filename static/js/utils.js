@@ -1,5 +1,14 @@
 import { getAppSettings } from "./settingsState.js";
-import { addClickListener } from "./ui.js";
+
+/**
+ * 
+ * @param {DOMElement} element 
+ * @param {function} func 
+ * @param {Event} type 
+ */
+export function addClickListener(element, func, type) {
+  if (element) element.addEventListener(type, func);
+}
 
 // function to round coordinates to a given decimal point
 export function roundCoords (coordArray, decimals) {
