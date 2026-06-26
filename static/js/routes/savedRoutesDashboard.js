@@ -4,10 +4,11 @@
  */
 
 import { deleteRoute, downloadRoute, loadRoute } from "./routeApi.js";
-import { addClickListener, closeNav, closeSavedRoutesDash,  } from "../ui.js"
+import { closeNav, closeSavedRoutesDash,  } from "../ui.js"
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
 import { createElevationProfile, initChartToggleListener } from "../elevationChart.js";
+import {addClickListener} from "../utils.js"
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 
