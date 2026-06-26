@@ -91,23 +91,29 @@ export function calculateEta(distanceKm) {
   return `${etaMinutesRemainder}m`;
 }
 
-export function showToast(message, type = "info") {
-  const container = document.getElementById("user-error-popup-container");
-  const textEl = document.getElementById("user-error-popup-text");
-  if (!container || !textEl) {
-    if (type === "error") console.error(message);
-    else console.log(message);
-    return;
-  }
-  textEl.textContent = message;
-  container.classList.remove("hidden", "success", "error");
-  if (type === "success") container.classList.add("success");
-  if (type === "error") container.classList.add("error");
-  container.style.display = "flex";
-  clearTimeout(showToast._hideTimer);
-  showToast._hideTimer = setTimeout(() => {
-    container.style.display = "none";
-  }, 4000);
+export function showError(message) {
+    const container = document.getElementById("error-toast-container");
+
+    const toast = document.createElement("div");
+    toast.className = "error-toast";
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // this triggers the slide in animation of the error popup
+    requestAnimationFrame(() => {
+        toast.classList.add("show");
+    });
+
+    // this makes the popup hide after 3s
+    setTimeout(() => {
+        toast.classList.add("hide");
+
+        // this removes it from the DOM once time is up
+        setTimeout(() => {
+            toast.remove();
+        }, 250);
+    }, 3000);
 }
 
 export function moveMapToPosition(map, position = [-357428, 7256794], duration = 1200, zoom = 10.5) {

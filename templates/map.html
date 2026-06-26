@@ -10,10 +10,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings_panel.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/statsPanel.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/import-route.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/error-toast.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
+
+    <!-- ##### ERROR TOAST CONTAINER ##### -->
+    <div id="error-toast-container"></div>
+
 
     <div id="map-content">
 
@@ -359,7 +364,6 @@
                 <div class="import-route-header-container">
                     <h1 class="import-route-title">Import</h1>
                     <h1 class="import-route-title">Route</h1>
-                    
 
                     <div class="import-route-close-container">
                         <a id="import-route-close-button" class="import-route-close-button">&times;</a>
@@ -397,7 +401,12 @@
                         <span class="import-route-item-description">Supported: GPX, KML, FIT</span>
                     </div>
 
-                    <input type="file" id="import-route-file-input" accept=".gpx,.kml,.fit,.geojson" class="settings-input">
+                    <input 
+                        type="file"
+                        id="import-route-file-input"
+                        accept=".gpx,.kml,.fit,.geojson"
+                        class="settings-input"
+                    >
                 </div>
 
                 <!-- URL input -->
@@ -453,8 +462,8 @@
                     Cancel
                 </button>
 
-                <button id="import-route-save-button" class="import-route-footer-button primary">
-                    Save Route
+                <button id="import-route-submit-button" class="import-route-footer-button primary">
+                    Import Route
                 </button>
             </div>
 
