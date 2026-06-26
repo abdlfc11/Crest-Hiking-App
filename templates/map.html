@@ -425,11 +425,13 @@
                         id="import-route-name-input" 
                         class="settings-input" 
                         placeholder="My Route"
+                        required
+                        aria-required="true"
                     >
                 </div>
 
                 <!-- recalculate elevation -->
-                <div class="import-route-item">
+                <div class="import-route-item" style="visibility: hidden;">
                     <div class="import-route-text">
                         <span class="import-route-item-title">Recalculate elevation</span>
                         <span class="import-route-item-description">Use Crest’s elevation engine instead of file values</span>
