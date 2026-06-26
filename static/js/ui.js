@@ -311,7 +311,6 @@ export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
 };
 
-
 function cancelRouteImport() {
   closeImportRoute();
   closeNav();
