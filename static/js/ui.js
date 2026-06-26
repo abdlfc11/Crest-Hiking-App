@@ -121,6 +121,7 @@ const settingPanel = document.getElementById("settings-panel");
 const importRouteOpenButton = document.getElementById("import-route-open-button");
 const importRouteCloseButton = document.getElementById("import-route-close-button");
 const importRoutePanel = document.getElementById("import-route-panel");
+const importRouteCancelButton = document.getElementById('import-route-cancel-button');
 
 let clickMode = null;
 let manualRouteLayer = null;
@@ -286,44 +287,49 @@ export function closeNav() {
 
 function openSavedRoutesDash() {
   savedRoutesDashContent.style.width = "100vw";
-}
+};
 
 export function closeSavedRoutesDash() {
   savedRoutesDashContent.style.width = "0";
   // this reasserts the correct cursor now that the map is fully visible again.
   forceApplyCursor();
-}
+};
 
 function openSettings() {
   settingPanel.style.width = "100vw";
-}
+};
 
 export function closeSettings() {
   settingPanel.style.width = "0";
-}
+};
 
 function openImportRoute() {
   importRoutePanel.style.width = "100vw";
-}
+};
 
 export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
-}
+};
 
 function openSaveRouteDiv() {
   saveRouteDiv.style.height = "5rem"
-}
+};
+
+function cancelRouteImport() {
+  closeImportRoute();
+  closeNav();
+};
 
 function handleToggles(event) {
   manualModeOption.classList.remove("active");
   autoModeOption.classList.remove("active");
   event.currentTarget.classList.add("active");
-}
+};
 
 function manualRouteClickHandler(event) {
   const coordinate = event.coordinate;
   addManualPoint(coordinate[0], coordinate[1]);
-}
+};
 
 function switchToAutoMode() {
   const map = getMap();
@@ -341,7 +347,7 @@ function switchToAutoMode() {
 
   clearManualRoute();
   clearAutoRoute();
-}
+};
 
 function switchToManualMode() {
   const map = getMap();
@@ -357,7 +363,7 @@ function switchToManualMode() {
   map.un("click", mapClickHandler);
   map.on("click", manualRouteClickHandler);
   clearAutoRoute();
-}
+};
 
 export function clearAutoRoute() {
   const map = getMap();
@@ -395,7 +401,7 @@ export function clearAutoRoute() {
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveContainer) saveContainer.style.display = "none";
   
-}
+};
 
 export function clearManualRoute() {
   const map = getMap();
@@ -416,7 +422,7 @@ export function clearManualRoute() {
   getRouteLayer()?.getSource().clear();
 
   
-}
+};
 
 export function homeButtonFunction() {
   const map = getMap();
@@ -462,7 +468,7 @@ export function homeButtonFunction() {
   
   loadAndDisplaySavedPoints();
   updateCursor();
-}
+};
 
 function searchArea() {
   const map = getMap();
@@ -496,12 +502,12 @@ function searchArea() {
       }
     })
     .catch((error) => console.log("Error: ", error));
-}
+};
 
 async function mapRenderComplete() {
 
   loadAndDisplaySavedPoints();  
-}
+};
 
 async function handleAutoRouteGeneration() {
   const startPoint = startCoordEntry?.value ?? "";
@@ -528,7 +534,7 @@ async function handleAutoRouteGeneration() {
     generatePathButton.disabled = false;
     
   }
-}
+};
 
 function validateInputCoords(startPoint, endPoint) {
   if (endPoint === "" && startPoint === "") {
@@ -545,7 +551,7 @@ function validateInputCoords(startPoint, endPoint) {
     return false;
   }
   return true;
-}
+};
 
 function displayPath(data) {
   const map = getMap();
@@ -596,7 +602,7 @@ function displayPath(data) {
   }, 100);
 
   return data.route_stats;
-}
+};
 
 function setAutoRouteStatDisplay(routeStats) {
   const statsHtml = `
@@ -632,7 +638,7 @@ function setAutoRouteStatDisplay(routeStats) {
 
   document.getElementById("route-stats")?.remove();
   document.body.insertAdjacentHTML("beforeend", statsHtml);
-}
+};
 
 function checkIfCircularRoute() {
   const tolerance = 0.000001;
@@ -649,7 +655,7 @@ function checkIfCircularRoute() {
     }
   }
   return false;
-}
+};
 
 function removeExistingStats() {
   if (manualRouteState.userClicks.length === 0) {
@@ -660,7 +666,7 @@ function removeExistingStats() {
     return false;
   }
   return true;
-}
+};
 
 export function updateSavedRouteCards() {
   const statValues = document.querySelectorAll('[data-distance-km]');
@@ -670,7 +676,7 @@ export function updateSavedRouteCards() {
     const formattedValue = formatDistance(rawKm);
     value.textContent = formattedValue;
   });
-}
+};
 
 export function updateManualRoute() {
   const map = getMap();
@@ -776,7 +782,7 @@ export function updateManualRoute() {
   `;
   initChartToggleListener();
   createElevationProfile(pathCoords);
-}
+};
 
 export function undoManualRoutePoint() {
 
@@ -818,7 +824,7 @@ export function undoManualRoutePoint() {
 
   // this updates the UI
   updateManualRoute();
-}
+};
 
 function redoManualRoutePoint() {
   const restoredPoint = manualRouteState.redoStack.pop();
@@ -826,7 +832,7 @@ function redoManualRoutePoint() {
   if (!restoredPoint) return;
 
   addManualPoint(restoredPoint[0], restoredPoint[1]);
-}
+};
 
 export function updateSaveRouteContainer() {
   const isOpen = saveRouteToggleButton.classList.toggle("opened");
@@ -842,7 +848,7 @@ export function updateSaveRouteContainer() {
         saveRouteDiv.style.width = "9rem"
         saveRouteButtonContainer.style.right = "3rem";
     }
-}
+};
 
 
 function showPointDeleteDialog(show) {
@@ -1016,6 +1022,7 @@ export function initUi() {
   addClickListener(settingCloseButton, closeSettings, "click");
   addClickListener(importRouteOpenButton, openImportRoute, "click");
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
+  addClickListener(importRouteCancelButton, cancelRouteImport, "click");
   addClickListener(autoModeOption, handleToggles, "click");
   addClickListener(manualModeOption, handleToggles, "click");
   addClickListener(autoModeOption, switchToAutoMode, "click");
