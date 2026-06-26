@@ -1,3 +1,5 @@
+//#region IMPORTS
+
 import {
   roundCoords,
   createManualPointStyle,
@@ -63,6 +65,10 @@ import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
 
+//#endregion
+
+//#region VAR / CONST DECLARATIONS
+
 export const defaultCentre = [-357428, 7256794];
 
 const searchForAreaButton = document.getElementById("search-for-area-button");
@@ -126,6 +132,8 @@ const importRouteCancelButton = document.getElementById('import-route-cancel-but
 let clickMode = null;
 let manualRouteLayer = null;
 let selectedPoint = null;
+
+//#endregion
 
 // hides save route button + panel if there is no route
 if (!window.appConfig.initialCurrentPath) {
@@ -277,6 +285,8 @@ export function mapClickHandler(event) {
   }
 }
 
+//#region OPEN/CLOSE PANEL FUNCTIONS
+
 function openNav() {
   navBar.style.width = "17rem";
 }
@@ -311,6 +321,8 @@ export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
 };
 
+//#endregion
+
 function cancelRouteImport() {
   closeImportRoute();
   closeNav();
@@ -326,6 +338,8 @@ function manualRouteClickHandler(event) {
   const coordinate = event.coordinate;
   addManualPoint(coordinate[0], coordinate[1]);
 };
+
+//#region MODE SWITCHING
 
 function switchToAutoMode() {
   const map = getMap();
@@ -360,6 +374,10 @@ function switchToManualMode() {
   map.on("click", manualRouteClickHandler);
   clearAutoRoute();
 };
+
+//#endregion
+
+//#region CLEARING INPUTS
 
 export function clearAutoRoute() {
   const map = getMap();
@@ -466,6 +484,8 @@ export function homeButtonFunction() {
   updateCursor();
 };
 
+//#endregion
+
 function searchArea() {
   const map = getMap();
   if (!map) return;
@@ -531,6 +551,8 @@ async function handleAutoRouteGeneration() {
     
   }
 };
+
+//#region ROUTING
 
 function validateInputCoords(startPoint, endPoint) {
   if (endPoint === "" && startPoint === "") {
@@ -845,6 +867,8 @@ export function updateSaveRouteContainer() {
         saveRouteButtonContainer.style.right = "3rem";
     }
 };
+
+//#endregion
 
 
 function showPointDeleteDialog(show) {
