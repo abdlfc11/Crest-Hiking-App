@@ -1,5 +1,5 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
-import { formatDistance, getRouteStrokeStyle, showToast, createManualPointStyle } from "../utils.js";
+import { formatDistance, getRouteStrokeStyle, createManualPointStyle } from "../utils.js";
 import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
 import { deleteRoute, loadRoute, fetchRoutes } from "./routeApi.js";
 
