@@ -1,31 +1,28 @@
-const routeInputTypes = document.querySelectorAll('input[name="import-route-method"]');
+import { showError, addClickListener } from "./utils.js";
 
-const fileInputType = document.getElementById('file-route-input-type');
-const URLInputType = document.getElementById('url-route-input-type')
+export async function processImportedRouteFile(file) {
 
-/**
- * Function responsible for displaying the correct input type when the selected input type in the input type radio pill choices changes.
- */
-function handleRouteImportType() {
+    const form = new FormData();
+    form.append("route_file", file);
 
-    // this gets the content of the different input types
-    const fileInputTypeContent = document.getElementById('import-route-file-row');
-    const URLInputTypeContent = document.getElementById('import-route-url-row');
+    const response = await fetch("/import_route_file", {
+        method: 'POST',
+        body: form
+    });
 
-    // this gets the currently selected import type
-    const selectedInputType = document.querySelector('input[name="import-route-method"]:checked');
+    if (!response.ok) {
+        showError(response.message || "There was an error on our end, try again later");
+        throw new Error(`HTTP Error: ${response.status}`);
+    }
 
-    // this compares against one and displays the corresponding input type
-    if (selectedInputType === fileInputType) {
-        fileInputTypeContent.style.display = 'flex';
-        URLInputTypeContent.style.display = 'none';
+    const data = await response.json();
+
+    if (data.success) {
+        return data;
     }
     else {
-        fileInputTypeContent.style.display = 'none';
-        URLInputTypeContent.style.display = 'flex';
+        return data.message;
     }
+
 }
 
-routeInputTypes.forEach(radio => {
-    radio.addEventListener('change', handleRouteImportType);
-});
