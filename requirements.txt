@@ -24,5 +24,9 @@ requests==2.32.3
 flask-limiter==3.8.0
 gunicorn==23.0.0
 
-# GPX support
+# Geospatial file processing support
 gpxpy==1.6.2
+arrow==1.4.0
+fastkml==1.4.0
+fitparse-1.2.0 
+pygeoif==1.6.0
