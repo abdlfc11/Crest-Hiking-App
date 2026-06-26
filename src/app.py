@@ -1,37 +1,62 @@
-# IMPORTS 
-from src.pathfinder import a_star, snap_to_largest_component, build_global_kdtree
+# These imports are for pathfinding.
+from src.pathfinder import (
+    a_star,
+    snap_to_largest_component,
+    build_global_kdtree,
+)
 
-from flask import Flask, render_template, request, jsonify, session, send_file, redirect, url_for
+# These imports are for Flask.
+from flask import (
+    Flask,
+    render_template,
+    request,
+    jsonify,
+    session,
+    send_file,
+    redirect,
+    url_for,
+)
 
+# These imports are for system utilities.
 import sys
 import os
 
 sys.path.insert(0, "/app/src")
 
-# SQLModel + DB
+# These imports are for the database.
 from sqlmodel import Session, select, delete
-from db import engine
-from src.models import User, Route, Point, Settings, BetaCode
 from sqlalchemy.exc import IntegrityError
 
+from db import engine
+from src.models import User, Route, Point, Settings, BetaCode
+
+# These imports are for data processing.
 import pickle as pkl
-import time
-from pyproj import Transformer
 import json
 import math
-from datetime import datetime, timezone
+import time
+import io
+
+# These imports are for date and time handling.
+from datetime import datetime, timezone, timedelta
+
+# These imports are for geospatial processing.
+from pyproj import Transformer
 from scipy.spatial import KDTree
-from werkzeug.security import generate_password_hash, check_password_hash
-import requests 
-from src.config import Config
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import networkx as nx
-from datetime import timedelta
 import gpxpy
 import gpxpy.gpx
-import io
-import re
+from fastkml.kml import KML
+from fitparse import FitFile
+
+# These imports are for authentication and security.
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# These imports are for HTTP requests and configuration.
+import requests
+from src.config import Config
 
 
 # default map centre (BNG coordinates)
@@ -101,6 +126,8 @@ def strftime_filter(date, format: str):
         date = datetime.isoformat(date)
     return date.strftime(format)
 
+#region ERROR HANDLER RENDER_TEMPLATES()
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('Error-Pages/404.html')
@@ -112,6 +139,8 @@ def page_not_found(error):
 @app.errorhandler(500)
 def page_not_found(error):
     return render_template('Error-Pages/500.html')
+
+#endregion
 
 # region AUTH FLASK ROUTES
 
@@ -353,7 +382,7 @@ def save_settings():
 #endregion
 
 
-# ROUTE CREATION  
+#region NODEFINDER CLASS
 
 class NodeFinder:
     def __init__(self, graph_path=None, max_distance=5000, early_exit_distance=100):
@@ -559,12 +588,69 @@ class NodeFinder:
         
         return map_center, map_zoom
 
+#endregion
+
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
 if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
     service.load_graph()
 
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
+
+def haversine(x1, y1, x2, y2):
+
+    # NOTE : coords need to be in lon/lat, make sure to convert coords
+
+    R = 6371000
+
+    phi1 = math.radians(y1)
+    phi2 = math.radians(y2)
+
+    dphi = math.radians(y2 - y1)
+    dlambda = math.radians(x2 - x1)
+
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    return R * c
+
+def normalise_route(coordinates, avg_speed_kmh=4.5):
+    """
+    This function converts raw route geometry into metrics e.g ETA and elevation data (if present)
+    """
+
+    if not coordinates or len(coordinates) < 2:
+        return({"success": False, "message": "Route is too small"})
+
+    total_distance_m = 0.0
+    total_elevation_gain_m = 0.0
+
+    has_elevation = len(coordinates[0]) == 3
+
+    for i in range(len(coordinates) - 1):
+        x1, y1 = coordinates[i][0], coordinates[i][1]
+        x2, y2 = coordinates[i + 1][0], coordinates[i + 1][1]
+
+        # distance calculation
+        total_distance_m += haversine(x1, y1, x2, y2)
+
+        # elevation gain (only if available)
+        if has_elevation:
+            e1 = coordinates[i][2]
+            e2 = coordinates[i + 1][2]
+
+            if e2 > e1:
+                total_elevation_gain_m += (e2 - e1)
+
+    distance_km = total_distance_m / 1000.0
+    eta_hours = distance_km / avg_speed_kmh
+
+    return {
+        "distance_m": total_distance_m,
+        "distance_km": distance_km,
+        "elevation_gain_m": total_elevation_gain_m,
+        "eta_hours": eta_hours
+    }
 
 # helper function which returns true if the first coordinate has 3 values (i.e x, y and z)
 def check_elevation(coords):
@@ -605,6 +691,8 @@ def parse_eta_to_seconds(eta_string: str):
         return hours * 3600 + minutes * 60
     except:
         return None
+
+#region GEOSPATIAL FILE PROCESSING HELPER FUNCTIONS
 
 def generate_geojson(route):
 
@@ -679,6 +767,85 @@ def generate_gpx(route):
             ))
 
     return gpx.to_xml()
+
+def parse_kml_coord_list(coord_list) -> list:
+    """
+    converts a list of KML coord tuples into the format of this app
+
+    KML format : (lon, lat) / (lon, lat, ele)
+
+    App format : [lat, lon] / [lat, lon, ele]
+    """
+
+    print(f"coord list: {coord_list}")
+
+    coords = []
+
+    for coord in coord_list:
+        lon = coord[0]
+        lat = coord[1]
+        ele = coord[2] if len(coord) > 2 else None
+        coords.append([lat, lon, ele]) if len(coord) > 2 else coords.append([lat, lon])
+    
+    return coords
+
+
+def process_kml_feature(feature) -> list:
+    """
+    this (recursively) processes KML features returns a list of coords extracted from any geometry found within KML features
+    """
+
+    extracted = [] 
+
+    print(f"feature : {feature}")
+
+    # if the feature has geometry
+    if hasattr(feature, "geometry") and feature.geometry:
+        geom = feature.geometry
+
+        print(geom)
+        
+
+        # this handles LineStrings
+        if geom.__class__.__name__ == "LineString":
+            extracted.extend(parse_kml_coord_list(geom.coords))
+            print(geom.coords)
+        
+        # this handles MultiLineStrings
+        if geom.__class__.__name__ == "MultiLineString":
+            for line in geom.geoms:
+                extracted.extend(parse_kml_coord_list(line.coords))
+    
+    # if the feature contains nested features
+    if hasattr(feature, "features"):
+        for sub_feature in feature.features():
+            extracted.extend(process_kml_feature(sub_feature))
+    
+    return extracted
+
+def extract_kml_coords(doc) -> list:
+    """
+    this parses a KML file as text and extracts all coordinates from LineString and MultiLineString geometries
+
+    returns a coords list of [lat, lon, ele] points
+    """    
+
+
+    print(doc)
+    print(doc.features)
+    print(list(doc.features))
+
+    coords = []
+
+    # kml features can include documents, folders, or placemarks
+    for feature in doc.features:
+        print(feature)
+        coords.extend(process_kml_feature(feature))
+    
+    return coords
+
+
+#endregion
 
 # route which forms a path from the set of points the back-end receives as coordinates and returns it to the front-end
 @app.route("/calculate_path", methods=["POST"])
@@ -861,49 +1028,38 @@ def save_route():
     try:
         data = request.get_json()
         if not data:
-            return jsonify({"success": False, "message": "Invalid request: No JSON data provided"}), 400
-        
+            return jsonify({"success": False, "message": "Invalid request"}), 400
+
         user = get_current_user()
-        
-        
+
         route_name = data.get("route_name")
         coordinates = data.get("coordinates")
-        format_type = data.get("format")
-        route_distance_km = data.get("route_distance_km")
-        ETA = data.get("route_ETA")
-        elevation_change = data.get("elevation_change")
 
-        # rejects empty name
-        if not route_name or (isinstance(route_name, str) and route_name.strip() == ""):
-            return jsonify({"success": False, "message": "Route name is required"}), 400
+        if not route_name or not route_name.strip():
+            return jsonify({"success": False, "message": "Route name required"}), 400
 
-        # validates coords
-        if not coordinates or len(coordinates) == 0:
-            return jsonify({"success": False, "message": "No route data found to save. Please generate or load a path first."}), 400
+        if not coordinates or len(coordinates) < 2:
+            return jsonify({"success": False, "message": "Invalid route data"}), 400
         
-        coordinates_json = json.dumps(coordinates)
+        metrics = normalise_route(coordinates)
 
-        if not route_distance_km:
-            return jsonify({"success": False, "message": "Error whilst saving route: cannot convert distance to float"})
-        
-        distance_km_value = float(route_distance_km)
-                    
         route = Route(
-            name=route_name, 
-            coordinates=coordinates_json, 
-            user_id=user.id, 
-            ETA=ETA, 
-            distance_km=distance_km_value, 
-            elevation_change=elevation_change
+            name=route_name,
+            coordinates=json.dumps(coordinates),
+            user_id=user.id,
+
+            distance_km=metrics["distance_km"],
+            ETA=metrics["eta_hours"],
+            elevation_change=metrics["elevation_gain_m"]
         )
-        
 
         with Session(engine) as db:
             db.add(route)
             db.commit()
-            print(f"[DEBUG] Route successfully committed to database.")
 
-            return jsonify({"success": True, "message": "Successfully saved the route"})
+        return jsonify({"success": True})
+
+
     except IntegrityError as e:
         db.rollback()
 
@@ -913,6 +1069,8 @@ def save_route():
     except Exception as e:
         db.rollback()
         return jsonify({"success": False, "message": f"Error processing request: {str(e)}"})
+    
+
 
 # flask route which is used to retrieves a saved route that has been passed into the back-end from the PostgreSQL database
 @app.route("/load_route", methods=["POST"])
@@ -1085,9 +1243,95 @@ def download_route():
             print(f"Error whilst downloading {route_name}:", e)
             return jsonify({"success": False, "message": "Failed to generate file"}), 500
 
-@app.route("/import_route")
+@app.route("/import_route_file", methods=["POST"])
 def import_route():
-    pass
+    """
+    This function handles route file uploads for GPX, FIT, KML, and GeoJSON formats.
+
+    it returns:
+        JSON containing:
+            success (bool)
+            coords (list of [lat, lon, ele?])
+    """
+
+    # this retrieves the uploaded file from the request
+    uploaded_file = request.files.get("route_file")
+
+    if not uploaded_file:
+        return jsonify({"success": False, "message": "Cannot receive uploaded file"}), 400
+    
+    # this extracts the filename and file extension
+    filename = uploaded_file.filename
+    ext = filename.rsplit('.', 1)[-1].lower()
+
+    # this validates the supported formats 
+    if ext not in ["gpx", "fit", "kml", "geojson"]:
+        return jsonify({"success": False, "message": "Please upload a file of the supported types"}), 400
+    
+    # this reads raw bytes (works for both binary + text formats) for FIT file type
+    raw = uploaded_file.read()
+
+    # this decodes text formats (GPX, KML, GeoJSON) 
+    text = raw.decode("utf-8", errors="ignore")
+
+    # this handles GPX file types
+    if ext == "gpx":
+        # Parse GPX XML
+        gpx = gpxpy.parse(text)
+
+        # Extract all track points into [lat, lon, ele]
+        points = [
+            [p.latitude, p.longitude, p.elevation]
+            for t in gpx.tracks
+            for s in t.segments
+            for p in s.points
+        ]
+
+        return jsonify({"success": True, "coords": points})
+
+    # this handles FIT file types
+    elif ext == "fit":
+        coords = []
+        fitfile = FitFile(raw)
+
+        for record in fitfile.get_messages("record"):
+            lat = record.get_value("position_lat")
+            lon = record.get_value("position_long")
+
+            # Skip missing coordinate records
+            if lat is None or lon is None:
+                continue
+
+            # FIT stores coordinates in semicircles → convert to degrees
+            lat_deg = lat * (180 / 2**31)
+            lon_deg = lon * (180 / 2**31)
+
+            coords.append([lat_deg, lon_deg])
+
+        return jsonify({"success": True, "coords": coords})
+
+    # this handles KML file types
+    elif ext == "kml":
+        uploaded_file.stream.seek(0);
+        doc = KML.parse(uploaded_file.stream, strict=False)
+        coords = extract_kml_coords(doc)
+        return jsonify({"success": True, "coords": coords})
+
+    # this handles geojson file types
+    elif ext == "geojson":
+        geo = json.loads(text)
+
+        coords = []
+
+        # Expecting a LineString geometry
+        geom = geo.get("geometry", {})
+        if geom.get("type") == "LineString":
+            for lon, lat, *rest in geom.get("coordinates", []):
+                ele = rest[0] if rest else None
+                coords.append([lat, lon, ele])
+
+        return jsonify({"success": True, "coords": coords})
+
 
 
 # flask-route which retrieves saved points to be used in the front
