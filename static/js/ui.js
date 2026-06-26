@@ -7,7 +7,9 @@ import {
   calculateTotalDistance,
   calculateEta,
   moveMapToPosition,
-  getRouteStrokeStyle
+  getRouteStrokeStyle,
+  showError,
+  addClickListener
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -64,6 +66,7 @@ import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
+import { processImportedRouteFile } from "./importRoute.js";
 
 //#endregion
 
@@ -127,7 +130,19 @@ const settingPanel = document.getElementById("settings-panel");
 const importRouteOpenButton = document.getElementById("import-route-open-button");
 const importRouteCloseButton = document.getElementById("import-route-close-button");
 const importRoutePanel = document.getElementById("import-route-panel");
+const importRouteFileInput = document.getElementById('import-route-file-input');
+const importRouteURLInput = document.getElementById('import-route-url-input');
 const importRouteCancelButton = document.getElementById('import-route-cancel-button');
+const importRouteNameEntry = document.getElementById('import-route-name-input');
+const importRouteSubmitButton = document.getElementById('import-route-submit-button');
+const routeInputTypes = document.querySelectorAll('input[name="import-route-method"]');
+const fileInputType = document.getElementById('file-route-input-type');
+const URLInputType = document.getElementById('url-route-input-type')
+
+
+
+// this is an array of allowed file types for route import
+const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
 let clickMode = null;
 let manualRouteLayer = null;
@@ -175,16 +190,6 @@ function checkIfMobile() {
 function noRouteCreateFunction() {
   closeNav()
   closeSavedRoutesDash()
-}
-
-/**
- * 
- * @param {DOMElement} element 
- * @param {function} func 
- * @param {Event} type 
- */
-export function addClickListener(element, func, type) {
-  if (element) element.addEventListener(type, func);
 }
 
 function showCoordInputError(entry, message) {
@@ -323,10 +328,137 @@ export function  closeImportRoute() {
 
 //#endregion
 
+//#region IMPORT ROUTE PANEL FUNCTIONS
+
+function handleRouteImport() {
+  const selectedInputType = whichInputTypeSelected();
+
+  if (selectedInputType === "file") {
+    
+    const file = importRouteFileInput.files[0];
+
+    if (!file) {
+      showError("Please select a file to import.");
+      return false;
+    }
+
+    if (!validateFileInput()) {
+      return false;
+    }
+
+    const data = processImportedRouteFile(file);
+
+    cancelRouteImport();
+    const stats = displayPath(data.coords)
+    return data;
+
+  }
+  else if (selectedInputType === "url") {
+    const url = importRouteURLInput.value.trim();
+
+    if (!URL.canParse(url)) {
+      showError("Please enter a valid URL to import.");
+      return false;
+    }
+
+    clearImportRouteInput();
+    console.log(`Importing route from URL: ${url}`);
+    return url;
+  }
+}
+
+/**
+ * Function responsible for validating the import route input.
+ * @returns {boolean} - True if the input is valid, false otherwise.
+ */
+function validateFileInput() {
+
+    // this retrieves the file from the file input element
+    const file = importRouteFileInput.files[0];
+
+    // this checks if a file is selected
+    if (!file) {
+        showError("Please select a file to import.");
+        return false;
+    }
+
+    // this checks if the file is of the correct type
+    if (!allowedFileTypes.some(type => file.name.endsWith(type))) {
+        showError("Please select a valid file to import.");
+        return false;
+    }
+
+    // this checks if the file size is too large (greater than 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showError("File size is too large. Please select a file smaller than 5MB.");
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Returns the currently selected input type for route import.
+ * @returns {string|null} - The selected input type or null if none is selected.
+ */
+function whichInputTypeSelected() {
+    const selectedInputType = document.querySelector('input[name="import-route-method"]:checked');
+
+    if (selectedInputType === fileInputType) {
+        return "file";
+    }
+    else if (selectedInputType === URLInputType) {
+        return "url";
+    }
+    else {
+        return null;
+    }
+}
+
+/**
+ * Function responsible for clearing the import route input fields.
+ */
+function clearImportRouteInput() {
+  importRouteFileInput.value = "";
+  importRouteURLInput.value = "";
+  importRouteNameEntry.value = "";
+}
+
+/**
+ * Function responsible for closing the import route panel and the navigation panel when the cancel button is clicked.
+ */
 function cancelRouteImport() {
-  closeImportRoute();
-  closeNav();
+    clearImportRouteInput();
+    closeImportRoute();
+    closeNav();
 };
+
+/**
+ * Function responsible for displaying the correct input type when the selected input type in the input type radio pill choices changes.
+ */
+function handleRouteImportType() {
+
+    // this gets the content of the different input types
+    const fileInputTypeContent = document.getElementById('import-route-file-row');
+    const URLInputTypeContent = document.getElementById('import-route-url-row');
+
+    // this gets the currently selected import type
+    const selectedInputType = document.querySelector('input[name="import-route-method"]:checked');
+
+    clearImportRouteInput();
+
+    // this compares against one and displays the corresponding input type
+    if (selectedInputType === fileInputType) {
+        fileInputTypeContent.style.display = 'flex';
+        URLInputTypeContent.style.display = 'none';
+    }
+    else {
+        fileInputTypeContent.style.display = 'none';
+        URLInputTypeContent.style.display = 'flex';
+    }
+}
+
+//#endregion
 
 function handleToggles(event) {
   manualModeOption.classList.remove("active");
@@ -525,6 +657,8 @@ async function mapRenderComplete() {
   loadAndDisplaySavedPoints();  
 };
 
+//#region ROUTING
+
 async function handleAutoRouteGeneration() {
   const startPoint = startCoordEntry?.value ?? "";
   const endPoint = endCoordEntry?.value ?? "";
@@ -551,8 +685,6 @@ async function handleAutoRouteGeneration() {
     
   }
 };
-
-//#region ROUTING
 
 function validateInputCoords(startPoint, endPoint) {
   if (endPoint === "" && startPoint === "") {
@@ -1030,9 +1162,14 @@ export function initUi() {
 
   updateSavedRouteCards();
 
+  // These event listeners are for settings and preferences.
   setOnDistanceUnitChange(() => handleDistanceUnitToggle());
-  addClickListener(setStartCoordButton, setStartCoord, "click");
-  addClickListener(setEndCoordButton, setEndCoord, "click");
+  window.addEventListener("load", checkIfMobile);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    applyTheme(getTheme());
+  });
+
+  // These event listeners are for navigation panels.
   addClickListener(autoOpenNavButton, openNav, "click");
   addClickListener(manualOpenNavButton, openNav, "click");
   addClickListener(closeNavButton, closeNav, "click");
@@ -1043,39 +1180,58 @@ export function initUi() {
   addClickListener(importRouteOpenButton, openImportRoute, "click");
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(importRouteCancelButton, cancelRouteImport, "click");
+
+  // These event listeners are for route import.
+  addClickListener(importRouteFileInput, validateFileInput, "change");
+  addClickListener(importRouteSubmitButton, handleRouteImport, "click");
+  routeInputTypes.forEach(radio => {
+    radio.addEventListener('change', handleRouteImportType);
+  });
+
+  // These event listeners are for route mode selection.
   addClickListener(autoModeOption, handleToggles, "click");
   addClickListener(manualModeOption, handleToggles, "click");
   addClickListener(autoModeOption, switchToAutoMode, "click");
   addClickListener(manualModeOption, switchToManualMode, "click");
+
+  // These event listeners are for automatic route generation.
   addClickListener(generatePathButton, handleAutoRouteGeneration, "click");
   addClickListener(clearAutoRouteButton, clearAutoRoute, "click");
-  addClickListener(clearManualRouteButton, clearManualRoute, "click");
   addClickListener(searchForAreaButton, searchArea, "click");
-  addClickListener(noRouteCreateButton, noRouteCreateFunction, "click");
+  addClickListener(setStartCoordButton, setStartCoord, "click");
+  addClickListener(setEndCoordButton, setEndCoord, "click");
+
+  // These event listeners are for manual route creation.
+  addClickListener(clearManualRouteButton, clearManualRoute, "click");
   addClickListener(undoManualRouteButton, undoManualRoutePoint, "click");
   addClickListener(redoManualRouteButton, redoManualRoutePoint, "click");
-  addClickListener(document, handleKeyboardShortcuts, "keydown")
+  addClickListener(noRouteCreateButton, noRouteCreateFunction, "click");
+
+  // These event listeners are for route saving.
   addClickListener(saveRouteToggleButton, updateSaveRouteContainer, "click");
-  window.addEventListener('load', checkIfMobile);
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", () => {
-    applyTheme(getTheme())
-  })
+
+  // These event listeners are for keyboard shortcuts.
+  addClickListener(document, handleKeyboardShortcuts, "keydown");
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);
 
+  // These event listeners are for returning the map to the Lake District + clearing inputs
   autoHomeButton?.addEventListener("click", homeButtonFunction);
   manualHomeButton?.addEventListener("click", homeButtonFunction);
 
+  // These event listeners are for updating the map cursor.
   mapElement?.addEventListener("mouseup", () => {
     updateCursor();
   });
+
   mapElement?.addEventListener("mousedown", () => {
     if (getCurrentMode() === "manual") {
-      // crosshair all the time due to creation of routes
+      // Crosshair all the time due to creation of routes.
       setCursor("crosshair");
       return;
     }
+
     setCursor("grabbing");
   });
 }
