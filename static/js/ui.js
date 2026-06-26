@@ -311,9 +311,6 @@ export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
 };
 
-function openSaveRouteDiv() {
-  saveRouteDiv.style.height = "5rem"
-};
 
 function cancelRouteImport() {
   closeImportRoute();
