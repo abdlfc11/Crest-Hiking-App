@@ -467,7 +467,7 @@ body {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     color: #1f2937;
     padding: 8px 14px;
@@ -498,7 +498,7 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 0 0 8px 8px;
-    border: 1px solid #e2e8f0;
+    border: none;
     border-top: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     width: 9rem;
@@ -1089,12 +1089,17 @@ html.dark .closebtn:hover {
 
 html.dark #start-end,
 html.dark #manual-mode-content,
-html.dark #save-route,
 html.dark #route-stats,
 html.dark #mode-toggle,
 html.dark #remove-point {
     background: rgb(31 41 55 / 0.75);
     border-color: #4b5563;
+    color: #f3f4f6;
+}
+
+html.dark #save-route,
+html.dark #save-route-toggle-button {
+    background: rgb(31 41 55 / 0.75);
     color: #f3f4f6;
 }
 
