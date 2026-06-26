@@ -28,5 +28,6 @@ gunicorn==23.0.0
 gpxpy==1.6.2
 arrow==1.4.0
 fastkml==1.4.0
-fitparse-1.2.0 
+python-fitparse==2.3.0
+lxml>=5.3.0,<6.0.0
 pygeoif==1.6.0
