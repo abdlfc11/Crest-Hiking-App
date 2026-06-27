@@ -81,11 +81,8 @@ function handleSaveRoute(e) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       route_name: routeName,
-      format: format,
       coordinates: pathCoordinates,
-      route_distance_km: rawDistanceKm,
-      route_ETA: eta,
-      elevation_change: elevationChange,
+      type: "route-generation"
     }),
   })
     .then((response) => {
