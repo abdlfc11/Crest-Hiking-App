@@ -1,6 +1,5 @@
 export { initSaveRoute } from "./saveRoute.js";
 export {
-  fetchRoutes,
   deleteRoute,
   loadRoute,
   downloadRoute,

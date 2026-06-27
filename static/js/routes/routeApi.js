@@ -5,26 +5,6 @@
 
 /** @typedef {{ name: string, type: string }} RouteRef */
 
-/**
- * @returns {Promise<{ routes: Array<{ name: string, type: string, filename?: string }> }>}
- */
-export async function fetchRoutes() {
-  const url = window.appConfig.apiGetRoutesUrl;
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  if (Array.isArray(data.routes)) {
-    return data;
-  }
-
-  throw new Error(data.message || "Error whilst fetching routes");
-}
 
 /**
  * @param {string} routeName
