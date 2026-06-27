@@ -37,7 +37,7 @@ class Route(SQLModel, table=True):
     name: str = Field(max_length=100, unique=True, nullable=False)
     coordinates: str = Field(sa_column=Column(Text, nullable=False))
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    ETA: str = Field(max_length=100, nullable=False)
+    eta_seconds: int = Field(nullable=False)
     distance_km: Optional[float] = Field(default=None)
     elevation_change: str = Field(max_length=30, nullable=False)
 

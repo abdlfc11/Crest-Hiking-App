@@ -513,9 +513,8 @@ class NodeFinder:
         total_seconds = sum(
             graph[start_coordinate][end_coordinate]['cost'] for start_coordinate, end_coordinate in zip(path, path[1:])
         )
-        eta_minutes = int(total_seconds / 60)
 
-        return str(eta_minutes)
+        return total_seconds
 
     def calculate_map_center_and_zoom(self, web_mercator_coordinates):
         if len(web_mercator_coordinates) > 1:
@@ -842,16 +841,12 @@ def extract_kml_coords(doc) -> list:
 def calculate_path():
     try:
         data = request.get_json()
-        print(data)
         
         # this extracts and parses start + end point coordinates
         start_coords = data.get("start_point", "")
         end_coords = data.get("end_point", "")
 
         graph = service.load_graph()
-
-        # DEBUG STATEMENT : Validation of coordinate format
-        print(start_coords, end_coords)
         
         # Validation of coord format 
         if not start_coords or not end_coords:
@@ -863,9 +858,6 @@ def calculate_path():
         # this extracts the raw numerical coordinates
         start_coords_x, start_coords_y = get_xy(start_coords)
         end_coords_x, end_coords_y = get_xy(end_coords)
-
-        # DEBUG STATEMENT : Validate each individual coord
-        print(start_coords_x, start_coords_y)
 
         all_coords = [start_coords_x, start_coords_y, end_coords_x, end_coords_y]
         if not all(isinstance(num, (int, float)) for num in all_coords):
@@ -944,8 +936,9 @@ def calculate_path():
     # we convert it directly to kilometers here
     total_distance_km = total_distance / 1000
     
-    # Calculates ETA
-    eta_display = service.calculate_eta(path, graph)
+    # Calculates ETA 
+    # NOTE : this is in SECONDS
+    eta_seconds = service.calculate_eta(path, graph)
 
     path_geojson = {
         "type": "Feature",
@@ -967,7 +960,7 @@ def calculate_path():
         "end_elevation": end_elevation,
         "elevation_change": elevation_change,
         "total_distance": round(total_distance_km, 2),
-        "eta": eta_display
+        "eta": eta_seconds
     }
 
     user = get_current_user()
