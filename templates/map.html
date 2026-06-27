@@ -231,7 +231,7 @@
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">ETA:</span>
-                                <span class="stat-value">{{ route.ETA }}</span>
+                                <span class="stat-value">{{ route.eta_seconds | format_eta}}</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Elevation Change:</span>
@@ -498,11 +498,9 @@
             apiGetSavedPointsUrl: "{{ url_for('get_saved_points') }}",
             apiDeletePointUrl: "{{ url_for('delete_point') }}",
             apiLoadRouteUrl: "{{ url_for('load_route') }}",
-            apiGetRoutesUrl: "{{ url_for('get_routes') }}",
             apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
             apiSaveRouteUrl: "{{ url_for('save_route') }}",
             apiDeleteAccountUrl: "{{ url_for('delete_account') }}",
-            apiGetRoutesUrl: "{{ url_for('get_routes') }}",
             apiLoadRouteUrl: "{{ url_for('load_route') }}",
             apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
             apiSaveRouteUrl: "{{ url_for('save_route') }}",
