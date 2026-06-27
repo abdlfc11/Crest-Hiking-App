@@ -5,7 +5,7 @@ import pickle as p
 import math
 
 node_finder = n() # this is the class containing projection conversion helpers
-avg_walking_speed_metres = 1.4 # used for Naismith rule
+avg_walking_speed_metres = None # used for Naismith rule
 
 terrain_costs = {
     # sac_scale
@@ -68,10 +68,36 @@ for (coord, elev) in zip(web_mercator_node_coordinates, elev_samples): # for eac
 
     node_graph.nodes[coord]['elev'] = float(val) # attaches the elevation in metres as an attribute to the node data item
 
-# this is a function used to calculate the weight of an edge using Naismith's rule
-def naismith_helper(horizontal_distance_metres: float, elevation_difference_metres: float) -> dict: # takes euclidean distance and the elevation difference as parameters
+
+def naismith_helper(horizontal_distance_metres: float, elevation_difference_metres: float, slope_ratio: float) -> dict:
+    """
+    PURPOSE : this is a function used to calculate the weight of an edge using Naismith's rule
+
+    PARAMS : takes euclidean distance, elevation difference and slope ratio as parameters
+        - euclidean distance + elevation difference --> used in naismith formula
+        - slope ratio --> used to determine which avg speed (in mph) to use
+
+    RETURN VALUE : dictionary of ascent and descent value (assinged to edges depending on if the edge is going up or down)
+    """
+
+    # group of logic conditions to set walking speed based on elevation gain (in the form of the slope ratio)
+    # absoloute val used as it doesn't matter if the value is negative or positive --> reduces number of conditions and likelihood of errors
+    abs_slope = abs(slope_ratio) 
+
+    if abs_slope < 0.09: # flat / gentle grade (Under 5°)
+        avg_walking_speed_metres = 1.4  
+    elif abs_slope < 0.21: # moderate grade (5° - 12°)
+        avg_walking_speed_metres = 1.1  
+    elif abs_slope < 0.46: # steep mountain grade (12° - 25°)
+        avg_walking_speed_metres = 0.8  
+    else: # extreme / scramble grade (+ 25°)
+        avg_walking_speed_metres = 0.5  
+
+    # distance calculations
     ascent_metres = max(0, elevation_difference_metres) # max is used to ensure there is only a positive value, rather than a negative value for the ASCENT
     descent_metres = abs(min(0, elevation_difference_metres)) # min is used to ensure there is only a negative, or zero, value for the DESCENT
+
+    # ETA calculations
     flat_time = horizontal_distance_metres / avg_walking_speed_metres # this is the time taken to walk the distance if it was a straight line
     climb_time = (ascent_metres / 10) * 60 # this is the time taken to walk UP the slope caused by the difference in elevation
     descent_time = (descent_metres / 7.5) * 60 # this is the time taken to walk DOWN the slope caused by the difference in elevation
@@ -116,7 +142,7 @@ for (start_coord, end_coord, edge_data) in node_graph.edges(data=True): # for ea
     elevation_difference_metres = end_elevation - start_elevation 
     slope_ratio = elevation_difference_metres / horizontal_distance_metres if horizontal_distance_metres > 0 else 0 # the slope ratio is calculated (will be used in a filter route feature)
 
-    costs = naismith_helper(horizontal_distance_metres, elevation_difference_metres) # variable set as the return value of the Naismith rule helper
+    costs = naismith_helper(horizontal_distance_metres, elevation_difference_metres, slope_ratio) # variable set as the return value of the Naismith rule helper
 
     terrain_factor = get_terrain_factor(
         edge_data.get("sac_scale"),
