@@ -1,5 +1,5 @@
 # These imports are for pathfinding.
-from src.pathfinder import (
+from pathfinder import (
     a_star,
     snap_to_largest_component,
     build_global_kdtree,
@@ -28,7 +28,7 @@ from sqlmodel import Session, select, delete
 from sqlalchemy.exc import IntegrityError
 
 from db import engine
-from src.models import User, Route, Point, Settings, BetaCode
+from models import User, Route, Point, Settings, BetaCode
 
 # These imports are for data processing.
 import pickle as pkl
@@ -56,11 +56,11 @@ from flask_limiter.util import get_remote_address
 
 # These imports are for HTTP requests and configuration.
 import requests
-from src.config import Config
+from config import Config
 
 
-# default map centre (BNG coordinates)
-default_centre = [333543, 505910]
+# default map centre (web_mercator coordinates)
+default_centre = [-336884.09, 7254740.69]
 
 app = Flask(__name__,
             template_folder='../templates',
@@ -393,41 +393,28 @@ class NodeFinder:
         self._kdtree = None
         self.max_distance = max_distance
         self.early_exit_distance = early_exit_distance
+        
+        # Coord conversions
         self._bng_to_web_mercator = Transformer.from_crs("EPSG:27700", "EPSG:3857", always_xy=True)
         self._bng_to_wgs84 = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
         self._wgs84_to_web_mercator = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
         self._web_mercator_to_wgs84 = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 
     def load_graph(self):
-        # loads the graph only when needed (lazy loading)
         if self._graph is None:
             if not os.path.exists(self.graph_path):
                 raise FileNotFoundError(
                     f"\n\n=== GRAPH FILE MISSING ===\n"
                     f"Expected graph at: {os.path.abspath(self.graph_path)}\n\n"
-                    "This is the #1 cause of 'error when generating a route' in Docker.\n\n"
-                    "Common fixes:\n"
-                    "  1. On your HOST machine (not inside container):\n"
-                    "       git lfs install && git lfs pull\n\n"
-                    "  2. Then restart Docker cleanly:\n"
-                    "       docker-compose down -v\n"
-                    "       docker-compose up --build -d\n\n"
-                    "  3. If the file still doesn't appear inside the container,\n"
-                    "     go to Docker Desktop → Settings → Resources → File sharing\n"
-                    "     and make sure the project folder is listed, then Apply & Restart.\n\n"
                 )
 
             with open(self.graph_path, "rb") as file:
                 self._graph = pkl.load(file)
 
-            # snaps to largest component upon startup
             largest_cc_nodes = max(nx.weakly_connected_components(self._graph), key=len)
-
-            # graph is copied into memory 
             self._graph = self._graph.subgraph(largest_cc_nodes).copy()
 
             nodes_coords = list(self._graph.nodes())
-
             self._nodes_list = nodes_coords
             self._kdtree = KDTree(nodes_coords)
 
@@ -435,15 +422,13 @@ class NodeFinder:
 
             print(f"Graph initialised with {len(self._nodes_list)} reachable nodes.")
 
-            # Verify elevation data is present (the usual cause of late failures)
             if self._nodes_list:
                 sample_node = self._graph.nodes[self._nodes_list[0]]
                 if 'elev' not in sample_node:
                     print("WARNING: Graph loaded successfully but nodes have no 'elev' attribute.")
-                    print("         Elevation stats will be broken. Rebuild the graph with elevation_upgrade.py if needed.")
         
         return self._graph
-
+    
     def convert_bng_to_web_mercator(self, bng_x, bng_y):
         x, y = self._bng_to_web_mercator.transform(bng_x, bng_y)
         return x, y
@@ -469,34 +454,24 @@ class NodeFinder:
         return lon, lat  
 
 
-    def euclidean_distance(self, node, target_lat, target_lon):
-        # calculates distance between the target and current node using pythagoras
-        return ((node[0] - target_lat) ** 2 + (node[1] - target_lon) ** 2) ** 0.5
+    def euclidean_distance(self, node, target_x, target_y):
+        return ((node[0] - target_x) ** 2 + (node[1] - target_y) ** 2) ** 0.5
     
-    
-    def find_nearest_node(self, target_lat, target_lon):
-        
+    def find_nearest_node(self, target_x, target_y):
         self.load_graph()
-
-        target_point = (target_lat, target_lon)
-
+        target_point = (target_x, target_y)
         distance, index = self._kdtree.query(target_point)
 
         if distance > self.max_distance:
-            return None  # since nearest node is too far away
+            return None  
         
-        nearest_node = self._nodes_list[index]
+        return self._nodes_list[index]
 
-        return nearest_node
-
-    def build_route(self, s_e, s_n, e_e, e_n):
+    def build_route(self, s_x, s_y, e_x, e_y):
         start_time = time.time()
-
-        # this loads the full graph
         full_graph = self.load_graph()
 
-        # a star algorithm is called, which both clips the graph, and then calculates the path
-        path, start_node, end_node = a_star(full_graph, (s_e, s_n), (e_e, e_n))
+        path, start_node, end_node = a_star(full_graph, (s_x, s_y), (e_x, e_y))
 
         if not path:
             print("Pathfinding failed")
@@ -508,86 +483,77 @@ class NodeFinder:
         return path, start_node, end_node
 
     def calculate_route_distance(self, path):
-        # calculates total distance of the route in metres
+        # Calculates total distance of the route in true meters
         total_distance_metres = 0
         if len(path) > 1:
             for i in range(1, len(path)):
                 if len(path[i]) == 2 and len(path[i-1]) == 2:
-                    # 2d coordinates (x, y)
                     x1, y1 = path[i-1]
                     x2, y2 = path[i]
                 else:
-                    # skips if coordinate dimensions don't match
                     continue
+
+                # these calculations compensate for distortion caused by web mercator projection
                 
-                segment_distance = ((x2 - x1)**2 + (y2 - y1)**2)**0.5
-                total_distance_metres += segment_distance
+                # this gets the raw web_merc distance
+                stretched_distance = ((x2 - x1)**2 + (y2 - y1)**2)**0.5
+                
+                # this finds the centre latitude of the segment to find out the distortion
+                _, mid_lat = self.convert_web_mercator_to_wgs84((x1 + x2) / 2, (y1 + y2) / 2)
+                
+                # this finds the scale factor, the equation is 1/ cos(latitude_radians)
+                scale_factor = 1.0 / math.cos(math.radians(mid_lat))
+                
+                # this divides the distance by the scale factor to get the real value
+                total_distance_metres += (stretched_distance / scale_factor)
+                
         return total_distance_metres
 
     def calculate_eta(self, path, graph):
         total_seconds = sum(
             graph[start_coordinate][end_coordinate]['cost'] for start_coordinate, end_coordinate in zip(path, path[1:])
         )
-
         eta_minutes = int(total_seconds / 60)
-        eta_hours_int = eta_minutes // 60
-        eta_minutes_remainder = eta_minutes % 60
 
-        if eta_hours_int > 0:
-            return f"{eta_hours_int}h {eta_minutes_remainder}m"
-        else:
-            return f"{eta_minutes_remainder}m"
-
-
+        return str(eta_minutes)
 
     def calculate_map_center_and_zoom(self, web_mercator_coordinates):
-        # calculates optimal map centre and zoom level to fit the route
         if len(web_mercator_coordinates) > 1:
-            # gets min/max coordinates
             x_coords = [coord[0] for coord in web_mercator_coordinates]
             y_coords = [coord[1] for coord in web_mercator_coordinates]
             
             min_x, max_x = min(x_coords), max(x_coords)
             min_y, max_y = min(y_coords), max(y_coords)
             
-            # calculates centre point
             center_x = (min_x + max_x) / 2
             center_y = (min_y + max_y) / 2
             
-            # calculates bounding box dimensions
             width = max_x - min_x
             height = max_y - min_y
             
-            # adds padding for better visibility
-            padding_factor = 1.4
-            padded_width = width * padding_factor
-            padded_height = height * padding_factor
-            
-            # calculates zoom level based on route size
+            padded_width = width * 1.4
+            padded_height = height * 1.4
             max_dimension = max(padded_width, padded_height)
             
-            if max_dimension < 1000:  # very small paths
+            if max_dimension < 1000:
                 zoom_level = 14
-            elif max_dimension < 5000:  # small paths
+            elif max_dimension < 5000:
                 zoom_level = 12
-            elif max_dimension < 20000:  # medium paths
+            elif max_dimension < 20000:
                 zoom_level = 10
-            elif max_dimension < 50000:  # large paths
+            elif max_dimension < 50000:
                 zoom_level = 8
-            else:  # very large paths
+            else:
                 zoom_level = 6
             
-            # creates map centre and zoom info
             map_center = [center_x, center_y]
             map_zoom = zoom_level
         else:
-            # fallback to midpoint if only one coordinate
-            midpoint = web_mercator_coordinates[len(web_mercator_coordinates)//2] if web_mercator_coordinates else [0, 0]
-            map_center = midpoint
+            midpoint = web_mercator_coordinates[0] if web_mercator_coordinates else [0, 0]
+            map_center = [midpoint[0], midpoint[1]]
             map_zoom = 10
         
         return map_center, map_zoom
-
 #endregion
 
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
@@ -596,6 +562,14 @@ if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
 
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
+
+def what_coord_projection(coords: list) -> str:
+
+    coord = coords[0]
+
+    x, y = coord[0], coord[1]
+
+
 
 def haversine(x1, y1, x2, y2):
 
@@ -619,8 +593,20 @@ def normalise_route(coordinates, avg_speed_kmh=4.5):
     This function converts raw route geometry into metrics e.g ETA and elevation data (if present)
     """
 
+    converted_coords = []
+
     if not coordinates or len(coordinates) < 2:
         return({"success": False, "message": "Route is too small"})
+    
+    start_coord = coordinates[0]
+
+    
+    # this checks the first coord to check if it is in lat/lon format, if not it converts coords to lat/lon format
+    if not (abs(start_coord[0]) <= 180 and abs(start_coord[1]) <= 90):
+        print("DEBUG STATEMENT\nFUNCTION : normalise_route()\nDetected projection that is NOT Lat/Lon for start point. Converting to Lat/Lon")
+        for coord in coordinates:
+            converted_coord = service.convert_web_mercator_to_wgs84(coord[0], coord[1])
+            converted_coords.append(converted_coord)
 
     total_distance_m = 0.0
     total_elevation_gain_m = 0.0
@@ -632,7 +618,10 @@ def normalise_route(coordinates, avg_speed_kmh=4.5):
         x2, y2 = coordinates[i + 1][0], coordinates[i + 1][1]
 
         # distance calculation
-        total_distance_m += haversine(x1, y1, x2, y2)
+        if not converted_coords or converted_coords == []:
+            total_distance_m += haversine(x1, y1, x2, y2)
+        else:
+            total_distance_m += haversine(converted_coords[i][0], converted_coords[i][1], converted_coords[i + 1][0], converted_coords[i + 1][1])
 
         # elevation gain (only if available)
         if has_elevation:
@@ -677,7 +666,7 @@ def parse_elevation(elevation_string: str):
     except:
         return None
 
-# helper function used in creation of gpx / geojson files which converts hrs and minutes to 
+# helper function used in creation of gpx / geojson files which converts hrs and minutes to seconds 
 def parse_eta_to_seconds(eta_string: str):
     if not eta_string:
         return None
@@ -854,104 +843,125 @@ def calculate_path():
     try:
         data = request.get_json()
         print(data)
-        # extracts and parses start point coordinates
+        
+        # this extracts and parses start + end point coordinates
         start_coords = data.get("start_point", "")
         end_coords = data.get("end_point", "")
 
         graph = service.load_graph()
 
+        # DEBUG STATEMENT : Validation of coordinate format
         print(start_coords, end_coords)
-
+        
+        # Validation of coord format 
         if not start_coords or not end_coords:
             raise ValueError("Start and end coordinates are required")
 
         if len(start_coords) < 2 or len(end_coords) < 2:
             raise ValueError("Coordinates must be in format 'x, y'")
 
-        # forms variables containing each value of the start and end coordinates with suffixes removed so that they can be used in input validaton
+        # this extracts the raw numerical coordinates
         start_coords_x, start_coords_y = get_xy(start_coords)
-        
-
-        # debug statement to ensure that start_coords_x and y are in the required format 
-        print(start_coords_x, start_coords_y)
-
         end_coords_x, end_coords_y = get_xy(end_coords)
+
+        # DEBUG STATEMENT : Validate each individual coord
+        print(start_coords_x, start_coords_y)
 
         all_coords = [start_coords_x, start_coords_y, end_coords_x, end_coords_y]
         if not all(isinstance(num, (int, float)) for num in all_coords):
             raise ValueError("Coordinates must be valid numbers")
         
-        s_e, s_n = start_coords_x, start_coords_y # start_easting, start_northing
-        e_e, e_n = end_coords_x, end_coords_y # start_easting, start_northing
+        s_x, s_y = start_coords_x, start_coords_y 
+        e_x, e_y = end_coords_x, end_coords_y 
         
-        # conversion calculations
-        if abs(s_e) > 1000000 or abs(s_n) > 1000000: # values that are likely to be web mercator
-            s_e, s_n = service.convert_web_mercator_to_bng(s_e, s_n) # converts web mercator coords into BNG
-        if abs(e_e) > 1000000 or abs(e_n) > 1000000: # sam process as 
-            e_e, e_n = service.convert_web_mercator_to_bng(e_e, e_n)
+        
+        # COORD PROJECTION TYPE DETECTION
+        # Lat / Lon coordinates will be small numbers, whereas web mercator uses large values in metres
+    
+        # this checks start and end coords to see if they are wgs84 projection and converts to web_mercator if so
+        if abs(s_x) <= 180 and abs(s_y) <= 90:
+            print("Detected Lat/Lon for start point. Converting to Web Mercator...")
+            s_x, s_y = service.convert_wgs84_to_web_mercator(s_x, s_y)
+        if abs(e_x) <= 180 and abs(e_y) <= 90:
+            print("Detected Lat/Lon for end point. Converting to Web Mercator...")
+            e_x, e_y = service.convert_wgs84_to_web_mercator(e_x, e_y)
         
     except (KeyError, ValueError) as e:
-        # handles parsing errors gracefully
-        web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
-        user = get_current_user()
-        if user:
-            available_routes = Route.query.filter_by(user_id=user.id).all() if user else []
-        return jsonify({"map_centre": web_mercator_center, 
-                        "available_routes": available_routes, 
-                        "error": f"Invalid coordinates: {str(e)}"})
+        with Session(engine) as db:
+            user = get_current_user()
+            if user:
+                available_routes = db.exec(
+                    select(Route)
+                    .where(Route.user_id == user.id)
+                ).all()
+            else:
+                available_routes = []
+        return jsonify({
+            "success": False,
+            "map_centre": default_centre,
+            "available_routes": available_routes, 
+            "message": f"Invalid coordinates: {str(e)}"
+        })
 
-    path, start_node, end_node = service.build_route(s_e, s_n, e_e, e_n)
+    # Build the route using the Web Mercator coordinates
+    path, start_node, end_node = service.build_route(s_x, s_y, e_x, e_y)
 
-    if not path:  # returns to map if no path found
-        web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
-        user = get_current_user()
-        if user:
-            available_routes = Route.query.filter_by(user_id=user.id).all() if user else []
-        return jsonify({"map_centre": web_mercator_center,
-                        "available_routes": available_routes})
+    if not path:  
+        with Session(engine) as db:
+            user = get_current_user()
+            if user:
+                available_routes = db.exec(
+                    select(Route)
+                    .where(Route.user_id == user.id)
+                ).all()
+            else:
+                available_routes = []
+            return jsonify({
+                "success": False,
+                "map_centre": default_centre,
+                "available_routes": available_routes,
+                "message": "No path could be created"
+            })
 
-    web_mercator_coordinates = [] # array used to hold coords which will be displayed on the map
+    web_mercator_coordinates = [] 
     
-    for node in path:  # converts path coordinates from bng to web mercator for display
-
+    # Since the graph/path is already in Web Mercator, we no longer need to convert it!
+    for node in path:  
         x, y = node  
-
-        web_x, web_y = service.convert_bng_to_web_mercator(x, y)
-
         elev = graph.nodes.get(node, {}).get('elev')
         if elev is not None:
-            web_mercator_coordinates.append([web_x, web_y, elev])
+            web_mercator_coordinates.append([x, y, elev])
         else:
-            web_mercator_coordinates.append([web_x, web_y]) # appends coords converted into web mercator into array
+            web_mercator_coordinates.append([x, y])
     
     start_coords = web_mercator_coordinates[0]
     end_coords = web_mercator_coordinates[-1]
     
-    # calculates distance and eta statistics
+    # Calculates distance and eta statistics
     total_distance = service.calculate_route_distance(path)
     
-    # converts distance from bng metres to kilometres
+    # Since your network graph distance calculation is now in meters (or handled by your service),
+    # we convert it directly to kilometers here
     total_distance_km = total_distance / 1000
     
-    # calculates eta
+    # Calculates ETA
     eta_display = service.calculate_eta(path, graph)
 
     path_geojson = {
         "type": "Feature",
         "geometry": {"type": "LineString", "coordinates": web_mercator_coordinates},
         "properties": {"color": "#2563eb"}
-    } # geojson to display the path 
+    } 
     
-    # calculates optimal map centre and zoom
+    # Calculates optimal map centre and zoom
     map_centre, map_zoom = service.calculate_map_center_and_zoom(web_mercator_coordinates)
 
     start_elevation = int(graph.nodes[start_node]['elev'])
     end_elevation = int(graph.nodes[end_node]['elev'])
 
     elevation_difference = end_elevation - start_elevation
-    elevation_change = f"+{elevation_difference}m" if elevation_difference >= 0 else f"{elevation_difference}m" # takes into account positive or negative change for clarity
+    elevation_change = f"+{elevation_difference}m" if elevation_difference >= 0 else f"{elevation_difference}m" 
 
-    # route statistics to pass to template
     route_stats = {
         "start_elevation": start_elevation,
         "end_elevation": end_elevation,
@@ -967,14 +977,19 @@ def calculate_path():
                 select(Route)
                 .where(Route.user_id == user.id)
             ).all()
-    return jsonify({"success": True,
-                     "pathGeoJSON": path_geojson,
-                     "map_centre": map_centre,
-                     "map_zoom": map_zoom,
-                     "route_stats": route_stats,
-                     "coordinates": web_mercator_coordinates,
-                     "startCoord": start_coords,
-                     "endCoord": end_coords})
+    else:
+        available_routes = []
+            
+    return jsonify({
+        "success": True,
+        "pathGeoJSON": path_geojson,
+        "map_centre": map_centre,
+        "map_zoom": map_zoom,
+        "route_stats": route_stats,
+        "coordinates": web_mercator_coordinates,
+        "startCoord": start_coords,
+        "endCoord": end_coords
+    })
 
 # route which saves a user-chosen point on the map
 @app.route("/save_point", methods=["POST"])
@@ -990,16 +1005,9 @@ def save_point():
         return jsonify({"success": False, "message": "Name and Coordinates are required"})
     
     try:
-        # ensures the values are floats for correct conversions
-        x_float = float(web_mercator_x)
-        y_float = float(web_mercator_y)
-        
-        # coord conversion into bng from web mercator
-        bng_x, bng_y = service.convert_web_mercator_to_bng(x_float, y_float)
-        
+              
         # coords are used to save the chosen point
-
-        coords = json.dumps([bng_x, bng_y])
+        coords = json.dumps([float(web_mercator_x), float(web_mercator_y)])
 
         user = get_current_user()
         if user:
@@ -1020,55 +1028,59 @@ def save_point():
         print(f"Server Error in /save_point route: {error_message}")
         # 500 so the rejection promise can be fetched
         return jsonify({"success": False, "message": error_message}), 500
-    
+
+
 # flask-route which is used to save a route that has been passed into the backend into the PostgreSQL database 
 @app.route("/save_route", methods=["POST"])
 @limiter.limit("110 per minute")
 def save_route():
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "message": "Invalid request"}), 400
+    with Session(engine) as db:
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "message": "Invalid request"}), 400
 
-        user = get_current_user()
+            user = get_current_user()
 
-        route_name = data.get("route_name")
-        coordinates = data.get("coordinates")
+            route_name = data.get("route_name")
+            coordinates = data.get("coordinates")
+            type = data.get("type")
 
-        if not route_name or not route_name.strip():
-            return jsonify({"success": False, "message": "Route name required"}), 400
+            if not route_name or not route_name.strip():
+                return jsonify({"success": False, "message": "Route name required"}), 400
+            
 
-        if not coordinates or len(coordinates) < 2:
-            return jsonify({"success": False, "message": "Invalid route data"}), 400
-        
-        metrics = normalise_route(coordinates)
+            if not coordinates or len(coordinates) < 2:
+                return jsonify({"success": False, "message": "Invalid route data"}), 400
+            
+            metrics = normalise_route(coordinates)
 
-        route = Route(
-            name=route_name,
-            coordinates=json.dumps(coordinates),
-            user_id=user.id,
+            route = Route(
+                name=route_name,
+                coordinates=json.dumps(coordinates),
+                user_id=user.id,
 
-            distance_km=metrics["distance_km"],
-            ETA=metrics["eta_hours"],
-            elevation_change=metrics["elevation_gain_m"]
-        )
+                distance_km=metrics["distance_km"],
+                ETA=metrics["eta_hours"],
+                elevation_change=metrics["elevation_gain_m"]
+            )
 
-        with Session(engine) as db:
+            
             db.add(route)
             db.commit()
 
-        return jsonify({"success": True})
+            return jsonify({"success": True})
 
 
-    except IntegrityError as e:
-        db.rollback()
+        except IntegrityError as e:
+            db.rollback()
 
-        return jsonify({"success" : False, "message" : "Try again: a route already shares the same name"})
+            return jsonify({"success" : False, "message" : "Try again: a route already shares the same name"})
 
 
-    except Exception as e:
-        db.rollback()
-        return jsonify({"success": False, "message": f"Error processing request: {str(e)}"})
+        except Exception as e:
+            db.rollback()
+            return jsonify({"success": False, "message": f"Error processing request: {str(e)}"})
     
 
 
@@ -1162,26 +1174,6 @@ def load_route():
         except Exception:
             return jsonify({"success": False, "message": "The route could not be loaded"})
 
-# flask-route which retreives saved routes to be used in the front-end
-@app.route("/get_routes", methods=["GET"])
-def get_routes():
-    user = get_current_user()
-    if user:
-        routes = Route.query.filter_by(user_id=user.id).order_by(Route.created_at).all()
-    routes_list = []
-
-    for route in routes:
-        routes_list.append({
-            "name": route.name,
-            "type": route.format,
-            "filename": f"{route.name}.{route.format}",
-            "elevationChange": route.elevation_change,
-            "eta": route.ETA,
-            "route_distance_km": route.distance_km if route.distance_km is not None else 0,
-            "created": route.created_at.strftime("%d/%m/%y")
-        })
-    
-    return jsonify({"routes": routes_list, "success": True})
 
 # flask route which returns a raw binary file of the route in either GPX or GeoJSON format
 @app.route("/download_route", methods=["POST"])
@@ -1347,14 +1339,12 @@ def get_saved_points():
             ).all()
     
     if not points:
-        return jsonify({"points": []})
+        return jsonify({"success": False, "message": "No points found" ,"points": []})
     
     web_mercator_points = []
     for point in points:
         try:
-            bng_x, bng_y = json.loads(point.coordinates)
-
-            web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
+            web_mercator_x, web_mercator_y = json.loads(point.coordinates)
 
             web_mercator_points.append({
                 "name": point.name,
@@ -1365,7 +1355,7 @@ def get_saved_points():
             continue
     
 
-    return jsonify({"points": web_mercator_points})
+    return jsonify({"success": True, "points": web_mercator_points})
 
 # route which deletes a saved point that is passed into the back-end from the front-end
 @app.route("/delete_point", methods=['POST'])
