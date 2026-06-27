@@ -562,12 +562,16 @@ if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
 
-def what_coord_projection(coords: list) -> str:
+def format_eta(seconds):
+    hours = math.floor(seconds / 3600)
+    minutes = math.floor((seconds % 3600) / 60)
 
-    coord = coords[0]
-
-    x, y = coord[0], coord[1]
-
+    if hours == 0:
+        return f"{minutes}m"
+    else:
+        return f"{hours}h {minutes}m"
+    
+app.jinja_env.filters['format_eta'] = format_eta
 
 
 def haversine(x1, y1, x2, y2):
@@ -632,12 +636,13 @@ def normalise_route(coordinates, avg_speed_kmh=4.5):
 
     distance_km = total_distance_m / 1000.0
     eta_hours = distance_km / avg_speed_kmh
+    eta_seconds = round(eta_hours * 60 * 60, 2)
 
     return {
         "distance_m": total_distance_m,
         "distance_km": distance_km,
         "elevation_gain_m": total_elevation_gain_m,
-        "eta_hours": eta_hours
+        "eta_seconds": eta_seconds
     }
 
 # helper function which returns true if the first coordinate has 3 values (i.e x, y and z)
@@ -960,7 +965,7 @@ def calculate_path():
         "end_elevation": end_elevation,
         "elevation_change": elevation_change,
         "total_distance": round(total_distance_km, 2),
-        "eta": eta_seconds
+        "eta_seconds": eta_seconds
     }
 
     user = get_current_user()
@@ -1054,7 +1059,7 @@ def save_route():
                 user_id=user.id,
 
                 distance_km=metrics["distance_km"],
-                ETA=metrics["eta_hours"],
+                eta_seconds=metrics["eta_seconds"],
                 elevation_change=metrics["elevation_gain_m"]
             )
 
@@ -1062,7 +1067,9 @@ def save_route():
             db.add(route)
             db.commit()
 
-            return jsonify({"success": True})
+            return jsonify({
+                "success": True,
+            })
 
 
         except IntegrityError as e:
@@ -1144,14 +1151,14 @@ def load_route():
             midpoint = web_mercator_coordinates[len(web_mercator_coordinates)//2] if web_mercator_coordinates else default_centre
 
             # data collected directly from database values
-            ETA = route.ETA
+            eta_seconds = route.eta_seconds
             distance = route.distance_km
             elevation_change = route.elevation_change
             
             # route statistics to pass to frontend
             route_stats = {
                 "total_distance": distance if distance is not None else 0,
-                "eta": ETA,
+                "eta_seconds": eta_seconds,
                 "elevation_change": elevation_change
             }
             
@@ -1410,6 +1417,7 @@ def main_page():
     return render_template("main.html")
 
 @app.route('/beta-page', methods=["GET"])
+@limiter.exempt
 def get_beta_page():
     return render_template("beta-code.html")
 
