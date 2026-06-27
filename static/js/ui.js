@@ -9,7 +9,8 @@ import {
   moveMapToPosition,
   getRouteStrokeStyle,
   showError,
-  addClickListener
+  addClickListener,
+  formatETA
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -330,7 +331,7 @@ export function  closeImportRoute() {
 
 //#region IMPORT ROUTE PANEL FUNCTIONS
 
-function handleRouteImport() {
+async function handleRouteImport() {
   const selectedInputType = whichInputTypeSelected();
 
   if (selectedInputType === "file") {
@@ -346,12 +347,42 @@ function handleRouteImport() {
       return false;
     }
 
-    const data = processImportedRouteFile(file);
+    const data = await processImportedRouteFile(file); 
 
-    cancelRouteImport();
-    const stats = displayPath(data.coords)
-    return data;
+    if (!data || !data.coords) {
+      showError("Could not parse coordinates from file.");
+      return false;
+    }
 
+    try {
+      const response = await fetch('/save_route', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          coordinates: data.coords,
+          type: "import",
+          route_name: file.name 
+        }),
+      });
+
+      if (!response.ok) {
+        showError("There was an error on our end. Please try again later.");
+        return false;
+      }
+
+      const result = await response.json(); 
+      if (!result.success) {
+        showError(result.message || "Failed to save route.");
+        return false;
+      }
+
+      cancelRouteImport();
+      return true;
+
+    } catch (err) {
+      showError("Network error. Please try again.");
+      return false;
+    }
   }
   else if (selectedInputType === "url") {
     const url = importRouteURLInput.value.trim();
@@ -671,6 +702,7 @@ async function handleAutoRouteGeneration() {
   try {
     const response = await calculatePath(startPoint, endPoint); // response.coordinates may return coordinates whereby each element has 3 values (x, y and elevation)
     const routeStats = displayPath(response);
+    routeStats.eta_seconds = formatETA(routeStats.eta_seconds)
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     setAutoRouteStatDisplay(getLastAutoRouteStats());
@@ -769,7 +801,7 @@ function setAutoRouteStatDisplay(routeStats) {
               </div>
               <div class="stat-row">
                   <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${routeStats.eta}</span>
+                  <span class="stat-value" id="route-eta-display">${routeStats.eta_seconds}</span>
               </div>
               <div class="stat-row">
                   <span class="stat-label">Elevation Change:</span>

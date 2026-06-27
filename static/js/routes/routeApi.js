@@ -13,29 +13,29 @@
  */
 export async function deleteRoute(routeName) {
 
-    const url = window.appConfig.apiDeleteRouteUrl
+  const url = window.appConfig.apiDeleteRouteUrl
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        route_name: routeName,
-      }),
-    });
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      route_name: routeName,
+    }),
+  });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.success) {
-      return data;
-    }
-    else {
-      throw new Error(data.message || "Route deletion failed")
-    }
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
   }
+
+  const data = await response.json();
+
+  if (data.success) {
+    return data;
+  }
+  else {
+    throw new Error(data.message || "Route deletion failed")
+  }
+}
 
 /**
  * @param {string} routeName
@@ -94,4 +94,3 @@ export async function downloadRoute(routeName, format, DOMElement) {
   return response
 }
 
-window.downloadRoute = downloadRoute

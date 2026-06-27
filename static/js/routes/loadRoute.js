@@ -1,7 +1,7 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
-import { formatDistance, getRouteStrokeStyle, createManualPointStyle } from "../utils.js";
+import { formatDistance, getRouteStrokeStyle, createManualPointStyle, formatETA } from "../utils.js";
 import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
-import { deleteRoute, loadRoute, fetchRoutes } from "./routeApi.js";
+import { deleteRoute, loadRoute } from "./routeApi.js";
 
 
 let routeList = null;
@@ -118,7 +118,7 @@ export function displayLoadedRouteStats(routeStats) {
               </div>
               <div class="stat-row">
                   <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${routeStats.eta}</span>
+                  <span class="stat-value" id="route-eta-display">${formatETA(routeStats.eta_seconds)}</span>
               </div>
               <div class="stat-row">
                   <span class="stat-label">Elevation Change:</span>
