@@ -3,6 +3,7 @@ import pickle as pickle  # for saving/loading the graph later on
 from pyrosm import OSM
 from shapely.geometry import LineString, MultiLineString
 import json # used to parse Pyrosm OSM data 
+from pyproj import Transformer
 
 
 class PathDataProcessor:
@@ -29,6 +30,23 @@ class PathDataProcessor:
         converted = geodataframe.to_crs(epsg=self.target_epsg)
         print("Converted.")
         return converted
+    
+    def transform_graph(self, graph, desired_epsg):
+
+        transformer = Transformer.from_crs(self.target_epsg, desired_epsg, always_xy=True)
+
+        # for lat / lon 2 dp will mean poor accuracy, for metres, 2 dp is fine
+        decimals = 6 if desired_epsg == 4326 else 2
+
+        nodes = {}
+        for node in graph.nodes:
+            new_x, new_y = transformer.transform(node[0], node[1])
+            nodes[node] = (round(new_x, decimals), round(new_y, decimals))
+
+        # nx.relabel_nodes copies the data from the graph and updates the nodes to use the appropriate distances
+        transformed_graph = nx.relabel_nodes(graph, nodes)
+        print("Transformation is complete")
+        return transformed_graph
 
     def build_graph(self, geodataframe):
         print("Building graph...")
@@ -133,12 +151,16 @@ class PathDataProcessor:
             pickle.dump(graph, file)
         print(f"Graph saved → {self.output_pickle_path.split('/')[-1]}")
 
-    def run(self):
+    def run(self, output_epsg=3857):
         all_paths = self.load_paths()
         all_paths = self.convert_coordinates(all_paths)
         graph = self.build_graph(all_paths)
-        self.save_graph(graph)
-        return graph
+        
+        final_graph = self.transform_graph(graph, output_epsg)
+
+        self.save_graph(final_graph)
+
+        return final_graph
 
 
 if __name__ == "__main__":
