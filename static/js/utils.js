@@ -144,3 +144,48 @@ export function moveMapToPosition(map, position = [-357428, 7256794], duration =
     duration: duration
   })
 };
+
+
+/**
+ * Generates the HTML string for a saved route card displayed in the UI.
+ *
+ * This function builds a self-contained route card element with header,
+ * key statistics, and action buttons. The returned string is intended to
+ * be inserted into the DOM (e.g., via `innerHTML` or a DOM builder).
+ *
+ * @param {string} routeName: The display name of the route.
+ * @param {string} formattedDate: Human-readable date string (e.g. "Saved on 15 June 2026").
+ * @param {number} distanceInKm: Route length in kilometers. Used both for the data attribute and for formatting.
+ * @param {string} ETA: Formatted estimated time to complete the route.
+ * @param {string} elevDisplayValue: Pre-formatted elevation change string for display.
+ * @returns {string} HTML string for the complete route card.
+ */
+export function createRouteCard(routeName, formattedDate, distanceInKm, ETA, elevDisplayValue) {
+  return `<div class="route-card" data-route-name="${routeName}">
+                              <div class="route-card-header">
+                                  <h3 class="route-card-name">${routeName}</h3>
+                                  <span class="route-card-date">Saved on ${formattedDate}</span>
+                              </div>
+                              <div class="route-card-stats">
+                                  <div class="stat-item">
+                                      <span class="stat-label">Distance:</span>
+                                      <span class="stat-value" data-distance-km="${distanceInKm}">${formatDistance(distanceInKm)}</span>
+                                  </div>
+                                  <div class="stat-item">
+                                      <span class="stat-label">ETA:</span>
+                                      <span class="stat-value">${ETA}</span>
+                                  </div>
+                                  <div class="stat-item">
+                                      <span class="stat-label">Elevation Change:</span>
+                                      <span class="stat-value">${elevDisplayValue}</span>
+                                  </div>
+                              </div>
+                              <div class="route-card-actions">
+                                  <button type="button" class="route-btn route-btn-delete">Delete</button>
+                                  <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
+                                  <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
+                                  <button type="button" class="route-btn route-btn-load">Load</button>
+                              </div>
+                          </div>
+                          `;
+}
