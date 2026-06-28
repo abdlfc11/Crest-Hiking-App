@@ -13,7 +13,7 @@ import { getCurrentMode,
 import { defaultCentre, homeButtonFunction, updateSaveRouteContainer } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
-import { createRouteCard, formatDistance, showError } from "../utils.js";
+import { createRouteCard, formatDistance, formatElevation, showError } from "../utils.js";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
@@ -111,9 +111,7 @@ function handleSaveRoute(e) {
           "year": "2-digit"
         }).format(today);
         
-        const elevNum = parseFloat(elevationChange);
-        const elevDisplayValue = isNaN(elevNum) ? "0m"
-        : (elevNum >= 0 ? `+${elevNum}m` : `${elevNum}m`)
+        elevDisplayValue = formatElevation(elevationChange);
 
         const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue)
 
