@@ -137,13 +137,18 @@ export function showError(message) {
     }, 3000);
 }
 
-export function moveMapToPosition(map, position = [-357428, 7256794], duration = 1200, zoom = 10.5) {
+export function moveMapToPosition(map, position = null, duration = 1200, zoom = 10.5) {
   if (!map) {
     console.warn("No map, returning");
     return;
   }
+
+  const targetPosition = Array.isArray(position) && position.length === 2
+    ? position
+    : (Array.isArray(window.appConfig?.mapInitialCenter) ? window.appConfig.mapInitialCenter : [-211507, 7118524]);
+
   map.getView().animate({
-    center: position,
+    center: targetPosition,
     zoom: zoom,
     duration: duration
   })
