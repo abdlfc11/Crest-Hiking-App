@@ -145,6 +145,34 @@ export function moveMapToPosition(map, position = [-357428, 7256794], duration =
   })
 };
 
+/**
+ * Removes the passed in DOM element
+ * Used in any feature which adds a route card to the saved routes dashboard as it is used to remove the <div>...</div> content which tells the user that they have not saved any routes
+ * 
+ * @param {HTMLElement}  
+ * @returns {boolean} true: element has been removed, false: element has not been removed (is already not there)
+ */
+export function removeDOMElement(element) {
+  if (element) {
+    element.remove()
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+/**
+ * 
+ * @param {string} elevationChange this is a string such as "938.0" or "-329.0"
+ * @returns {string} this is a string which has been formated to add a + or leave the string unchanged if it is negative 
+ */
+export function formatElevation(elevationChange) {
+  const elevNum = parseFloat(elevationChange);
+  const elevDisplayValue = isNaN(elevNum) ? "0m" : (elevNum >= 0 ? `+${elevNum}m` : `${elevNum}m`)
+
+  return elevDisplayValue
+}
 
 /**
  * Generates the HTML string for a saved route card displayed in the UI.
