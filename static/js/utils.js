@@ -101,6 +101,10 @@ export function calculateEta(distanceKm) {
 }
 
 export function formatETA(seconds) {
+    if (isNaN(seconds)) {
+      seconds = parseFloat(seconds)
+    }
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
 
