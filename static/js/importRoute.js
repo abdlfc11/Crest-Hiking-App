@@ -30,7 +30,7 @@ export async function processImportedRouteFile(file) {
 
 export function displayImportedRouteCard(data) {
 
-    routeInfo = data.route_info;
+    const routeInfo = data.route_info;
     const today = new Date();
         
     const formattedToday = new Intl.DateTimeFormat('en-GB', {
