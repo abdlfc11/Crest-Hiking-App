@@ -13,10 +13,17 @@ import { getCurrentMode,
 import { defaultCentre, homeButtonFunction, updateSaveRouteContainer } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
-import { formatDistance } from "../utils.js";
+import { createRouteCard, formatDistance, showError } from "../utils.js";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
+
+const routeNameEntry = document.getElementById("route-name");
+const routeETADisplay = document.getElementById("route-eta-display");
+const routeElevationDisplay = document.getElementById("route-elevation-change-display");
+
+let elevDisplayValue; 
+
 
 
 export function initSaveRoute() {
@@ -26,27 +33,15 @@ export function initSaveRoute() {
   }
 }
 
-function closeMessageDiv(messageDiv) {
-  setTimeout(() => {
-    messageDiv.style.display = 'none';
-  }, 3000);
-};
-
 function handleSaveRoute(e) {
   e.preventDefault();
 
+  try {
   const map = getMap();
-  const routeName = document.getElementById("route-name")?.value;
-  const format = document.getElementById("route-format")?.value;
-  const messageDiv = document.getElementById("save-message");
-  const eta = document.getElementById("route-eta-display")?.textContent;
-  const elevationChange = document.getElementById("route-elevation-change-display")?.textContent;
-  const allRoutesContainer = document.getElementById("all-routes-container");
+  const routeName = routeNameEntry?.value;
+  const eta = routeETADisplay?.textContent;
+  const elevationChange = routeElevationDisplay?.textContent
 
-
-  if (!messageDiv) return;
-
-  messageDiv.innerHTML = '<span style="color: blue;">Saving route...</span>';
 
   let pathCoordinates = [];
   const mode = getCurrentMode();
@@ -56,22 +51,26 @@ function handleSaveRoute(e) {
     pathCoordinates = getCurrentPathData() || getLoadedRouteCoordinates() || []; // coords in these arrays may now have elevation data
   }
 
-  console.log("Before normalisation:", pathCoordinates.slice(0, 3)); // debug
-
   pathCoordinates = normaliseCoordLength(pathCoordinates);
 
-  console.log("After normalisation:", pathCoordinates.slice(0, 3)); // debug
-
   if (pathCoordinates.length === 0) {
-    messageDiv.innerHTML =
-      '<span style="color: red;">No route data to save. Please create or load a route first.</span>';
-    return;
+    console.error("No coordinates found in pathCoords array")
+    showError("There was an error saving your route. Please try again later.");
+    return false;
   }
 
   const rawDistanceKm = getLastKnownDistanceKm();
 
-  if (rawDistanceKm === null || isNaN(rawDistanceKm)) {
-    messageDiv.innerHTML = '<span style="color: red;">No valid route distance to save.</span>';
+  if (rawDistanceKm === null || NaN(rawDistanceKm)) {
+    console.error("No valid route distance to save");
+    showError("There was an error saving your route. Please try again later.");
+    return false;
+  }
+  }
+  catch (e) {
+    console.error(`Error whilst saving route: ${e}`)
+    showError("There was an error saving your route. Please try again later.");
+    return false;
   }
 
   const url = window.appConfig.apiSaveRouteUrl;
@@ -87,6 +86,7 @@ function handleSaveRoute(e) {
   })
     .then((response) => {
       if (!response.ok) {
+        showError("There was an error saving your route. Please try again later.")
         return response.json().then((errorData) => {
           throw new Error(
             errorData.message ||
@@ -98,7 +98,6 @@ function handleSaveRoute(e) {
     })
     .then((data) => {
       if (data.success) {
-        messageDiv.innerHTML = `<span style="color: green;">✓ ${data.message}</span>`;
         const routeNameInput = document.getElementById("route-name");
         if (routeNameInput) routeNameInput.value = "";
 
@@ -109,46 +108,25 @@ function handleSaveRoute(e) {
           "month": "2-digit",
           "year": "2-digit"
         }).format(today);
+        
+        const elevNum = parseFloat(elevationChange);
+        const elevDisplayValue = isNaN(elevNum) ? "0m"
+        : (elevNum >= 0 ? `+${elevNum}m` : `${elevNum}m`)
 
-        const routeCard = `<div class="route-card" data-route-name="${routeName}">
-                              <div class="route-card-header">
-                                  <h3 class="route-card-name">${routeName}</h3>
-                                  <span class="route-card-date">Saved on ${formattedToday}</span>
-                              </div>
-                              <div class="route-card-stats">
-                                  <div class="stat-item">
-                                      <span class="stat-label">Distance:</span>
-                                      <span class="stat-value" data-distance-km="${rawDistanceKm}">${formatDistance(rawDistanceKm)}</span>
-                                  </div>
-                                  <div class="stat-item">
-                                      <span class="stat-label">ETA:</span>
-                                      <span class="stat-value">${eta}</span>
-                                  </div>
-                                  <div class="stat-item">
-                                      <span class="stat-label">Elevation Change:</span>
-                                      <span class="stat-value">${elevationChange}</span>
-                                  </div>
-                              </div>
-                              <div class="route-card-actions">
-                                  <button type="button" class="route-btn route-btn-delete">Delete</button>
-                                  <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
-                                  <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
-                                  <button type="button" class="route-btn route-btn-load">Load</button>
-                              </div>
-                          </div>
-                          `;
+        const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue)
+
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
         homeButtonFunction();
         updateSaveRouteContainer();
       } else {
-        messageDiv.innerHTML = `<span style="color: red;">${data.message}</span>`;
+        showError("There was an error saving your route. Please try again later.")
+        console.error(data.message)
+        return false;
       }
     })
     .catch((error) => {
-      messageDiv.innerHTML = `<span style="color: red;">Error saving route: ${error.message}</span>`;
+      showError("There was an error saving your route. Please try again later.")
       console.error("Error saving route:", error);
+      return false;
     })
-    .finally(() => {
-      closeMessageDiv(messageDiv);
-    }) 
 }
