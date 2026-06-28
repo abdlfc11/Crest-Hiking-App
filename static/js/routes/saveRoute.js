@@ -17,13 +17,9 @@ import { createRouteCard, formatDistance, showError } from "../utils.js";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
-
 const routeNameEntry = document.getElementById("route-name");
 const routeETADisplay = document.getElementById("route-eta-display");
 const routeElevationDisplay = document.getElementById("route-elevation-change-display");
-
-let elevDisplayValue; 
-
 
 
 export function initSaveRoute() {
@@ -36,36 +32,42 @@ export function initSaveRoute() {
 function handleSaveRoute(e) {
   e.preventDefault();
 
-  try {
-  const map = getMap();
-  const routeName = routeNameEntry?.value;
-  const eta = routeETADisplay?.textContent;
-  const elevationChange = routeElevationDisplay?.textContent
-
-
+  let elevDisplayValue; 
+  let routeName = "";
+  let eta = "";
+  let elevationChange = "";
   let pathCoordinates = [];
-  const mode = getCurrentMode();
-  if (mode === "manual" && manualRouteState.pathCoords.length > 0) {
-    pathCoordinates = manualRouteState.pathCoords;
-  } else {
-    pathCoordinates = getCurrentPathData() || getLoadedRouteCoordinates() || []; // coords in these arrays may now have elevation data
-  }
+  let rawDistanceKm;
 
-  pathCoordinates = normaliseCoordLength(pathCoordinates);
+  try {
+    const map = getMap();
+    routeName = routeNameEntry.value;
+    eta = routeETADisplay?.textContent;
+    elevationChange = routeElevationDisplay?.textContent
 
-  if (pathCoordinates.length === 0) {
-    console.error("No coordinates found in pathCoords array")
-    showError("There was an error saving your route. Please try again later.");
-    return false;
-  }
 
-  const rawDistanceKm = getLastKnownDistanceKm();
+    const mode = getCurrentMode();
+    if (mode === "manual" && manualRouteState.pathCoords.length > 0) {
+      pathCoordinates = manualRouteState.pathCoords;
+    } else {
+      pathCoordinates = getCurrentPathData() || getLoadedRouteCoordinates() || []; // coords in these arrays may now have elevation data
+    }
 
-  if (rawDistanceKm === null || NaN(rawDistanceKm)) {
-    console.error("No valid route distance to save");
-    showError("There was an error saving your route. Please try again later.");
-    return false;
-  }
+    pathCoordinates = normaliseCoordLength(pathCoordinates);
+
+    if (pathCoordinates.length === 0) {
+      console.error("No coordinates found in pathCoords array")
+      showError("There was an error saving your route. Please try again later.");
+      return false;
+    }
+
+    rawDistanceKm = getLastKnownDistanceKm();
+
+    if (rawDistanceKm === null || isNaN(rawDistanceKm)) {
+      console.error("No valid route distance to save");
+      showError("There was an error saving your route. Please try again later.");
+      return false;
+    }
   }
   catch (e) {
     console.error(`Error whilst saving route: ${e}`)
