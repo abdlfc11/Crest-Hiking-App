@@ -10,7 +10,8 @@ import {
   getRouteStrokeStyle,
   showError,
   addClickListener,
-  formatETA
+  formatETA,
+  removeDOMElement
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -121,6 +122,7 @@ const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-ope
 const closeSavedRoutesDashButton = document.getElementById('saved-routes-dash-go-back-button');
 const savedRoutesDashContent = document.getElementById('saved-routes-dashboard');
 const noRouteCreateButton = document.getElementById("no-route-create-button");
+const noRouteCreateDiv = document.getElementById('no-routes-wrapper');
 
 // setting panel
 const settingOpenButton = document.getElementById("settings-open-button");
@@ -333,6 +335,7 @@ export function  closeImportRoute() {
 
 async function handleRouteImport() {
   const selectedInputType = whichInputTypeSelected();
+  let routeName;
 
   if (selectedInputType === "file") {
     
@@ -354,6 +357,13 @@ async function handleRouteImport() {
       return false;
     }
 
+    if (!importRouteNameEntry.value) {
+      routeName = file.name;
+    }
+    else {
+      routeName = importRouteNameEntry.value;
+    };
+
     try {
       const response = await fetch('/save_route', {
         method: 'POST',
@@ -361,7 +371,7 @@ async function handleRouteImport() {
         body: JSON.stringify({
           coordinates: data.coords,
           type: "import",
-          route_name: file.name 
+          route_name: routeName 
         }),
       });
 
@@ -376,12 +386,14 @@ async function handleRouteImport() {
         return false;
       }
 
-      displayImportedRouteCard(result)
+      displayImportedRouteCard(result);
+      removeDOMElement(noRouteCreateDiv);
       cancelRouteImport();
       return true;
 
     } catch (err) {
       showError("Network error. Please try again.");
+      console.error(`Error whilst trying to save imported route: ${err}`)
       return false;
     }
   }
