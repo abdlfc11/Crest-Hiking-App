@@ -1249,6 +1249,9 @@ def import_route():
     """
     This function handles route file uploads for GPX, FIT, KML, and GeoJSON formats.
 
+    it received as parameters:
+        - route file
+
     it returns:
         JSON containing:
             success (bool)
