@@ -516,20 +516,6 @@ body {
 }
 
 
-#load-message, #save-message {
-    margin-top: 10px;
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-#load-message span, #save-message span {
-    display: block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-}
-
 /* Generate Button */
 #generate-path-button {
     position: relative;
@@ -585,27 +571,6 @@ select.coord-input:focus {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Message styling improvements */
-#load-message span[style*="color: green"],
-#save-message span[style*="color: green"] {
-    background: #d4edda;
-    border: 1px solid #c3e6cb;
-    color: #155724;
-}
-
-#load-message span[style*="color: red"],
-#save-message span[style*="color: red"] {
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
-}
-
-#load-message span[style*="color: blue"],
-#save-message span[style*="color: blue"] {
-    background: #d1ecf1;
-    border: 1px solid #bee5eb;
-    color: #0c5460;
-}
 
 /* Settings Modal */
 .settings-modal {
@@ -1170,9 +1135,4 @@ html.dark .mode-button:hover {
 
 html.dark .error-message {
     color: #f87171;
-}
-
-html.dark #save-message,
-html.dark #load-message {
-    color: #d1d5db;
 }
