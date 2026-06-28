@@ -1063,19 +1063,27 @@ def save_route():
                 elevation_change=metrics["elevation_gain_m"]
             )
 
+            route_info = {
+                "routeName": route_name,
+                "distanceKm": metrics["distance_km"],
+                "etaSeconds": metrics["eta_seconds"],
+                "elevationGainMetres": metrics["elevation_gain_m"],
+            }
+
             
             db.add(route)
             db.commit()
 
             return jsonify({
                 "success": True,
+                "route_info": route_info
             })
 
 
         except IntegrityError as e:
             db.rollback()
 
-            return jsonify({"success" : False, "message" : "Try again: a route already shares the same name"})
+            return jsonify({"success" : False,"message" : f"Error whilst saving route: {e}"})
 
 
         except Exception as e:
@@ -1279,7 +1287,10 @@ def import_route():
             for p in s.points
         ]
 
-        return jsonify({"success": True, "coords": points})
+        return jsonify({
+            "success": True,
+            "coords": points,
+        })
 
     # this handles FIT file types
     elif ext == "fit":
