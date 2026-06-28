@@ -74,7 +74,9 @@ import { displayImportedRouteCard, processImportedRouteFile } from "./importRout
 
 //#region VAR / CONST DECLARATIONS
 
-export const defaultCentre = [-357428, 7256794];
+export const defaultCentre = Array.isArray(window.appConfig?.mapInitialCenter)
+  ? window.appConfig.mapInitialCenter
+  : [-211507, 7118524];
 
 const searchForAreaButton = document.getElementById("search-for-area-button");
 const autoModeOption = document.getElementById("auto-mode-option");
@@ -208,17 +210,23 @@ function showCoordInputError(entry, message) {
   );
 }
 
+function setCoordInputActiveState(entry, isActive) {
+  entry.classList.toggle("is-active", isActive);
+}
+
 function setStartCoord() {
   clickMode = "setStart";
-  startCoordEntry.style.borderColor = "#5a76e7";
-  startCoordEntry.placeholder = "Click a point on the map"
+  setCoordInputActiveState(startCoordEntry, true);
+  setCoordInputActiveState(endCoordEntry, false);
+  startCoordEntry.placeholder = "Click a point on the map";
   updateCursor();
 }
 
 function setEndCoord() {
   clickMode = "setEnd";
-  endCoordEntry.style.borderColor = "#5a76e7";
-  endCoordEntry.placeholder = "Click a point on the map"
+  setCoordInputActiveState(startCoordEntry, false);
+  setCoordInputActiveState(endCoordEntry, true);
+  endCoordEntry.placeholder = "Click a point on the map";
   updateCursor();
 }
 
@@ -226,13 +234,10 @@ function setCoordEntry(entry, event) {
   const coordinate = event.coordinate;
   const rounded = roundCoords(coordinate, 0);
   entry.value = `${rounded[0]}, ${rounded[1]}`;
-  entry.placeholder = "Coordinates"
-  if (getTheme() === "dark") {
-    entry.style.borderColor = "#4b5563";
-  }
-  else {
-    entry.style.borderColor = "#e1cbcb"
-  }
+  entry.placeholder = "Coordinates";
+  entry.classList.remove("input-error");
+  setCoordInputActiveState(startCoordEntry, false);
+  setCoordInputActiveState(endCoordEntry, false);
   clickMode = null;
   updateCursor();
 }
@@ -1107,14 +1112,6 @@ function initPointDeleteHandlers() {
 // ##### LIGHT / DARK THEME #####
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
-  if (getTheme() === "dark") {
-    startCoordEntry.style.borderColor = "#4b5563";
-    endCoordEntry.style.borderColor = "#4b5563";
-  }
-  else {
-    startCoordEntry.style.borderColor = "#e1cbcb"
-    endCoordEntry.style.borderColor = "#e1cbcb"
-  }
   document.documentElement.classList.toggle("dark", effective === "dark");
 }
 

@@ -275,6 +275,10 @@ body {
     border: 1px solid #fc4646;
 }
 
+.coord-input.is-active {
+    border-color: #5a76e7;
+}
+
 .coord-button {
     padding: 8px 16px;
     background: #f1f5f9;
