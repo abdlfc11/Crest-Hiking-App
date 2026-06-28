@@ -1,4 +1,6 @@
-import { showError, addClickListener } from "./utils.js";
+import { showError, addClickListener, createRouteCard } from "./utils.js";
+
+const allRoutesContainer = document.getElementById("all-routes-container");
 
 export async function processImportedRouteFile(file) {
 
@@ -24,5 +26,21 @@ export async function processImportedRouteFile(file) {
         return data.message;
     }
 
+}
+
+export function displayImportedRouteCard(data) {
+
+    routeInfo = data.route_info;
+    const today = new Date();
+        
+    const formattedToday = new Intl.DateTimeFormat('en-GB', {
+    "day": "2-digit",
+    "month": "2-digit",
+    "year": "2-digit"
+    }).format(today);
+
+    const routeCard = createRouteCard(routeInfo.routeName, formattedToday, routeInfo.distanceKm, routeInfo.etaSeconds, routeInfo.elevationGainMetres);
+
+    if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);            
 }
 
