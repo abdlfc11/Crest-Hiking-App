@@ -67,7 +67,7 @@ import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
-import { processImportedRouteFile } from "./importRoute.js";
+import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
 
 //#endregion
 
@@ -376,6 +376,7 @@ async function handleRouteImport() {
         return false;
       }
 
+      displayImportedRouteCard(result)
       cancelRouteImport();
       return true;
 
