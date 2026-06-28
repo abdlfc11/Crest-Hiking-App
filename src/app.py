@@ -1337,15 +1337,57 @@ def import_route():
     # this handles geojson file types
     elif ext == "geojson":
         geo = json.loads(text)
-
         coords = []
+        geometries = []
 
-        # Expecting a LineString geometry
-        geom = geo.get("geometry", {})
-        if geom.get("type") == "LineString":
-            for lon, lat, *rest in geom.get("coordinates", []):
-                ele = rest[0] if rest else None
-                coords.append([lat, lon, ele])
+        """
+        
+        structure of geojson files is usually like the below: 
+
+        {{
+            "type": "FeatureCollection",
+                "features": [
+                    {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [[-1.8, 53.3, 250], [-1.8, 53.4, 260]]
+                    },
+                    "properties": {}
+                    }
+                ]
+            } 
+        """
+
+        # this extracts the object allowing us to use conditional logic to work towards the coords of the file
+        root_type = geo.get("type")
+
+        if root_type == "FeatureCollection":
+            for feature in geo.get("features", []):
+                if "geometry" in feature:
+                    geometries.append(feature["geometry"])
+        elif root_type == "Features":
+            if "geometry" in geo:
+                geometries.append(geo["geometry"])
+        else:
+            # this is if the root is geometry itself
+            geometries.append(geo)
+
+        # this is for processing LineString geometries
+        for geom in geometries:
+            if geom and geom.get("type") == "LineString":
+                for coord in geom.get("coordinates", []):
+                    # this unpacks the values from each coord
+
+                    if len(coord) <= 1:
+                        return jsonify({"success": False, "message": "Error whilst parsing GeoJSON: given coordinates have one value only"})
+
+                    lon = coord[0]
+                    lat = coord[1]
+                    ele = coord[2] if len(coord) > 2 else 0
+
+                    web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(lon, lat)
+                    coords.append([web_mercator_x, web_mercator_y, ele])
 
         return jsonify({"success": True, "coords": coords})
 
