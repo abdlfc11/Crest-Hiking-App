@@ -49,11 +49,6 @@
                         <label for="start-point-entry" class="coord-label">Start Coordinates</label>
                         <div class="coord-input-group">
                             <input type="text" id="start-point-entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start-points-list">
-                            <datalist id="start-points-list">
-                                {% for point in saved_points %}
-                                    <option value="{{ point.name }}"></option>
-                                {% endfor %}
-                            </datalist>
                             <button type="button" id="set-start-coord-button" class="coord-button set-start-end-coord">Set Start Point</button>
                         </div>
                     </div>
@@ -61,11 +56,6 @@
                         <label for="end-point-entry" class="coord-label">End Coordinates</label>
                         <div class="coord-input-group">
                             <input type="text" id="end-point-entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end-points-list">
-                            <datalist id="end-points-list">
-                                {% for point in saved_points %}
-                                    <option value="{{ point.name }}"></option>
-                                {% endfor %}
-                            </datalist>
                             <button type="button" id="set-end-coord-button" class="coord-button set-start-end-coord">Set End Point</button>
                         </div>
                     </div>
