@@ -1279,6 +1279,8 @@ def import_route():
         # Parse GPX XML
         gpx = gpxpy.parse(text)
 
+        converted_points = []
+
         # Extract all track points into [lat, lon, ele]
         points = [
             [p.latitude, p.longitude, p.elevation]
@@ -1287,9 +1289,17 @@ def import_route():
             for p in s.points
         ]
 
+        for point in points:
+            
+            lat, lon, ele = point[0], point[1], point[2]
+
+            web_mercator_coords = service.convert_wgs84_to_web_mercator(lon, lat)
+
+            converted_points.append([web_mercator_coords[0], web_mercator_coords[1], ele])
+
         return jsonify({
             "success": True,
-            "coords": points,
+            "coords": converted_points,
         })
 
     # this handles FIT file types
