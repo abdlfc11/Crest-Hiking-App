@@ -13,13 +13,15 @@ import { getCurrentMode,
 import { defaultCentre, homeButtonFunction, updateSaveRouteContainer } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
-import { createRouteCard, formatDistance, formatElevation, showError } from "../utils.js";
+import { createRouteCard, formatDistance, formatElevation, formatETA, removeDOMElement, showError } from "../utils.js";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
 const routeNameEntry = document.getElementById("route-name");
 const routeETADisplay = document.getElementById("route-eta-display");
 const routeElevationDisplay = document.getElementById("route-elevation-change-display");
+const noRouteCreateDiv = document.getElementById('no-routes-wrapper');
+
 
 
 export function initSaveRoute() {
@@ -103,6 +105,8 @@ function handleSaveRoute(e) {
         const routeNameInput = document.getElementById("route-name");
         if (routeNameInput) routeNameInput.value = "";
 
+        const routeInfo = data.route_info;
+
         const today = new Date();
 
         const formattedToday = new Intl.DateTimeFormat('en-GB', {
@@ -112,6 +116,10 @@ function handleSaveRoute(e) {
         }).format(today);
         
         elevDisplayValue = formatElevation(elevationChange);
+
+        eta = formatETA(routeInfo.eta_seconds);
+
+        if (noRouteCreateDiv) removeDOMElement(noRouteCreateDiv);        
 
         const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue)
 
