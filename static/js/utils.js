@@ -80,9 +80,9 @@ export function formatDistance(distanceKm) {
 export function calculateTotalDistance(points) {
   let totalDistance = 0;
   for (let i = 1; i < points.length; i++) {
-    const [x1, y1] = points[i - 1];
-    const [x2, y2] = points[i];
-    totalDistance += Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    const previous = ol.proj.toLonLat(points[i - 1]);
+    const current = ol.proj.toLonLat(points[i]);
+    totalDistance += ol.sphere.getDistance(previous, current)
   }
   return totalDistance;
 }

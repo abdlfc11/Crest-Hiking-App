@@ -79,9 +79,11 @@ export async function addManualPoint(x, y) {
 
   if (userClicks.length >= 3) {
     const thresholdDistance = 50;
-    const distanceX = end[0] - start[0];
-    const distanceY = end[1] - start[1];
-    const distance = Math.sqrt(distanceX ** 2 + distanceY ** 2);
+
+    const startLonLat = ol.proj.toLonLat(start);
+    const endLonLat = ol.proj.toLonLat(end);
+
+    const distance = ol.sphere.getDistance(startLonLat, endLonLat);
 
     if (distance < thresholdDistance) {
       finalClick = start;
