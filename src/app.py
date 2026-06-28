@@ -60,7 +60,8 @@ from config import Config
 
 
 # default map centre (web_mercator coordinates)
-default_centre = [-336884.09, 7254740.69]
+default_centre = [-200520.13, 7057812.24]
+
 
 app = Flask(__name__,
             template_folder='../templates',
@@ -1469,7 +1470,6 @@ def register_page():
 @app.route("/map")
 @limiter.exempt
 def map_view():
-    web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
 
     # gets list of available routes for the load dropdown
     user = get_current_user()
@@ -1505,8 +1505,8 @@ def map_view():
                     continue
             
             return render_template("map.html",
-                                map_centre = web_mercator_center,
-                                map_zoom = 10,
+                                map_centre = default_centre,
+                                map_zoom = 10.5,
                                 current_path = session.get('current_path', None),
                                 available_routes=available_routes,
                                 saved_points=web_mercator_points,
@@ -1519,7 +1519,6 @@ def map_view():
 @limiter.limit("200 per minute")
 def reset_view():
 
-    web_mercator_center = service.convert_bng_to_web_mercator(default_centre[0], default_centre[1])
 
     # gets list of available routes for the load dropdown
     user = get_current_user()
@@ -1544,7 +1543,7 @@ def reset_view():
             continue
     
     return render_template("map.html",
-                           map_centre = web_mercator_center,
+                           map_centre = default_centre,
                            map_zoom = 10,
                            current_path = session.get('current_path', None),
                            available_routes=available_routes,
