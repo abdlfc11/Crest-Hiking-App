@@ -35,6 +35,11 @@ export function initMap() {
 }
 
 function createMap() {
+  const initialCenter = Array.isArray(window.appConfig?.mapInitialCenter)
+    ? window.appConfig.mapInitialCenter
+    : [-211507, 7118524];
+  const initialZoom = window.appConfig?.mapInitialZoom ?? 10.5;
+
   map = new ol.Map({
     layers: [tileLayer],
     target: "map",
@@ -51,8 +56,8 @@ function createMap() {
       projection: "EPSG:3857",
       maxZoom: 17,
       minZoom: 0,
-      center: [-357428, 7256794],
-      zoom: 10.5,
+      center: initialCenter,
+      zoom: initialZoom,
     }),
   });
 }
