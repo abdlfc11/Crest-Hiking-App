@@ -343,31 +343,38 @@ async function handleRouteImport() {
   let routeName;
 
   if (selectedInputType === "file") {
-    
-    const file = importRouteFileInput.files[0];
 
-    if (!file) {
-      showError("Please select a file to import.");
-      return false;
+    try {
+      
+      const file = importRouteFileInput.files[0];
+
+      if (!file) {
+        showError("Please select a file to import.");
+        return false;
+      }
+
+      if (!validateFileInput()) {
+        return false;
+      }
+
+      const data = await processImportedRouteFile(file); 
+
+      if (!data || !data.coords) {
+        showError("Could not parse coordinates from file.");
+        return false;
+      }
+
+      if (!importRouteNameEntry.value) {
+        routeName = file.name;
+      }
+      else {
+        routeName = importRouteNameEntry.value;
+      };
     }
-
-    if (!validateFileInput()) {
-      return false;
+    catch (error) {
+      showError("There was an error on our end. Please try again later.")
+      console.error(`ERROR whilst importing route : ${error}`)
     }
-
-    const data = await processImportedRouteFile(file); 
-
-    if (!data || !data.coords) {
-      showError("Could not parse coordinates from file.");
-      return false;
-    }
-
-    if (!importRouteNameEntry.value) {
-      routeName = file.name;
-    }
-    else {
-      routeName = importRouteNameEntry.value;
-    };
 
     try {
       const response = await fetch('/save_route', {
@@ -397,7 +404,7 @@ async function handleRouteImport() {
       return true;
 
     } catch (err) {
-      showError("Network error. Please try again.");
+      showError("There was an error on our end. Please try again later.");
       console.error(`Error whilst trying to save imported route: ${err}`)
       return false;
     }
