@@ -341,6 +341,7 @@ export function  closeImportRoute() {
 async function handleRouteImport() {
   const selectedInputType = whichInputTypeSelected();
   let routeName;
+  let data; // this will store the return value of the flask route 'import_route_file', it is initialised first as if done so in the try statement then the next try statement cannot use it
 
   if (selectedInputType === "file") {
 
@@ -357,7 +358,7 @@ async function handleRouteImport() {
         return false;
       }
 
-      const data = await processImportedRouteFile(file); 
+      data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
         showError("Could not parse coordinates from file.");

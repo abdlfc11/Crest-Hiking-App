@@ -95,8 +95,11 @@ export function calculateEta(distanceKm) {
   const etaMinutesRemainder = etaMinutes % 60;
 
   if (etaHoursInt > 0) {
+    console.log(`DEBUG: ETA CALCULATED IS ${etaHoursInt} + ${etaMinutes}`)
     return `${etaHoursInt}h ${etaMinutesRemainder}m`;
   }
+
+  console.log(`DEBUG: ETA CALCULATED IS ${etaHoursInt} + ${etaMinutes}`)
   return `${etaMinutesRemainder}m`;
 }
 
