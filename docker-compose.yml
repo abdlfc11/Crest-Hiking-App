@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    image: postgres:16-alpine
     env_file:
       - path: example.env
         required: true
@@ -44,6 +44,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: crestr-pgadmin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASS}
+      PGADMIN_CONFIG_SERVER_MODE: '${PGADMIN_SERVER_MODE}'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: '${PGADMIN_MASTER_REQ}'
+    ports:
+      - "${PGADMIN_PORT}:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  pgadmin_data:
