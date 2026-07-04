@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/error-toast.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tours.css') }}" />
 </head>
 <body>
 
@@ -38,25 +41,27 @@
                 <button id="auto-home-button" class="home-button"><i data-lucide="rotate-ccw"></i></button>
             </div>
             <div class="coords-content" id="auto-mode-content">
-                    <div class="coord-row">
+                    <div id="search-row" class="coord-row">
                         <label for="search-entry" class="coord-label">Search for an Area</label>
                         <div class="coord-input-group">
                             <input type="text" id="search-entry" name="search-entry" placeholder="search here" class="coord-input">
                             <button type="button" id="search-for-area-button" class="coord-button">Search</button>
                         </div>
                     </div>
-                    <div class="coord-row">
-                        <label for="start-point-entry" class="coord-label">Start Coordinates</label>
-                        <div class="coord-input-group">
-                            <input type="text" id="start-point-entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start-points-list">
-                            <button type="button" id="set-start-coord-button" class="coord-button set-start-end-coord">Set Start Point</button>
+                    <div id="coordinates-area">
+                        <div class="coord-row">
+                            <label for="start-point-entry" class="coord-label">Start Coordinates</label>
+                            <div class="coord-input-group">
+                                <input type="text" id="start-point-entry" name="start_point" placeholder="Coordinates" required class="coord-input" list="start-points-list">
+                                <button type="button" id="set-start-coord-button" class="coord-button set-start-end-coord">Set Start Point</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="coord-row">
-                        <label for="end-point-entry" class="coord-label">End Coordinates</label>
-                        <div class="coord-input-group">
-                            <input type="text" id="end-point-entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end-points-list">
-                            <button type="button" id="set-end-coord-button" class="coord-button set-start-end-coord">Set End Point</button>
+                        <div class="coord-row">
+                            <label for="end-point-entry" class="coord-label">End Coordinates</label>
+                            <div class="coord-input-group">
+                                <input type="text" id="end-point-entry" name="end_point" placeholder="Coordinates" required class="coord-input" list="end-points-list">
+                                <button type="button" id="set-end-coord-button" class="coord-button set-start-end-coord">Set End Point</button>
+                            </div>
                         </div>
                     </div>
 
