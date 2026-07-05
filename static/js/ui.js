@@ -318,12 +318,24 @@ export function closeNav() {
 
 function openSavedRoutesDash() {
   savedRoutesDashContent.style.width = "100vw";
+
+  const driverObjSaveRouteDash = driver({
+    popoverClass: 'app-tour-theme',
+    steps: [
+      {
+        popover: {
+          title: 'Saved Routes',
+          description: 'Here you can view your saved routes where you can download routes in either GeoJSON or GPX, load them, or delete them.'
+        }
+      }
+    ]
+  })
+
+  driverObjSaveRouteDash.drive();
 };
 
 export function closeSavedRoutesDash() {
   savedRoutesDashContent.style.width = "0";
-  // this reasserts the correct cursor now that the map is fully visible again.
-  forceApplyCursor();
 };
 
 function openSettings() {
@@ -336,6 +348,48 @@ export function closeSettings() {
 
 function openImportRoute() {
   importRoutePanel.style.width = "100vw";
+
+  const driverObjImportRoute = driver({
+    popoverClass: 'app-tour-theme',
+    steps: [
+      {
+        popover: {
+          title: 'Importing Routes',
+          description: 'This is where you can import any of your own routes.'
+        }
+      },
+      {
+        element: '#import-route-import-method-row',
+        popover: {
+          title: 'Importing Routes',
+          description: 'You can choose to import your routes via your saved files or via a public URL.'
+        }
+      },
+      {
+        element: '#import-route-name-route-row',
+        popover: {
+          title: 'Importing Routes',
+          description: 'It is recommended that you name the imported route, otherwise it will be saved as the filename and date it was saved.'
+        }
+      },
+      {
+        element: '#import-route-cancel-button',
+        popover: {
+          title: 'Importing Routes',
+          description: 'Click here if you no longer wish to import your route.'
+        }
+      },
+      {
+        element: '#import-route-submit-button',
+        popover: {
+          title: 'Importing Routes',
+          description: 'Click here to import your route once you are finished.'
+        }
+      }
+    ]
+  })
+  
+  driverObjImportRoute.drive();
 };
 
 export function  closeImportRoute() {
@@ -1113,6 +1167,32 @@ const driverObj1 = driver({
   }
 });
 
+const driverObjManualRouting = driver({
+  popoverClass: 'app-tour-theme',
+  steps: [
+    {
+      popover: {
+        title: 'Manual Routing',
+        description: 'Click on the map to plot points, with statistics being dynamically generated with each point'
+      }
+    },
+    {
+      element: '#manual-routing-actions',
+      popover: {
+        title: 'Routing',
+        description: 'Here you can Undo or Redo a point, as well as clear your route.'
+      }
+    },
+    {
+      element: '#manual-routing-header',
+      popover: {
+        title: 'Actions',
+        description: 'Here you can open the menu, or reset the view of the map.'
+      }
+    }
+  ]
+})
+
 function transitionToNextTour() {
   handleAutoRouteGeneration('-209579, 7053648', '-202103, 7051314');
 
@@ -1147,32 +1227,6 @@ function transitionToNextTour() {
     driverObj2.drive();
   }, 1500);
 }
-
-const driverObjManualRouting = driver({
-  popoverClass: 'app-tour-theme',
-  steps: [
-    {
-      popover: {
-        title: 'Manual Routing',
-        description: 'Click on the map to plot points, with statistics being dynamically generated with each point'
-      }
-    },
-    {
-      element: '#manual-routing-actions',
-      popover: {
-        title: 'Routing',
-        description: 'Here you can Undo or Redo a point, as well as clear your route.'
-      }
-    },
-    {
-      element: '#manual-routing-header',
-      popover: {
-        title: 'Actions',
-        description: 'Here you can open the menu, or reset the view of the map.'
-      }
-    }
-  ]
-})
 
 
 //#endregion
