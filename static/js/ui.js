@@ -570,6 +570,7 @@ function switchToManualMode() {
   map.un("click", mapClickHandler);
   map.on("click", manualRouteClickHandler);
   clearAutoRoute();
+  driverObjManualRouting.drive();
 };
 
 //#endregion
@@ -1147,7 +1148,32 @@ function transitionToNextTour() {
   }, 1500);
 }
 
-driverObj1.drive();
+const driverObjManualRouting = driver({
+  popoverClass: 'app-tour-theme',
+  steps: [
+    {
+      popover: {
+        title: 'Manual Routing',
+        description: 'Click on the map to plot points, with statistics being dynamically generated with each point'
+      }
+    },
+    {
+      element: '#manual-routing-actions',
+      popover: {
+        title: 'Routing',
+        description: 'Here you can Undo or Redo a point, as well as clear your route.'
+      }
+    },
+    {
+      element: '#manual-routing-header',
+      popover: {
+        title: 'Actions',
+        description: 'Here you can open the menu, or reset the view of the map.'
+      }
+    }
+  ]
+})
+
 
 //#endregion
 
