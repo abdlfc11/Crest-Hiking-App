@@ -69,6 +69,7 @@ import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
+import { createAutomaticRoutingTour, createImportRoutePanelTour, createSavedRouteDashboardTour, createSavingRoutesTour } from "./tours/tours.js";
 
 //#endregion
 
@@ -151,6 +152,12 @@ const routeInputTypes = document.querySelectorAll('input[name="import-route-meth
 const fileInputType = document.getElementById('file-route-input-type');
 const URLInputType = document.getElementById('url-route-input-type')
 
+// driver.js tours
+let savedRouteDashTourDriver;
+let manualRoutingTourDriver;
+let importRouteTourDriver;
+let automaticRoutingTourDriver;
+let savingRoutesTourDriver;
 
 
 // this is an array of allowed file types for route import
@@ -319,19 +326,9 @@ export function closeNav() {
 function openSavedRoutesDash() {
   savedRoutesDashContent.style.width = "100vw";
 
-  const driverObjSaveRouteDash = driver({
-    popoverClass: 'app-tour-theme',
-    steps: [
-      {
-        popover: {
-          title: 'Saved Routes',
-          description: 'Here you can view your saved routes where you can download routes in either GeoJSON or GPX, load them, or delete them.'
-        }
-      }
-    ]
-  })
+  savedRouteDashTourDriver = createSavedRouteDashboardTour();
 
-  driverObjSaveRouteDash.drive();
+  savedRouteDashTourDriver.drive();
 };
 
 export function closeSavedRoutesDash() {
@@ -349,47 +346,9 @@ export function closeSettings() {
 function openImportRoute() {
   importRoutePanel.style.width = "100vw";
 
-  const driverObjImportRoute = driver({
-    popoverClass: 'app-tour-theme',
-    steps: [
-      {
-        popover: {
-          title: 'Importing Routes',
-          description: 'This is where you can import any of your own routes.'
-        }
-      },
-      {
-        element: '#import-route-import-method-row',
-        popover: {
-          title: 'Importing Routes',
-          description: 'You can choose to import your routes via your saved files or via a public URL.'
-        }
-      },
-      {
-        element: '#import-route-name-route-row',
-        popover: {
-          title: 'Importing Routes',
-          description: 'It is recommended that you name the imported route, otherwise it will be saved as the filename and date it was saved.'
-        }
-      },
-      {
-        element: '#import-route-cancel-button',
-        popover: {
-          title: 'Importing Routes',
-          description: 'Click here if you no longer wish to import your route.'
-        }
-      },
-      {
-        element: '#import-route-submit-button',
-        popover: {
-          title: 'Importing Routes',
-          description: 'Click here to import your route once you are finished.'
-        }
-      }
-    ]
-  })
-  
-  driverObjImportRoute.drive();
+  importRouteTourDriver = createImportRoutePanelTour();
+
+  importRouteTourDriver.drive();
 };
 
 export function  closeImportRoute() {
@@ -1135,101 +1094,24 @@ function closeSaveRouteContainer() {
 
 //#region DRIVER.JS
 
-const driver = window.driver.js.driver;
-
-const driverObj1 = driver({
-  popoverClass: 'app-tour-theme',
-  steps: [
-    {
-      element: '#search-row',
-      popover: {
-        title: 'The search bar',
-        description: 'Here you can enter locations which move the map to those locations.'
-      }
-    },
-    {
-      element: '#coordinates-area',
-      popover: {
-        title: 'Entering coordinates',
-        description: 'Here you can enter locations which move the map to those locations.'
-      }
-    },
-    {
-      element: '#generate-path-button',
-      popover: {
-        title: 'Creating a path',
-        description: 'Pressing this button will generate the path using the coordinates you entered.'
-      }
-    }
-  ],
-  onDestroyed: () => {
-    transitionToNextTour();
-  }
-});
-
-const driverObjManualRouting = driver({
-  popoverClass: 'app-tour-theme',
-  steps: [
-    {
-      popover: {
-        title: 'Manual Routing',
-        description: 'Click on the map to plot points, with statistics being dynamically generated with each point'
-      }
-    },
-    {
-      element: '#manual-routing-actions',
-      popover: {
-        title: 'Routing',
-        description: 'Here you can Undo or Redo a point, as well as clear your route.'
-      }
-    },
-    {
-      element: '#manual-routing-header',
-      popover: {
-        title: 'Actions',
-        description: 'Here you can open the menu, or reset the view of the map.'
-      }
-    }
-  ]
-})
-
-function transitionToNextTour() {
-  handleAutoRouteGeneration('-209579, 7053648', '-202103, 7051314');
+async function handleSaveRouteTour() {
+  await handleAutoRouteGeneration('-209579, 7053648', '-202103, 7051314');
 
   setTimeout(() => {
-    const driverObj2 = driver({
-      popoverClass: 'app-tour-theme',
-      steps: [
-        {
-          element: '#save-route-button-container',
-          popover: {
-            title: 'Saving Your Route',
-            description: 'Click here to open a panel to save this route.'
-          }
-        },
-        {
-          element: '#route-stats',
-          popover: {
-            title: 'Route Statistics',
-            description: "Here you can view key details of your route such as it's distance, elevation change and time taken to complete."
-          }
-        },
-        {
-          element: '#toggle-elevation-chart',
-          popover: {
-            title: 'Elevation Profile',
-            description: 'Pressing this button will open a panel showing you an elevation profile of your route.'
-          }
-        }
-      ]
-    });
+    savingRoutesTourDriver = createSavingRoutesTour(homeButtonFunction);
 
-    driverObj2.drive();
+    savingRoutesTourDriver.drive();
   }, 1500);
 }
 
+automaticRoutingTourDriver = createAutomaticRoutingTour(handleSaveRouteTour);
+
+automaticRoutingTourDriver.drive()
+
 
 //#endregion
+
+//#region DELETING POINTS
 
 function showPointDeleteDialog(show) {
   if (!deletePointConfirmationDialog) return;
@@ -1286,6 +1168,8 @@ function initPointDeleteHandlers() {
     showPointDeleteDialog(false),
   );
 }
+
+//#endregion
 
 // ##### LIGHT / DARK THEME #####
 export function applyTheme(theme) {
