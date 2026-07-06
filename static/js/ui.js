@@ -69,7 +69,7 @@ import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
-import { createAutomaticRoutingTour, createImportRoutePanelTour, createSavedRouteDashboardTour, createSavingRoutesTour } from "./tours/tours.js";
+import { createAutomaticRoutingTour, createImportRoutePanelTour, createManualRoutingTour, createSavedRouteDashboardTour, createSavingRoutesTour, createSettingsTour } from "./tours/tours.js";
 
 //#endregion
 
@@ -326,9 +326,15 @@ export function closeNav() {
 function openSavedRoutesDash() {
   savedRoutesDashContent.style.width = "100vw";
 
-  savedRouteDashTourDriver = createSavedRouteDashboardTour();
+  if (!localStorage.getItem('seenSavedRouteDashTour')) {
+    const savedRouteDashTourDriver = createSavedRouteDashboardTour();
 
-  savedRouteDashTourDriver.drive();
+    savedRouteDashTourDriver.drive();
+
+    localStorage.setItem('seenSavedRouteDashTour', 'True')
+    return;
+  }
+  return;
 };
 
 export function closeSavedRoutesDash() {
@@ -337,6 +343,16 @@ export function closeSavedRoutesDash() {
 
 function openSettings() {
   settingPanel.style.width = "100vw";
+
+  if (!localStorage.getItem('seenSettingsTour')) {
+    const settingsTourDriver = createSettingsTour();
+
+    settingsTourDriver.drive();
+
+    localStorage.setItem('seenSettingsTour', 'True')
+    return;
+  }
+  return;
 };
 
 export function closeSettings() {
@@ -346,9 +362,15 @@ export function closeSettings() {
 function openImportRoute() {
   importRoutePanel.style.width = "100vw";
 
-  importRouteTourDriver = createImportRoutePanelTour();
+  if (!localStorage.getItem('seenImportRouteTour')) {
+    const importRouteTourDriver = createImportRoutePanelTour();
 
-  importRouteTourDriver.drive();
+    importRouteTourDriver.drive();
+
+    localStorage.setItem('seenImportRouteTour', 'True')
+    return;
+  }
+  return;
 };
 
 export function  closeImportRoute() {
@@ -583,7 +605,15 @@ function switchToManualMode() {
   map.un("click", mapClickHandler);
   map.on("click", manualRouteClickHandler);
   clearAutoRoute();
-  driverObjManualRouting.drive();
+
+  if (!localStorage.getItem('seenManualRoutingTour')) {
+    manualRoutingTourDriver = createManualRoutingTour();
+
+    manualRoutingTourDriver.drive();
+
+    localStorage.setItem('seenManualRoutingTour', 'True')
+  }
+  return;
 };
 
 //#endregion
@@ -1104,10 +1134,22 @@ async function handleSaveRouteTour() {
   }, 1500);
 }
 
-automaticRoutingTourDriver = createAutomaticRoutingTour(handleSaveRouteTour);
 
-automaticRoutingTourDriver.drive()
 
+function handleInitialTour() {
+
+  if (!localStorage.getItem('seenInitialTour')) {
+    automaticRoutingTourDriver = createAutomaticRoutingTour(handleSaveRouteTour);
+
+    automaticRoutingTourDriver.drive();
+
+    localStorage.setItem('seenInitialTour', "True")
+    return;
+  }
+  return
+}
+
+handleInitialTour();
 
 //#endregion
 
