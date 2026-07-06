@@ -106,6 +106,20 @@ export function createAutomaticRoutingTour(onTourEnd) {
             }
             },
             {
+            element: '#auto-open-nav-button',
+            popover: {
+                title: 'The Menu',
+                description: 'Pressing this button will let you navigate between settings, importing routes and your saved routes dashboard.'
+            }
+            },
+            {
+            element: '#auto-home-button',
+            popover: {
+                title: 'Resetting the view',
+                description: 'Pressing this button will take you to the centre of the Lake District, and clear all inputs.'
+            }
+            },
+            {
             element: '#mode-toggle',
             popover: {
                 title: 'Switching modes',
