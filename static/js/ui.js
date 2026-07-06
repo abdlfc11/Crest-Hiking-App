@@ -69,6 +69,7 @@ import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
 import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
+import { createAutomaticRoutingTour, createImportRoutePanelTour, createManualRoutingTour, createSavedRouteDashboardTour, createSavingRoutesTour, createSettingsTour } from "./tours/tours.js";
 
 //#endregion
 
@@ -78,24 +79,31 @@ export const defaultCentre = Array.isArray(window.appConfig?.mapInitialCenter)
   ? window.appConfig.mapInitialCenter
   : [-211507, 7118524];
 
-const searchForAreaButton = document.getElementById("search-for-area-button");
 const autoModeOption = document.getElementById("auto-mode-option");
 const manualModeOption = document.getElementById("manual-mode-option");
+
 const setStartCoordButton = document.getElementById("set-start-coord-button");
 const setEndCoordButton = document.getElementById("set-end-coord-button");
+
 const autoOpenNavButton = document.getElementById("auto-open-nav-button");
 const manualOpenNavButton = document.getElementById("manual-open-nav-button");
 const closeNavButton = document.getElementById("close-nav-button");
+
 const autoHomeButton = document.getElementById("auto-home-button");
 const manualHomeButton = document.getElementById("manual-home-button");
+
 const generatePathButton = document.getElementById("generate-path-button");
+
 const clearAutoRouteButton = document.getElementById("clear-auto-route-button");
 const clearManualRouteButton = document.getElementById("clear-manual-route");
+
 const undoManualRouteButton = document.getElementById("undo-manual-route");
 const redoManualRouteButton = document.getElementById("redo-manual-route");
 
-const mapElement = document.getElementById("map");
 const searchEntry = document.getElementById("search-entry");
+const searchForAreaButton = document.getElementById("search-for-area-button");
+
+const mapElement = document.getElementById("map");
 const startCoordEntry = document.getElementById("start-point-entry");
 const endCoordEntry = document.getElementById("end-point-entry");
 
@@ -144,6 +152,12 @@ const routeInputTypes = document.querySelectorAll('input[name="import-route-meth
 const fileInputType = document.getElementById('file-route-input-type');
 const URLInputType = document.getElementById('url-route-input-type')
 
+// driver.js tours
+let savedRouteDashTourDriver;
+let manualRoutingTourDriver;
+let importRouteTourDriver;
+let automaticRoutingTourDriver;
+let savingRoutesTourDriver;
 
 
 // this is an array of allowed file types for route import
@@ -192,6 +206,7 @@ function checkIfMobile() {
   }
 }
 
+// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
 function noRouteCreateFunction() {
   closeNav()
   closeSavedRoutesDash()
@@ -310,16 +325,34 @@ export function closeNav() {
 
 function openSavedRoutesDash() {
   savedRoutesDashContent.style.width = "100vw";
+
+  if (!localStorage.getItem('seenSavedRouteDashTour')) {
+    const savedRouteDashTourDriver = createSavedRouteDashboardTour();
+
+    savedRouteDashTourDriver.drive();
+
+    localStorage.setItem('seenSavedRouteDashTour', 'True')
+    return;
+  }
+  return;
 };
 
 export function closeSavedRoutesDash() {
   savedRoutesDashContent.style.width = "0";
-  // this reasserts the correct cursor now that the map is fully visible again.
-  forceApplyCursor();
 };
 
 function openSettings() {
   settingPanel.style.width = "100vw";
+
+  if (!localStorage.getItem('seenSettingsTour')) {
+    const settingsTourDriver = createSettingsTour();
+
+    settingsTourDriver.drive();
+
+    localStorage.setItem('seenSettingsTour', 'True')
+    return;
+  }
+  return;
 };
 
 export function closeSettings() {
@@ -328,6 +361,16 @@ export function closeSettings() {
 
 function openImportRoute() {
   importRoutePanel.style.width = "100vw";
+
+  if (!localStorage.getItem('seenImportRouteTour')) {
+    const importRouteTourDriver = createImportRoutePanelTour();
+
+    importRouteTourDriver.drive();
+
+    localStorage.setItem('seenImportRouteTour', 'True')
+    return;
+  }
+  return;
 };
 
 export function  closeImportRoute() {
@@ -562,6 +605,15 @@ function switchToManualMode() {
   map.un("click", mapClickHandler);
   map.on("click", manualRouteClickHandler);
   clearAutoRoute();
+
+  if (!localStorage.getItem('seenManualRoutingTour')) {
+    manualRoutingTourDriver = createManualRoutingTour();
+
+    manualRoutingTourDriver.drive();
+
+    localStorage.setItem('seenManualRoutingTour', 'True')
+  }
+  return;
 };
 
 //#endregion
@@ -603,6 +655,7 @@ export function clearAutoRoute() {
   if (endCoordEntry) endCoordEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveContainer) saveContainer.style.display = "none";
+  closeSaveRouteContainer();
   
 };
 
@@ -620,6 +673,7 @@ export function clearManualRoute() {
   document.getElementById("route-stats")?.remove();
 
   if (saveContainer) saveContainer.style.display = "none";
+  closeSaveRouteContainer();
 
   clearPathState();
   getRouteLayer()?.getSource().clear();
@@ -640,6 +694,7 @@ export function homeButtonFunction() {
   clearManualRoute();
   clearAutoRoute();
   clearLastLoadedRouteStats();
+  closeSaveRouteContainer()
 
   const layersToRemove = [];
   map.getLayers().forEach((layer) => {
@@ -716,9 +771,11 @@ async function mapRenderComplete() {
 
 //#region ROUTING
 
-async function handleAutoRouteGeneration() {
-  const startPoint = startCoordEntry?.value ?? "";
-  const endPoint = endCoordEntry?.value ?? "";
+async function handleAutoRouteGeneration(start=null, end=null) {
+  const startPoint = start || startCoordEntry?.value || "";
+  const endPoint = end || endCoordEntry?.value || "";
+
+  console.log(`startPoint is ${startPoint}`)
 
   if (validateInputCoords(startPoint, endPoint) !== true) return;
 
@@ -1046,20 +1103,57 @@ export function updateSaveRouteContainer() {
   const isOpen = saveRouteToggleButton.classList.toggle("opened");
 
     if (isOpen) {
-        saveRouteButtonContainer.style.width = "17.5rem";
-        saveRouteDiv.style.width = "17.5rem"
         saveRouteDiv.style.height = "12.625rem";
-        saveRouteButtonContainer.style.right = "13rem"
     } else {
-        saveRouteButtonContainer.style.width = "9rem";
         saveRouteDiv.style.height = "0px";
-        saveRouteDiv.style.width = "9rem"
-        saveRouteButtonContainer.style.right = "3rem";
     }
 };
 
+function closeSaveRouteContainer() {
+  const isOpen = saveRouteToggleButton.classList.contains('opened')
+
+  if (!isOpen) {
+    return true;
+  };
+
+  saveRouteToggleButton.classList.remove('opened')
+  return true;
+}
+
 //#endregion
 
+//#region DRIVER.JS
+
+async function handleSaveRouteTour() {
+  await handleAutoRouteGeneration('-209579, 7053648', '-202103, 7051314');
+
+  setTimeout(() => {
+    savingRoutesTourDriver = createSavingRoutesTour(homeButtonFunction);
+
+    savingRoutesTourDriver.drive();
+  }, 1500);
+}
+
+
+
+function handleInitialTour() {
+
+  if (!localStorage.getItem('seenInitialTour')) {
+    automaticRoutingTourDriver = createAutomaticRoutingTour(handleSaveRouteTour);
+
+    automaticRoutingTourDriver.drive();
+
+    localStorage.setItem('seenInitialTour', "True")
+    return;
+  }
+  return
+}
+
+handleInitialTour();
+
+//#endregion
+
+//#region DELETING POINTS
 
 function showPointDeleteDialog(show) {
   if (!deletePointConfirmationDialog) return;
@@ -1116,6 +1210,8 @@ function initPointDeleteHandlers() {
     showPointDeleteDialog(false),
   );
 }
+
+//#endregion
 
 // ##### LIGHT / DARK THEME #####
 export function applyTheme(theme) {
@@ -1197,7 +1293,8 @@ function handleDistanceUnitToggle() {
   }
 };
 
-// INITIALISATION OF EVENT LISTENERS + DOM ELEMENTS
+
+//#region EVENT LISTENERS
 
 export function initUi() {
   const map = getMap();
@@ -1245,7 +1342,7 @@ export function initUi() {
   addClickListener(manualModeOption, switchToManualMode, "click");
 
   // These event listeners are for automatic route generation.
-  addClickListener(generatePathButton, handleAutoRouteGeneration, "click");
+  generatePathButton.addEventListener("click", () => handleAutoRouteGeneration());
   addClickListener(clearAutoRouteButton, clearAutoRoute, "click");
   addClickListener(searchForAreaButton, searchArea, "click");
   addClickListener(setStartCoordButton, setStartCoord, "click");
@@ -1285,3 +1382,6 @@ export function initUi() {
     setCursor("grabbing");
   });
 }
+
+
+//#endregion
