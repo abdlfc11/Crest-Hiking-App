@@ -1652,10 +1652,10 @@ def delete_route():
 
 # GENERAL MAP ROUTES
 
-@app.route("/")
+@app.route('/')
 @limiter.exempt
-def main_page():
-    return render_template("main.html")
+def root_url():
+    return redirect(url_for('map_view'))
 
 @app.route('/beta-page', methods=["GET"])
 @limiter.exempt
