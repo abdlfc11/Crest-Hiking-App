@@ -296,12 +296,13 @@ def delete_account():
 
                 new_error = ActionLog(
                     action="Deleting Account",
-                    information=e,
+                    info=e,
                     outcome=False,
                     error_code='FAILED_ACCOUNT_DELETION'
                 )
 
                 db.add(new_error)
+                db.commit()
 
                 return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
@@ -339,12 +340,13 @@ def get_settings():
     except Exception as error:
         new_error = ActionLog(
                     action="Getting Settings",
-                    information=error,
+                    info=error,
                     outcome=False,
                     error_code='FAILED_GET_SETTINGS'
                 )
 
         db.add(new_error)
+        db.commit()
         return jsonify({"success": False, "message": "There was an error whilst retrieving settings"}), 500
 
 @app.route("/save_settings", methods=["POST"]) 
@@ -397,12 +399,13 @@ def save_settings():
 
         new_error = ActionLog(
                     action="Saving Settings",
-                    information=error,
+                    info=error,
                     outcome=False,
                     error_code='FAILED_SAVE_SETTINGS'
                 )
 
         db.add(new_error)
+        db.commit()
 
         return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
 #endregion
@@ -501,12 +504,13 @@ class NodeFinder:
 
         if not path:
             print("Pathfinding failed")
-            return None, None, None
+            return None, None, None, None
 
         end_time = time.time()
-        print(f"The route took {end_time - start_time:.3f} seconds to build.")
         
-        return path, start_node, end_node
+        time_taken = round(end_time - start_time, 3) * 1000 
+        
+        return path, start_node, end_node, time_taken
 
     def calculate_route_distance(self, path):
         # Calculates total distance of the route in true meters
@@ -922,12 +926,13 @@ def calculate_path():
 
             new_error = ActionLog(
                     action="Calculating Path",
-                    information=e,
+                    info=e,
                     outcome=False,
                     error_code='NO_PATH_CREATED'
                 )
 
             db.add(new_error)
+            db.commit()
 
             
         return jsonify({
@@ -938,7 +943,7 @@ def calculate_path():
         })
 
     # Build the route using the Web Mercator coordinates
-    path, start_node, end_node = service.build_route(s_x, s_y, e_x, e_y)
+    path, start_node, end_node, time_taken = service.build_route(s_x, s_y, e_x, e_y)
 
     if not path:  
         with Session(engine) as db:
@@ -953,12 +958,13 @@ def calculate_path():
             
             new_error = ActionLog(
                     action="Calculating Path",
-                    information='No path could be created',
+                    info='No path could be created',
                     outcome=False,
                     error_code='NO_PATH_FOUND'
                 )
 
             db.add(new_error)
+            db.commit()
             
             return jsonify({
                 "success": False,
@@ -966,6 +972,19 @@ def calculate_path():
                 "available_routes": available_routes,
                 "message": "No path could be created"
             })
+    
+    with Session(engine) as db:
+        
+        new_error = ActionLog(
+                        action="Calculating Path",
+                        info="Successful Generation",
+                        duration_ms=time_taken,
+                        outcome=True,
+                        error_code='PATH_CREATED'
+                    )
+
+        db.add(new_error)
+        db.commit()
 
     web_mercator_coordinates = [] 
     
@@ -1073,12 +1092,13 @@ def save_point():
         
             new_error = ActionLog(
                         action="Saving Point",
-                        information=e,
+                        info=e,
                         outcome=False,
                         error_code='FAILED_SAVING_POINT'
                     )
 
             db.add(new_error)
+            db.commit()
 
         return jsonify({"success": False, "message": "Failed to save point."}), 500
 
@@ -1140,12 +1160,13 @@ def save_route():
 
             new_error = ActionLog(
                     action="Saving Route",
-                    information=e,
+                    info=e,
                     outcome=False,
                     error_code='FAILED_SAVE_ROUTE'
                 )
 
             db.add(new_error)
+            db.commit()
 
             return jsonify({"success" : False,"message" : "There was an error saving your route. "})
 
@@ -1155,12 +1176,13 @@ def save_route():
             
             new_error = ActionLog(
                     action="Saving Route",
-                    information=e,
+                    info=e,
                     outcome=False,
                     error_code='FAILED_SAVE_ROUTE'
                 )
 
             db.add(new_error)
+            db.commit()
 
             return jsonify({"success": False, "message": "There was an error saving your route. "})
     
@@ -1219,12 +1241,13 @@ def load_route():
                 
                 new_error = ActionLog(
                     action="Loading Route",
-                    information="No coordinates found in the route",
+                    info="No coordinates found in the route",
                     outcome=False,
                     error_code='FAILED_LOAD_ROUTE'
                 )
 
                 db.add(new_error)
+                db.commit()
 
                 return jsonify({"success": False, "message": "No valid coordinates found in route file"})
             
@@ -1267,12 +1290,13 @@ def load_route():
             
             new_error = ActionLog(
                     action="Loading Route",
-                    information=e,
+                    info=e,
                     outcome=False,
                     error_code='FAILED_LOAD_ROUTE'
                 )
 
             db.add(new_error)
+            db.commit()
 
             return jsonify({"success": False, "message": "The route could not be loaded"})
 
@@ -1310,12 +1334,13 @@ def download_route():
 
             new_error = ActionLog(
                     action="Downloading Route",
-                    information="Route not found",
+                    info="Route not found",
                     outcome=False,
                     error_code='FAILED_DOWNLOAD_ROUTE'
                 )
 
             db.add(new_error)
+            db.commit()
 
             return jsonify({"success": False, "message": "Route not found or you don't own it"}), 404
 
@@ -1347,12 +1372,13 @@ def download_route():
 
             new_error = ActionLog(
                     action="Downloading Route",
-                    information=e,
+                    info=e,
                     outcome=False,
                     error_code='FAILED_DOWNLOAD_ROUTE'
                 )
 
             db.add(new_error)
+            db.commit()
             return jsonify({"success": False, "message": "Failed to download route"}), 500
 
 @app.route("/import_route_file", methods=["POST"])
@@ -1378,12 +1404,13 @@ def import_route():
 
             new_error = ActionLog(
                         action="Importing Route",
-                        information="Uploaded file could not be retrieved",
+                        info="Uploaded file could not be retrieved",
                         outcome=False,
                         error_code='FAILED_IMPORT_ROUTE'
                     )
 
             db.add(new_error)
+            db.commit()
 
         return jsonify({"success": False, "message": "Cannot receive uploaded file"}), 400
     
@@ -1520,12 +1547,13 @@ def import_route():
 
             new_error = ActionLog(
                         action="Importing Route",
-                        information=e,
+                        info=e,
                         outcome=False,
                         error_code='FAILED_IMPORT_ROUTE'
                     )
 
             db.add(new_error)
+            db.commit()
 
 
 
@@ -1558,12 +1586,13 @@ def get_saved_points():
 
                 new_error = ActionLog(
                             action="Getting saved points",
-                            information=e,
+                            info=e,
                             outcome=False,
                             error_code='FAILED_GET_SAVED_POINT'
                         )
 
                 db.add(new_error)
+                db.commit()
             continue
     
 
@@ -1705,12 +1734,13 @@ def map_view():
             
             new_error = ActionLog(
                         action="Loading Map",
-                        information=error,
+                        info=error,
                         outcome=False,
                         error_code='FAILED_LOAD_MAP'
                     )
 
             db.add(new_error)
+            db.commit()
 
             return jsonify({"success": False, "message": f"Error whilst getting map: {error}"})
 
@@ -1755,12 +1785,13 @@ def reset_view():
 
             new_error = ActionLog(
                         action="Reseting View",
-                        information=error,
+                        info=error,
                         outcome=False,
                         error_code='FAILED_RESET_VIEW'
                     )
 
             db.add(new_error)
+            db.commit()
 
 @app.route("/search_area", methods=["POST"])
 @limiter.limit("10 per minute")
@@ -1807,12 +1838,13 @@ def search_area():
 
             new_error = ActionLog(
                         action="Searching for area",
-                        information=error,
+                        info=error,
                         outcome=False,
                         error_code='FAILED_SEARCH_FOR_AREA'
                     )
 
             db.add(new_error)
+            db.commit()
 
 
 

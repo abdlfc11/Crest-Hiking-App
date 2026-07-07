@@ -94,7 +94,7 @@ class ActionLog(SQLModel, table=True):
     
     action: str = Field(nullable=False, max_length=100)  # e.g. 'pathfind_request', 'route_export'
 
-    information: str = Field(nullable=True) # e.g Exceptions within try/catch statements 
+    info: str = Field(nullable=True) # e.g Exceptions within try/catch statements 
     
     outcome: bool = Field(nullable=False) # true = success | false = fail
     
