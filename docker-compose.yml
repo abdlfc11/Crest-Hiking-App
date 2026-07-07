@@ -17,7 +17,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
   web:
     build: .
-    command: flask run --host=0.0.0.0 --port=5000 --debug 
+    command: gunicorn -c src/gunicorn.config.py src.app:app
     volumes:
       # this mounts the entire src (backend python flask / FastAPI) folder
       - ./src:/app/src
@@ -30,9 +30,8 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - FLASK_DEBUG=1
-      - LOAD_GRAPH_ON_IMPORT=0 
-      - FLASK_ENV=development
+      - GUNICORN_WORKERS=2 
+      - GUNICORN_LOG_LEVEL=info
       - PYTHONPATH=/app/src
     ports:
       - "5000:5000"
