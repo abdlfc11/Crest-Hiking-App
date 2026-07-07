@@ -5,7 +5,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Text, Column, func
 from datetime import timezone, datetime
 from typing import Optional, List
-from sqlalchemy.dialects.postgresql import TIMESTAMPTZ
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 
 # DB MODELS
@@ -93,6 +93,8 @@ class ActionLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     
     action: str = Field(nullable=False, max_length=100)  # e.g. 'pathfind_request', 'route_export'
+
+    information: str = Field(nullable=True) # e.g Exceptions within try/catch statements 
     
     outcome: bool = Field(nullable=False) # true = success | false = fail
     
@@ -102,7 +104,7 @@ class ActionLog(SQLModel, table=True):
     
     created_at: datetime = Field(
         sa_column=Column(
-            TIMESTAMPTZ,
+            TIMESTAMP,
             nullable=False,
             server_default=func.now()
         )
