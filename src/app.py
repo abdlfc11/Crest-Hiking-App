@@ -60,7 +60,7 @@ from config import Config
 
 
 # default map centre (web_mercator coordinates)
-default_centre = [-200520.13, 7057812.24]
+default_centre = [-352077.83, 7393439.46]
 
 
 app = Flask(__name__,
