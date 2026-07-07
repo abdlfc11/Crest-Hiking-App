@@ -1136,7 +1136,7 @@ async function handleSaveRouteTour() {
 
 
 
-function handleInitialTour() {
+export function handleInitialTour() {
 
   if (!localStorage.getItem('seenInitialTour')) {
     automaticRoutingTourDriver = createAutomaticRoutingTour(handleSaveRouteTour);
@@ -1146,10 +1146,9 @@ function handleInitialTour() {
     localStorage.setItem('seenInitialTour', "True")
     return;
   }
-  return
+  return;
 }
 
-handleInitialTour();
 
 //#endregion
 
@@ -1308,6 +1307,10 @@ export function initUi() {
   initPointDeleteHandlers();
 
   updateSavedRouteCards();
+
+
+  // initial tour (automatic routing and saving the first route)
+  handleInitialTour();
 
   // These event listeners are for settings and preferences.
   setOnDistanceUnitChange(() => handleDistanceUnitToggle());

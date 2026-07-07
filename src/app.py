@@ -28,7 +28,7 @@ from sqlmodel import Session, select, delete
 from sqlalchemy.exc import IntegrityError
 
 from db import engine
-from models import User, Route, Point, Settings, BetaCode
+from models import User, Route, Point, Settings, BetaCode, ActionLog
 
 # These imports are for data processing.
 import pickle as pkl
@@ -293,7 +293,17 @@ def delete_account():
                 return jsonify({"success": True, "message": "Successfully deleted your account"})
             except Exception as e:
                 db.rollback()
-                print("ERROR:", e)
+
+                new_error = ActionLog(
+                    action="Deleting Account",
+                    info=e,
+                    outcome=False,
+                    error_code='FAILED_ACCOUNT_DELETION'
+                )
+
+                db.add(new_error)
+                db.commit()
+
                 return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
 
@@ -328,7 +338,15 @@ def get_settings():
             }), 200
 
     except Exception as error:
-        print("ERROR WHILE RETRIEVING SETTINGS: ", error)
+        new_error = ActionLog(
+                    action="Getting Settings",
+                    info=error,
+                    outcome=False,
+                    error_code='FAILED_GET_SETTINGS'
+                )
+
+        db.add(new_error)
+        db.commit()
         return jsonify({"success": False, "message": "There was an error whilst retrieving settings"}), 500
 
 @app.route("/save_settings", methods=["POST"]) 
@@ -378,7 +396,17 @@ def save_settings():
 
     except Exception as error:
         db.rollback()
-        print("ERROR WHILE SAVING SETTINGS: ", error)
+
+        new_error = ActionLog(
+                    action="Saving Settings",
+                    info=error,
+                    outcome=False,
+                    error_code='FAILED_SAVE_SETTINGS'
+                )
+
+        db.add(new_error)
+        db.commit()
+
         return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
 #endregion
 
@@ -476,12 +504,13 @@ class NodeFinder:
 
         if not path:
             print("Pathfinding failed")
-            return None, None, None
+            return None, None, None, None
 
         end_time = time.time()
-        print(f"The route took {end_time - start_time:.3f} seconds to build.")
         
-        return path, start_node, end_node
+        time_taken = round(end_time - start_time, 3) * 1000 
+        
+        return path, start_node, end_node, time_taken
 
     def calculate_route_distance(self, path):
         # Calculates total distance of the route in true meters
@@ -894,6 +923,18 @@ def calculate_path():
                 ).all()
             else:
                 available_routes = []
+
+            new_error = ActionLog(
+                    action="Calculating Path",
+                    info=e,
+                    outcome=False,
+                    error_code='NO_PATH_CREATED'
+                )
+
+            db.add(new_error)
+            db.commit()
+
+            
         return jsonify({
             "success": False,
             "map_centre": default_centre,
@@ -902,7 +943,7 @@ def calculate_path():
         })
 
     # Build the route using the Web Mercator coordinates
-    path, start_node, end_node = service.build_route(s_x, s_y, e_x, e_y)
+    path, start_node, end_node, time_taken = service.build_route(s_x, s_y, e_x, e_y)
 
     if not path:  
         with Session(engine) as db:
@@ -914,12 +955,36 @@ def calculate_path():
                 ).all()
             else:
                 available_routes = []
+            
+            new_error = ActionLog(
+                    action="Calculating Path",
+                    info='No path could be created',
+                    outcome=False,
+                    error_code='NO_PATH_FOUND'
+                )
+
+            db.add(new_error)
+            db.commit()
+            
             return jsonify({
                 "success": False,
                 "map_centre": default_centre,
                 "available_routes": available_routes,
                 "message": "No path could be created"
             })
+    
+    with Session(engine) as db:
+        
+        new_error = ActionLog(
+                        action="Calculating Path",
+                        info="Successful Generation",
+                        duration_ms=time_taken,
+                        outcome=True,
+                        error_code='PATH_CREATED'
+                    )
+
+        db.add(new_error)
+        db.commit()
 
     web_mercator_coordinates = [] 
     
@@ -1022,11 +1087,20 @@ def save_point():
         return jsonify({"success": False, "message": "Invalid coordinate format. Coordinates must be numbers."}), 400
         
     except Exception as e:
-        # catches pyproj errors and sends 500 response
-        error_message = f"Server Error: {type(e).__name__}: {e}"
-        print(f"Server Error in /save_point route: {error_message}")
-        # 500 so the rejection promise can be fetched
-        return jsonify({"success": False, "message": error_message}), 500
+
+        with Session(engine) as db: 
+        
+            new_error = ActionLog(
+                        action="Saving Point",
+                        info=e,
+                        outcome=False,
+                        error_code='FAILED_SAVING_POINT'
+                    )
+
+            db.add(new_error)
+            db.commit()
+
+        return jsonify({"success": False, "message": "Failed to save point."}), 500
 
 
 # flask-route which is used to save a route that has been passed into the backend into the PostgreSQL database 
@@ -1084,12 +1158,33 @@ def save_route():
         except IntegrityError as e:
             db.rollback()
 
-            return jsonify({"success" : False,"message" : f"Error whilst saving route: {e}"})
+            new_error = ActionLog(
+                    action="Saving Route",
+                    info=e,
+                    outcome=False,
+                    error_code='FAILED_SAVE_ROUTE'
+                )
+
+            db.add(new_error)
+            db.commit()
+
+            return jsonify({"success" : False,"message" : "There was an error saving your route. "})
 
 
         except Exception as e:
             db.rollback()
-            return jsonify({"success": False, "message": f"Error processing request: {str(e)}"})
+            
+            new_error = ActionLog(
+                    action="Saving Route",
+                    info=e,
+                    outcome=False,
+                    error_code='FAILED_SAVE_ROUTE'
+                )
+
+            db.add(new_error)
+            db.commit()
+
+            return jsonify({"success": False, "message": "There was an error saving your route. "})
     
 
 
@@ -1143,6 +1238,17 @@ def load_route():
                         web_mercator_coordinates.append([web_x, web_y, 0])
 
             if not web_mercator_coordinates:
+                
+                new_error = ActionLog(
+                    action="Loading Route",
+                    info="No coordinates found in the route",
+                    outcome=False,
+                    error_code='FAILED_LOAD_ROUTE'
+                )
+
+                db.add(new_error)
+                db.commit()
+
                 return jsonify({"success": False, "message": "No valid coordinates found in route file"})
             
             # converts coordinates to geojson format for display
@@ -1180,7 +1286,18 @@ def load_route():
                 "route_stats": route_stats
             })
         
-        except Exception:
+        except Exception as e:
+            
+            new_error = ActionLog(
+                    action="Loading Route",
+                    info=e,
+                    outcome=False,
+                    error_code='FAILED_LOAD_ROUTE'
+                )
+
+            db.add(new_error)
+            db.commit()
+
             return jsonify({"success": False, "message": "The route could not be loaded"})
 
 
@@ -1214,6 +1331,17 @@ def download_route():
         
         # ensures that a route is found before attempting to convert
         if not route:
+
+            new_error = ActionLog(
+                    action="Downloading Route",
+                    info="Route not found",
+                    outcome=False,
+                    error_code='FAILED_DOWNLOAD_ROUTE'
+                )
+
+            db.add(new_error)
+            db.commit()
+
             return jsonify({"success": False, "message": "Route not found or you don't own it"}), 404
 
         print(route.coordinates)
@@ -1241,8 +1369,17 @@ def download_route():
             )
 
         except Exception as e:
-            print(f"Error whilst downloading {route_name}:", e)
-            return jsonify({"success": False, "message": "Failed to generate file"}), 500
+
+            new_error = ActionLog(
+                    action="Downloading Route",
+                    info=e,
+                    outcome=False,
+                    error_code='FAILED_DOWNLOAD_ROUTE'
+                )
+
+            db.add(new_error)
+            db.commit()
+            return jsonify({"success": False, "message": "Failed to download route"}), 500
 
 @app.route("/import_route_file", methods=["POST"])
 def import_route():
@@ -1262,134 +1399,161 @@ def import_route():
     uploaded_file = request.files.get("route_file")
 
     if not uploaded_file:
+
+        with Session(engine) as db:
+
+            new_error = ActionLog(
+                        action="Importing Route",
+                        info="Uploaded file could not be retrieved",
+                        outcome=False,
+                        error_code='FAILED_IMPORT_ROUTE'
+                    )
+
+            db.add(new_error)
+            db.commit()
+
         return jsonify({"success": False, "message": "Cannot receive uploaded file"}), 400
     
-    # this extracts the filename and file extension
-    filename = uploaded_file.filename
-    ext = filename.rsplit('.', 1)[-1].lower()
-
-    # this validates the supported formats 
-    if ext not in ["gpx", "fit", "kml", "geojson"]:
-        return jsonify({"success": False, "message": "Please upload a file of the supported types"}), 400
+    try: 
     
-    # this reads raw bytes (works for both binary + text formats) for FIT file type
-    raw = uploaded_file.read()
+        # this extracts the filename and file extension
+        filename = uploaded_file.filename
+        ext = filename.rsplit('.', 1)[-1].lower()
 
-    # this decodes text formats (GPX, KML, GeoJSON) 
-    text = raw.decode("utf-8", errors="ignore")
-
-    # this handles GPX file types
-    if ext == "gpx":
-        # Parse GPX XML
-        gpx = gpxpy.parse(text)
-
-        converted_points = []
-
-        # Extract all track points into [lat, lon, ele]
-        points = [
-            [p.latitude, p.longitude, p.elevation]
-            for t in gpx.tracks
-            for s in t.segments
-            for p in s.points
-        ]
-
-        for point in points:
-            
-            lat, lon, ele = point[0], point[1], point[2]
-
-            web_mercator_coords = service.convert_wgs84_to_web_mercator(lon, lat)
-
-            converted_points.append([web_mercator_coords[0], web_mercator_coords[1], ele])
-
-        return jsonify({
-            "success": True,
-            "coords": converted_points,
-        })
-
-    # this handles FIT file types
-    elif ext == "fit":
-        coords = []
-        fitfile = FitFile(raw)
-
-        for record in fitfile.get_messages("record"):
-            lat = record.get_value("position_lat")
-            lon = record.get_value("position_long")
-
-            # Skip missing coordinate records
-            if lat is None or lon is None:
-                continue
-
-            # FIT stores coordinates in semicircles → convert to degrees
-            lat_deg = lat * (180 / 2**31)
-            lon_deg = lon * (180 / 2**31)
-
-            coords.append([lat_deg, lon_deg])
-
-        return jsonify({"success": True, "coords": coords})
-
-    # this handles KML file types
-    elif ext == "kml":
-        uploaded_file.stream.seek(0);
-        doc = KML.parse(uploaded_file.stream, strict=False)
-        coords = extract_kml_coords(doc)
-        return jsonify({"success": True, "coords": coords})
-
-    # this handles geojson file types
-    elif ext == "geojson":
-        geo = json.loads(text)
-        coords = []
-        geometries = []
-
-        """
+        # this validates the supported formats 
+        if ext not in ["gpx", "fit", "kml", "geojson"]:
+            return jsonify({"success": False, "message": "Please upload a file of the supported types"}), 400
         
-        structure of geojson files is usually like the below: 
+        # this reads raw bytes (works for both binary + text formats) for FIT file type
+        raw = uploaded_file.read()
 
-        {{
-            "type": "FeatureCollection",
-                "features": [
-                    {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [[-1.8, 53.3, 250], [-1.8, 53.4, 260]]
-                    },
-                    "properties": {}
-                    }
-                ]
-            } 
-        """
+        # this decodes text formats (GPX, KML, GeoJSON) 
+        text = raw.decode("utf-8", errors="ignore")
 
-        # this extracts the object allowing us to use conditional logic to work towards the coords of the file
-        root_type = geo.get("type")
+        # this handles GPX file types
+        if ext == "gpx":
+            # Parse GPX XML
+            gpx = gpxpy.parse(text)
 
-        if root_type == "FeatureCollection":
-            for feature in geo.get("features", []):
-                if "geometry" in feature:
-                    geometries.append(feature["geometry"])
-        elif root_type == "Features":
-            if "geometry" in geo:
-                geometries.append(geo["geometry"])
-        else:
-            # this is if the root is geometry itself
-            geometries.append(geo)
+            converted_points = []
 
-        # this is for processing LineString geometries
-        for geom in geometries:
-            if geom and geom.get("type") == "LineString":
-                for coord in geom.get("coordinates", []):
-                    # this unpacks the values from each coord
+            # Extract all track points into [lat, lon, ele]
+            points = [
+                [p.latitude, p.longitude, p.elevation]
+                for t in gpx.tracks
+                for s in t.segments
+                for p in s.points
+            ]
 
-                    if len(coord) <= 1:
-                        return jsonify({"success": False, "message": "Error whilst parsing GeoJSON: given coordinates have one value only"})
+            for point in points:
+                
+                lat, lon, ele = point[0], point[1], point[2]
 
-                    lon = coord[0]
-                    lat = coord[1]
-                    ele = coord[2] if len(coord) > 2 else 0
+                web_mercator_coords = service.convert_wgs84_to_web_mercator(lon, lat)
 
-                    web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(lon, lat)
-                    coords.append([web_mercator_x, web_mercator_y, ele])
+                converted_points.append([web_mercator_coords[0], web_mercator_coords[1], ele])
 
-        return jsonify({"success": True, "coords": coords})
+            return jsonify({
+                "success": True,
+                "coords": converted_points,
+            })
+
+        # this handles FIT file types
+        elif ext == "fit":
+            coords = []
+            fitfile = FitFile(raw)
+
+            for record in fitfile.get_messages("record"):
+                lat = record.get_value("position_lat")
+                lon = record.get_value("position_long")
+
+                # Skip missing coordinate records
+                if lat is None or lon is None:
+                    continue
+
+                # FIT stores coordinates in semicircles → convert to degrees
+                lat_deg = lat * (180 / 2**31)
+                lon_deg = lon * (180 / 2**31)
+
+                coords.append([lat_deg, lon_deg])
+
+            return jsonify({"success": True, "coords": coords})
+
+        # this handles KML file types
+        elif ext == "kml":
+            uploaded_file.stream.seek(0);
+            doc = KML.parse(uploaded_file.stream, strict=False)
+            coords = extract_kml_coords(doc)
+            return jsonify({"success": True, "coords": coords})
+
+        # this handles geojson file types
+        elif ext == "geojson":
+            geo = json.loads(text)
+            coords = []
+            geometries = []
+
+            """
+            
+            structure of geojson files is usually like the below: 
+
+            {{
+                "type": "FeatureCollection",
+                    "features": [
+                        {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [[-1.8, 53.3, 250], [-1.8, 53.4, 260]]
+                        },
+                        "properties": {}
+                        }
+                    ]
+                } 
+            """
+
+            # this extracts the object allowing us to use conditional logic to work towards the coords of the file
+            root_type = geo.get("type")
+
+            if root_type == "FeatureCollection":
+                for feature in geo.get("features", []):
+                    if "geometry" in feature:
+                        geometries.append(feature["geometry"])
+            elif root_type == "Features":
+                if "geometry" in geo:
+                    geometries.append(geo["geometry"])
+            else:
+                # this is if the root is geometry itself
+                geometries.append(geo)
+
+            # this is for processing LineString geometries
+            for geom in geometries:
+                if geom and geom.get("type") == "LineString":
+                    for coord in geom.get("coordinates", []):
+                        # this unpacks the values from each coord
+
+                        if len(coord) <= 1:
+                            return jsonify({"success": False, "message": "Error whilst parsing GeoJSON: given coordinates have one value only"})
+
+                        lon = coord[0]
+                        lat = coord[1]
+                        ele = coord[2] if len(coord) > 2 else 0
+
+                        web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(lon, lat)
+                        coords.append([web_mercator_x, web_mercator_y, ele])
+
+            return jsonify({"success": True, "coords": coords})
+    except Exception as e:
+        with Session(engine) as db:
+
+            new_error = ActionLog(
+                        action="Importing Route",
+                        info=e,
+                        outcome=False,
+                        error_code='FAILED_IMPORT_ROUTE'
+                    )
+
+            db.add(new_error)
+            db.commit()
 
 
 
@@ -1418,7 +1582,17 @@ def get_saved_points():
                 "coordinates": [web_mercator_x, web_mercator_y]
             })
         except Exception as e:
-            print(f"Skipping points due to conversion error: {e}")
+            with Session(engine) as db:
+
+                new_error = ActionLog(
+                            action="Getting saved points",
+                            info=e,
+                            outcome=False,
+                            error_code='FAILED_GET_SAVED_POINT'
+                        )
+
+                db.add(new_error)
+                db.commit()
             continue
     
 
@@ -1557,6 +1731,17 @@ def map_view():
                                 saved_points=web_mercator_points,
                                 logged_in = (user is not None))
         except Exception as error:
+            
+            new_error = ActionLog(
+                        action="Loading Map",
+                        info=error,
+                        outcome=False,
+                        error_code='FAILED_LOAD_MAP'
+                    )
+
+            db.add(new_error)
+            db.commit()
+
             return jsonify({"success": False, "message": f"Error whilst getting map: {error}"})
 
 
@@ -1564,74 +1749,102 @@ def map_view():
 @limiter.limit("200 per minute")
 def reset_view():
 
+    try: 
+        # gets list of available routes for the load dropdown
+        user = get_current_user()
+        if user is None:
+            available_routes = []
+            saved_points = []
+        else:
+            available_routes = Route.query.filter_by(user_id=user.id).all()
+            saved_points = Point.query.filter_by(user_id=user.id).all()
 
-    # gets list of available routes for the load dropdown
-    user = get_current_user()
-    if user is None:
-        available_routes = []
-        saved_points = []
-    else:
-        available_routes = Route.query.filter_by(user_id=user.id).all()
-        saved_points = Point.query.filter_by(user_id=user.id).all()
+        web_mercator_points = []
+        for point in saved_points:
+            try:
+                bng_x, bng_y = json.loads(point.coordinates)
+                web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
+                web_mercator_points.append({
+                    "name": point.name,
+                    "coordinates": [web_mercator_x, web_mercator_y]
+                })
+            except Exception as e:
+                print(f"Error in conversion: {e}")
+                continue
+        
+        return render_template("map.html",
+                            map_centre = default_centre,
+                            map_zoom = 10,
+                            current_path = session.get('current_path', None),
+                            available_routes=available_routes,
+                            saved_points=web_mercator_points,
+                            logged_in = (user is not None)) 
+    except Exception as error:
 
-    web_mercator_points = []
-    for point in saved_points:
-        try:
-            bng_x, bng_y = json.loads(point.coordinates)
-            web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-            web_mercator_points.append({
-                "name": point.name,
-                "coordinates": [web_mercator_x, web_mercator_y]
-            })
-        except Exception as e:
-            print(f"Error in conversion: {e}")
-            continue
-    
-    return render_template("map.html",
-                           map_centre = default_centre,
-                           map_zoom = 10,
-                           current_path = session.get('current_path', None),
-                           available_routes=available_routes,
-                           saved_points=web_mercator_points,
-                           logged_in = (user is not None)) 
+        with Session(engine) as db:
+
+            new_error = ActionLog(
+                        action="Reseting View",
+                        info=error,
+                        outcome=False,
+                        error_code='FAILED_RESET_VIEW'
+                    )
+
+            db.add(new_error)
+            db.commit()
 
 @app.route("/search_area", methods=["POST"])
 @limiter.limit("10 per minute")
 def search_area():
-    data = request.get_json()
-    search_input = data.get("search_input")
-    query_parameters = {
-        'key': locationiq_api_key,
-        'q': search_input,
-        'format': 'json',
-        'countrycodes': 'gb'
-    }
 
-    response = requests.get("https://eu1.locationiq.com/v1/search", params=query_parameters)
-    results = response.json()
+    try: 
 
-    if isinstance(results, list) and len(results) > 0:
+        data = request.get_json()
+        search_input = data.get("search_input")
+        query_parameters = {
+            'key': locationiq_api_key,
+            'q': search_input,
+            'format': 'json',
+            'countrycodes': 'gb'
+        }
 
-        first_result = results[0]
+        response = requests.get("https://eu1.locationiq.com/v1/search", params=query_parameters)
+        results = response.json()
 
-        latitude = first_result.get("lat")
-        longitude = first_result.get("lon")
+        if isinstance(results, list) and len(results) > 0:
 
-        print(f"Latitude: {latitude}\nLongitude: {longitude}")
+            first_result = results[0]
 
-        web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(longitude, latitude)
+            latitude = first_result.get("lat")
+            longitude = first_result.get("lon")
 
-        coords = [web_mercator_x, web_mercator_y]
+            print(f"Latitude: {latitude}\nLongitude: {longitude}")
 
-        print(coords)
+            web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(longitude, latitude)
 
-        return jsonify({
-            "success": True,
-            "coordinates": coords,
-            "display_name": first_result.get("display_name")
-        })
-    else:
-        return jsonify({"success": False, "message": "Could not find area"})
+            coords = [web_mercator_x, web_mercator_y]
+
+            print(coords)
+
+            return jsonify({
+                "success": True,
+                "coordinates": coords,
+                "display_name": first_result.get("display_name")
+            })
+        else:
+            return jsonify({"success": False, "message": "Could not find area"})
+    except Exception as error:
+        with Session(engine) as db:
+
+            new_error = ActionLog(
+                        action="Searching for area",
+                        info=error,
+                        outcome=False,
+                        error_code='FAILED_SEARCH_FOR_AREA'
+                    )
+
+            db.add(new_error)
+            db.commit()
 
 
 

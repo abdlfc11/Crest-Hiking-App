@@ -2,9 +2,10 @@
 
 # IMPORTS
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Text, Column
+from sqlalchemy import Text, Column, func
 from datetime import timezone, datetime
 from typing import Optional, List
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 
 # DB MODELS
@@ -84,5 +85,29 @@ class BetaCode(SQLModel, table=True):
     code: str = Field(unique=True, index=True, nullable=False)
     used: bool = Field(nullable=False, default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ERROR LOGGING TABLE
+class ActionLog(SQLModel, table=True):
+    __tablename__ = "action_log"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    
+    action: str = Field(nullable=False, max_length=100)  # e.g. 'pathfind_request', 'route_export'
+
+    info: str = Field(nullable=True) # e.g Exceptions within try/catch statements 
+    
+    outcome: bool = Field(nullable=False) # true = success | false = fail
+    
+    duration_ms: Optional[int] = Field(default=None, nullable=True) # for measurable statistics 
+    
+    error_code: Optional[str] = Field(default=None, nullable=True, max_length=50) # for easy identification 
+    
+    created_at: datetime = Field(
+        sa_column=Column(
+            TIMESTAMP,
+            nullable=False,
+            server_default=func.now()
+        )
+    )
 
 
