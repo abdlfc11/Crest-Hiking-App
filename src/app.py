@@ -1139,10 +1139,10 @@ def save_route():
             )
 
             route_info = {
-                "routeName": route_name,
-                "distanceKm": metrics["distance_km"],
-                "etaSeconds": metrics["eta_seconds"],
-                "elevationGainMetres": metrics["elevation_gain_m"],
+                "route_name": route_name,
+                "distance_km": metrics["distance_km"],
+                "eta_seconds": metrics["eta_seconds"],
+                "elevation_gain_metres": metrics["elevation_gain_m"],
             }
 
             
@@ -1168,7 +1168,7 @@ def save_route():
             db.add(new_error)
             db.commit()
 
-            return jsonify({"success" : False,"message" : "There was an error saving your route. "})
+            return jsonify({"success" : False, "message" : "There was an error saving your route. "})
 
 
         except Exception as e:
