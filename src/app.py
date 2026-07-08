@@ -1140,9 +1140,13 @@ def save_route():
 
             route_info = {
                 "route_name": route_name,
+                "routeName": route_name,
                 "distance_km": metrics["distance_km"],
+                "distanceKm": metrics["distance_km"],
                 "eta_seconds": metrics["eta_seconds"],
+                "etaSeconds": metrics["eta_seconds"],
                 "elevation_gain_metres": metrics["elevation_gain_m"],
+                "elevationGainMetres": metrics["elevation_gain_m"],
             }
 
             
