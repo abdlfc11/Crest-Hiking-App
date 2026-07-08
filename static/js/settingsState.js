@@ -147,3 +147,11 @@ export function getTheme() {
   }
   return currentTheme
 } 
+
+/**
+ * returns the correct distance at the time of calling 
+ * @returns {string} # a string of the distance unit which is either km or miles  
+ */
+export function getDistanceUnit() {
+  return appSettings.distanceUnit;
+}

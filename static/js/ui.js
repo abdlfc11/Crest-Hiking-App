@@ -1290,6 +1290,8 @@ function handleDistanceUnitToggle() {
   else if (getLastLoadedRouteStats) {
     displayLoadedRouteStats(getLastLoadedRouteStats());
   }
+  initChartToggleListener();
+  createElevationProfile();
 };
 
 
