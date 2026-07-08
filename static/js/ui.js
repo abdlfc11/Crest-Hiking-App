@@ -1291,7 +1291,13 @@ function handleDistanceUnitToggle() {
     displayLoadedRouteStats(getLastLoadedRouteStats());
   }
   initChartToggleListener();
-  createElevationProfile();
+
+  const coords =
+    manualRouteState.pathCoords.length > 1
+      ? manualRouteState.pathCoords
+      : (getCurrentPathData() || getLoadedRouteCoordinates());
+
+  if (coords && coords.length > 1) createElevationProfile(coords);
 };
 
 
