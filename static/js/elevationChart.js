@@ -73,8 +73,8 @@ export function createElevationProfile(coordinates) {
     const fill = isDark ? "rgba(37,99,235,0.25)" : "rgba(37,99,235,0.15)";
 
     // distance unit strings
-    const distanceLabel = getDistanceUnit() === "km" ? "Distance (km)" : "Distance (miles)";
-    const distanceExtension = getDistanceUnit() === "km" ? " km" : " miles";
+    const distanceLabel = distanceUnit === "km" ? "Distance (km)" : "Distance (miles)";
+    const distanceExtension = distanceUnit === "km" ? " km" : " miles";
 
 
 
