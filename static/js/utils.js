@@ -176,11 +176,11 @@ export function removeDOMElement(element) {
 
 /**
  * 
- * @param {string} elevationChange this is a string such as "938.0" or "-329.0"
+ * @param {string|number} elevationChange usually this is a string such as "938.0" or "-329.0" however the possibility of an int / float being passed is accounted for
  * @returns {string} this is a string which has been formated to add a + or leave the string unchanged if it is negative 
  */
 export function formatElevation(elevationChange) {
-  const elevNum = parseFloat(elevationChange);
+  const elevNum = isNaN(elevationChange) ? parseFloat(elevationChange) : elevationChange;
   const elevDisplayValue = isNaN(elevNum) ? "0m" : (elevNum >= 0 ? `+${elevNum}m` : `${elevNum}m`)
 
   return elevDisplayValue

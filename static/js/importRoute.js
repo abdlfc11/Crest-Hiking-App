@@ -39,9 +39,9 @@ export function displayImportedRouteCard(data) {
     "year": "2-digit"
     }).format(today);
 
-    const formattedETA = formatETA(routeInfo.etaSeconds);
+    const formattedETA = formatETA(routeInfo.eta_seconds);
 
-    const routeCard = createRouteCard(routeInfo.routeName, formattedToday, routeInfo.distanceKm, formattedETA, routeInfo.elevationGainMetres);
+    const routeCard = createRouteCard(routeInfo.route_name, formattedToday, routeInfo.distance_km, formattedETA, routeInfo.elevation_gain_metres);
 
     if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);            
 }

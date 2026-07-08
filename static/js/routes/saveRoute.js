@@ -115,13 +115,13 @@ function handleSaveRoute(e) {
           "year": "2-digit"
         }).format(today);
         
-        elevDisplayValue = formatElevation(elevationChange);
+        elevDisplayValue = formatElevation(routeInfo.elevation_gain_metres);
 
         eta = formatETA(routeInfo.eta_seconds);
-
+        
         if (noRouteCreateDiv) removeDOMElement(noRouteCreateDiv);        
 
-        const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue)
+        const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue);
 
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
         homeButtonFunction();
@@ -137,4 +137,4 @@ function handleSaveRoute(e) {
       console.error("Error saving route:", error);
       return false;
     })
-}
+};

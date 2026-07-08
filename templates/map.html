@@ -201,14 +201,16 @@
     <!-- ##### SAVED ROUTE DASHBOARD ##### -->
     <div id="saved-routes-dashboard">
         <div class="inner-content">
-            <div id="top-section">
-                <div id="dashboard-header">
+            
+            <header id="dashboard-header" class="saved-route-header">
+                <div id="top-section">
                     <h1>Hi {{ session.get("preferred_name") }}, these are your saved routes</h1>
+                    
+                    <div id="go-back-button-container">
+                        <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
+                    </div>  
                 </div>
-                <div id="go-back-button-container">
-                    <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
-                </div>
-            </div>
+            </header>
 
             <div id="all-routes-container">
                 {% if available_routes %}
@@ -242,7 +244,7 @@
                                 <span class="route-btn-text">GeoJSON</span>
                                 <span class="loader"></span>
                             </button>
-                             <button type="button" class="route-btn route-btn-load">Load</button>
+                            <button type="button" class="route-btn route-btn-load">Load</button>
                         </div>
                     </div>
                     {% endfor %}
@@ -251,22 +253,17 @@
                     <div id="no-routes-wrapper" class="no-routes-wrapper">
                         <div class="no-routes-card">
                             <h2 class="no-routes-title">No routes saved yet</h2>
-
                             <p class="no-routes-description">
                                 You haven’t created any routes. Start planning your next adventure below.
                             </p>
-
                             <button id="no-route-create-button" class="no-routes-create-btn generate-button">
                                 Create a route
                             </button>
                         </div>
                     </div>
                 {% endif %}
-
-                
-
-
             </div>
+
         </div>
     </div>
 
