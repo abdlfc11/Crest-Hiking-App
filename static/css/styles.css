@@ -457,7 +457,7 @@ body {
     z-index: 1000;
     position: absolute;
     right: 12rem;
-    width: 9rem;
+    width: 15rem;
     display: flex;
     flex-direction: column; /* to stack button + panel */
 }
@@ -478,14 +478,14 @@ body {
     font-size: 14px;
     cursor: pointer;
     gap: 6px;
-    transition: all 0.1s ease-in-out;
+    transition: all 0.15s ease-in-out;
 }
 
-#save-route-toggle-button i {
-    transition: transform 0.25s ease;
+#save-route-toggle-button svg {
+    transition: all .2s ease-in-out;
 }
 
-#save-route-toggle-button.opened i {
+#save-route-toggle-button.opened svg {
     transform: rotate(180deg);
 }
 
@@ -505,18 +505,18 @@ body {
     border: none;
     border-top: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    width: 9rem;
-    transition: height 0.1s ease-in-out;
+    width: 15rem;
+    transition: all 0.15s ease-in-out;
 }
 
 #save-route-toggle-button:hover {
-    background: rgb(255 255 255 / 0.75);
+    background: rgba(223, 221, 221, 0.65);
     border-color: #cbd5e1;
-    transform: scale(1.03);
 }
 
-#save-route-toggle-button:active {
-    transform: scale(1);
+#save-route-toggle-button:hover + #save-route {
+    background: rgba(223, 221, 221, 0.65);
+    border-color: #cbd5e1;
 }
 
 

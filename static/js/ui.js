@@ -113,7 +113,7 @@ const navBar = document.getElementById("the-sidenav");
 const autoModeContent = document.getElementById("auto-mode-content");
 const manualModeContent = document.getElementById("manual-mode-content");
 
-// saved route div + saving routes
+// saved route div 
 const saveRouteDiv = document.getElementById("save-route");
 const routeNameEntry = document.getElementById("route-name");
 const saveContainer = document.getElementById('save-route-container');
@@ -375,6 +375,16 @@ function openImportRoute() {
 
 export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
+};
+
+export function updateSaveRouteContainer() {
+  const isOpen = saveRouteToggleButton.classList.toggle("opened");
+
+    if (isOpen) {
+        saveRouteDiv.style.height = "12.625rem";
+    } else {
+        saveRouteDiv.style.height = "0px";
+    }
 };
 
 //#endregion
@@ -1097,16 +1107,6 @@ function redoManualRoutePoint() {
   if (!restoredPoint) return;
 
   addManualPoint(restoredPoint[0], restoredPoint[1]);
-};
-
-export function updateSaveRouteContainer() {
-  const isOpen = saveRouteToggleButton.classList.toggle("opened");
-
-    if (isOpen) {
-        saveRouteDiv.style.height = "12.625rem";
-    } else {
-        saveRouteDiv.style.height = "0px";
-    }
 };
 
 function closeSaveRouteContainer() {
