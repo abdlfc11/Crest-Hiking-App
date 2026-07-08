@@ -48,11 +48,10 @@ export function createElevationProfile(coordinates) {
         const segmentMeters = getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
         const segmentKm = segmentMeters / 1000;
 
-        if (distanceUnit == "km") {
-            cumulativeDistance += segmentKm;
-        }
-        else if (distanceUnit == "miles") {
-            cumulativeDistance += (segmentKm * 0.621371);
+        if (distanceUnit === "miles") {
+            cumulativeDistance += segmentKm * 0.621371;
+        } else {
+            cumulativeDistance += segmentKm; // default: km
         }
 
         chartData.push({
