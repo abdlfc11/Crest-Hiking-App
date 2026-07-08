@@ -1290,6 +1290,14 @@ function handleDistanceUnitToggle() {
   else if (getLastLoadedRouteStats) {
     displayLoadedRouteStats(getLastLoadedRouteStats());
   }
+  initChartToggleListener();
+
+  const coords =
+    manualRouteState.pathCoords.length > 1
+      ? manualRouteState.pathCoords
+      : (getCurrentPathData() || getLoadedRouteCoordinates());
+
+  if (coords && coords.length > 1) createElevationProfile(coords);
 };
 
 

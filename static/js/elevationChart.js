@@ -1,7 +1,7 @@
 import { getDistance } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/sphere.js';
 import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
 import { normaliseCoordLength } from './routes/routeState.js';
-import { getTheme } from './settingsState.js';
+import { getTheme, getDistanceUnit } from './settingsState.js';
 
 let elevationChart = null;
 let currentCoordinates = null;
@@ -38,6 +38,7 @@ export function createElevationProfile(coordinates) {
     chartData.push({ x: 0, y: geoCoordinates[0][2] });
 
     let cumulativeDistance = 0;
+    const distanceUnit = getDistanceUnit();
 
     for (let i = 1; i < geoCoordinates.length; i++) {
         const p1 = geoCoordinates[i-1];
@@ -47,10 +48,14 @@ export function createElevationProfile(coordinates) {
         const segmentMeters = getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
         const segmentKm = segmentMeters / 1000;
 
-        cumulativeDistance += segmentKm;
+        if (distanceUnit === "miles") {
+            cumulativeDistance += segmentKm * 0.621371;
+        } else {
+            cumulativeDistance += segmentKm; // default: km
+        }
 
         chartData.push({
-            x: parseFloat(cumulativeDistance.toFixed(2)),
+            x: Math.round(cumulativeDistance * 100) / 100, // Math.round only rounds to integer, so we multiply by 100 and then divide by 100 to get value 2dp 
             y: p2[2]
         });
     }  
@@ -65,6 +70,10 @@ export function createElevationProfile(coordinates) {
     const grid = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
     const border = isDark ? "#2563eb" : "#1d4ed8";
     const fill = isDark ? "rgba(37,99,235,0.25)" : "rgba(37,99,235,0.15)";
+
+    // distance unit strings
+    const distanceLabel = distanceUnit === "km" ? "Distance (km)" : "Distance (miles)";
+    const distanceExtension = distanceUnit === "km" ? " km" : " miles";
 
 
 
@@ -93,7 +102,7 @@ export function createElevationProfile(coordinates) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        title: (ctx) => ctx[0].raw.x + " km",
+                        title: (ctx) => ctx[0].raw.x + distanceExtension,
                         label: (ctx) => `${ctx.raw.y} m`
                     }
                 }
@@ -103,7 +112,7 @@ export function createElevationProfile(coordinates) {
                     type: 'linear',
                     title: { 
                         display: true, 
-                        text: 'Distance (km)', 
+                        text: distanceLabel, 
                         color: text,
                         font: { size: 13 }
                     },
