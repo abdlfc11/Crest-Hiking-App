@@ -149,8 +149,8 @@ export function getTheme() {
 } 
 
 /**
- * returns the correct distance at the time of calling 
- * @returns {string} # a string of the distance unit which is either km or miles  
+ * Returns the current distance unit preference.
+ * @returns {'km' | 'miles'}
  */
 export function getDistanceUnit() {
   return appSettings.distanceUnit;
