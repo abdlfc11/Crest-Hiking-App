@@ -115,16 +115,9 @@ function handleSaveRoute(e) {
           "year": "2-digit"
         }).format(today);
         
-        console.log(routeInfo);
-        
         elevDisplayValue = formatElevation(routeInfo.elevation_gain_metres);
 
-        console.log(routeInfo.eta_seconds);
-
         eta = formatETA(routeInfo.eta_seconds);
-
-        console.log(eta);
-
         if (noRouteCreateDiv) removeDOMElement(noRouteCreateDiv);        
 
         const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue);
