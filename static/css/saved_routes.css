@@ -1,145 +1,114 @@
-body {
+BODY {
   background-color: #c3d6e9;
 }
 
+/* Panel wrapper + Inner structure */
 #saved-routes-dashboard {
-    z-index: 999;
-    height: 100%;
-    width: 0;
     position: fixed;
-    z-index: 1000;
     top: 0;
     left: 0;
-    background-color: #ffffff;
-    overflow: hidden;
-    transition: 0.5s;
-    padding-top: 60px;
-
-    /* glassmorphism effect */
-
-    /* Transparent white or black */
-    background: rgba(255, 255, 255, 0.2); 
-
-    /* this blurs whatever is behind the div */
+    width: 0;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transition: width 0.5s ease;
+    background: rgba(249, 250, 251, 0.4); 
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); /* for safari support */
-
-    /* for a 'shimmer' border */
-    border-right: 1px solid rgba(255, 255, 255, 0.3);
-
-    /* subtle shadow */
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 1000;
 }
 
 #saved-routes-dashboard .inner-content {
-    
-    min-width: 100vw; 
+    width: 100vw; 
     min-height: 100vh;
     box-sizing: border-box; 
-    padding: 0 20px; 
+    display: flex;
+    flex-direction: column;
 }
 
-#saved-routes-dashboard a {
-  padding: 8px 8px 8px 32px;
-  text-decoration: none;
-  font-size: 25px;
-  color: #818181;
-  display: block;
-  transition: 0.3s;
-  width: max-content;
-  cursor: pointer;
-}
-
-#saved-routes-dashboard a:hover {
-  color: #000000;
-}
-
-#saved-routes-dashboard .closebtn {
-  position: absolute;
-  top: 8px;
-  right: 16px;
-  font-size: 32px;
-  padding: 6px 10px;
-  width: auto;
-  margin: 0;
-  color: #818181;
-  line-height: 1;
-  transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-#saved-routes-dashboard .closebtn:hover {
-  color: #000000;
-  transform: scale(1.05);
-}
-
-
-#dashboard-header {
-    padding-left: 30px;
+/* Header */
+.saved-route-header {
+    width: 100%;
+    display: block;
+    margin: 0;
+    padding: 0;
 }
 
 #top-section {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+    padding: 2.5rem 4rem; 
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 20px; 
+}
+
+#dashboard-header h1 {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    font-size: clamp(1.5rem, 2.2vw, 2.2rem); 
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap; 
+    overflow: visible;   
 }
 
 #go-back-button-container {
-    width: 150px;
-    padding-right: 30px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: auto;
+    flex-shrink: 0;
 }
 
-#go-back-button {
-    width: 100%;
-    padding: 12px;
-    background-color: rgba(99, 102, 241, 0.677);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
+#saved-routes-dashboard .closebtn {
+    font-size: 32px;
+    color: #4b5563;
+    line-height: 1;
+    transition: color 0.2s ease, transform 0.1s ease;
     cursor: pointer;
-    margin-top: 12px;
-    transition: all 0.2s ease;
-    box-shadow: 0 5px 10px rgba(99, 102, 241, 0.2);
-    white-space: nowrap;
+    text-decoration: none;
 }
 
-#go-back-button:hover {
-    background-color: rgb(78, 81, 245);
-    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
-    transform: translateY(-1px);
+#saved-routes-dashboard .closebtn:hover {
+    color: #111827;
+    transform: scale(1.1);
 }
 
-#go-back-button:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
-}
-
+/* Dashboard content */
 #all-routes-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 35px;
-    padding-top: 50px;
-    padding-left: 90px;
-    padding-right: 60px;
+    padding: 2rem 4rem 3rem 4rem;
     max-width: 1400px;
+    width: 100%;
     margin: 0 auto;
+    flex: 0 1 auto; /* Prevents vertical stretching & eliminates blank space */
+    box-sizing: border-box;
 }
 
 #all-routes-container:has(.route-card) .saved-route-dash-no-route-content {
     display: none;
 }
 
-
+/* Route Cards (inc. internal metrics) */
 .route-card {
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.771);
-    padding: 1rem;
+    padding: 1.25rem;
     width: 24.5rem;
+    max-height: 17rem; /* Explicit layout cap */
     display: flex;
     flex-direction: column;
+    justify-content: space-between; 
     transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
 .route-card:hover {
@@ -151,79 +120,29 @@ body {
     gap: 0px;
 }
 
-.stat-item {
-    display: flex;
-    justify-content: space-between;
-    font: 30px;
+.route-card-name {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.route-card-date {
+    font-size: 0.85rem;
+    color: #6b7280;
 }
 
 .route-card-stats {
-    padding-top: 15px;
-    padding-bottom: 15px;
+    padding-top: 8px;
+    padding-bottom: 8px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
 }
 
-.route-card-actions {
+.stat-item {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.route-btn {
-    min-width: 5.3rem;
-    padding: 12px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 12px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-    white-space: nowrap;
-}
-
-.route-btn:hover {
-    background: #1e40af;
-    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
-    transform: translateY(-1px);
-}
-
-.route-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
-}
-
-.route-card .route-btn-download-gpx,
-.route-card .route-btn-download-geojson {
-    min-width: 6.25rem;         
-}
-
-.route-btn-download-geojson, .route-btn-download-gpx {
-    background-color: #10b981;
-}
-
-.route-btn-delete {
-    background-color: #db4040;
-}
-.route-btn-download-geojson:hover, .route-btn-download-gpx:hover {
-    background-color: #0a885e;
-}
-
-.route-btn-delete:hover {
-    background-color: #ea2323;
-}
-.route-btn-download-geojson, .route-btn-download-gpx {
-    background-color: #10b981;
-}
-
-.route-btn-delete {
-    background-color: #db4040;
+    justify-content: space-between;
+    font-size: 0.9rem;
 }
 
 .stat-label {
@@ -234,6 +153,54 @@ body {
     font-weight: 500;
 }
 
+/* Route action buttons */
+.route-card-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    margin-top: auto; 
+}
+
+.route-btn {
+    flex: 1;
+    min-width: 0; 
+    padding: .65rem 1rem; 
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    white-space: nowrap;
+    text-align: center;
+}
+
+.route-btn:hover {
+    background: #1e40af;
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+}
+
+.route-btn-download-geojson, .route-btn-download-gpx {
+    background-color: #10b981;
+}
+
+.route-btn-download-geojson:hover, .route-btn-download-gpx:hover {
+    background-color: #0a885e;
+}
+
+.route-btn-delete {
+    background-color: #db4040;
+}
+
+.route-btn-delete:hover {
+    background-color: #ea2323;
+}
+
+/* Empty state */
 .no-routes-wrapper {
     grid-column: 1 / -1;
     display: flex;
@@ -274,20 +241,36 @@ body {
     border-radius: 10px;
 }
 
+#saved-routes-dashboard a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+  width: max-content;
+  cursor: pointer;
+}
 
+#saved-routes-dashboard a:hover {
+  color: #000000;
+}
 
-
-
-/* ===== DARK THEME (only affects saved-routes-dashboard) ===== */
+/* Dark theme */
 html.dark #saved-routes-dashboard {
-    background: #1f2937;
+    background: rgba(17, 24, 39, 0.85); 
 }
 
 html.dark #saved-routes-dashboard .inner-content {
-    background: #1f2937;
+    background: transparent;
 }
 
-html.dark #saved-routes-dashboard h1,
+html.dark #top-section {
+    background: rgba(31, 41, 55, 0.75); 
+    border-bottom-color: #374151;
+}
+
+html.dark #dashboard-header h1,
 html.dark #saved-routes-dashboard .route-card-name,
 html.dark #saved-routes-dashboard .stat-label,
 html.dark #saved-routes-dashboard .stat-value,
@@ -307,14 +290,10 @@ html.dark #saved-routes-dashboard .route-btn {
 
 html.dark #saved-routes-dashboard .closebtn {
     color: #9ca3af;
-    padding: 6px 10px;
-    transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
 }
 
 html.dark #saved-routes-dashboard .closebtn:hover {
     color: #f3f4f6;
-    background-color: rgba(255, 255, 255, 0.12);
-    transform: scale(1.05);
 }
 
 html.dark .no-routes-card {
