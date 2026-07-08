@@ -482,7 +482,7 @@ body {
 }
 
 #save-route-toggle-button svg {
-    transition: all .2s ease-in-out;
+    transition: transform .2s ease-in-out;
 }
 
 #save-route-toggle-button.opened svg {
@@ -502,7 +502,7 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 0 0 8px 8px;
-    border: none;
+    border: 1px solid transparent;
     border-top: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     width: 15rem;

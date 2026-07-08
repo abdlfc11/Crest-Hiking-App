@@ -381,7 +381,7 @@ export function updateSaveRouteContainer() {
   const isOpen = saveRouteToggleButton.classList.toggle("opened");
 
     if (isOpen) {
-        saveRouteDiv.style.height = "12.625rem";
+        saveRouteDiv.style.height = `${saveRouteDiv.scrollHeight}px`;
     } else {
         saveRouteDiv.style.height = "0px";
     }
