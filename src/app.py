@@ -58,7 +58,7 @@ from flask_limiter.util import get_remote_address
 import requests
 from config import Config
 
-# This import is for typing (better readbility and understanding of code)
+# This import is for typing (better readability and understanding of code)
 from typing import Optional, Any
 
 # traceback import for custom action logging 
@@ -133,7 +133,7 @@ def log_action(
         - duration_ms (int, optional): Performance metric representing execution 
             time strictly formatted as milliseconds. Defaults to None.
 
-        - error_code (str, optional): An application-specific identifier 
+        - code (str, optional): An application-specific identifier 
             (e.g., 'FAILED_SAVE_ROUTE').
             Defaults to None.
 
@@ -170,7 +170,7 @@ def log_action(
             
         except Exception as log_err:
             # Fallback if the database becomes entirely unreachable
-            print(f"CRITICAL: Failed to write to ActionLog table: {log_err}")
+            print(f"CRITICAL: Failed to write to ActionLog table: {log_err}", file=sys.stderr)
             print(traceback.format_exc())
 
 #endregion
@@ -275,6 +275,8 @@ def login():
     except Exception:
         log_action('Login', False, traceback.format_exc(), None, 'LOGIN')
 
+        return jsonify({"success": False, "message": "Sorry, there was an unexpected error whilst logging in."}), 500 
+
 @app.route("/logout", methods=["POST"])
 @limiter.limit("10 per minute")
 def logout():
@@ -288,32 +290,33 @@ def logout():
 @app.route("/registering", methods=["POST"])
 @limiter.limit("10 per minute")
 def registering():
-    try:
-        data = request.get_json()
-        username = data.get("username", "").strip()
-        p1 = data.get("password1", "")
-        p2 = data.get("password2", "")
-        preferred_name = data.get("preferred_name").strip()
+    with Session(engine) as db:
+        try:
+            data = request.get_json()
+            username = data.get("username", "").strip()
+            p1 = data.get("password1", "")
+            p2 = data.get("password2", "")
+            preferred_name = data.get("preferred_name").strip()
 
-        if not username or len(username) <= 7:
-            return jsonify({"success": False, "message": "Username must have at least 8 characters"})
-        
-        if p1 != p2:
-            return jsonify({"success": False, "message": "The passwords must match each other"})
-        
-        if len(p1) <= 11:
-            return jsonify({"success": False, "message": "Passwords must have at least 12 characters"})
-        
-        has_digit = any(char.isdigit() for char in p1)
-        if not has_digit:
-            return jsonify({"success" : False, "message" : "Passwords must have at least one numerical digit"})
+            if not username or len(username) <= 7:
+                return jsonify({"success": False, "message": "Username must have at least 8 characters"})
+            
+            if p1 != p2:
+                return jsonify({"success": False, "message": "The passwords must match each other"})
+            
+            if len(p1) <= 11:
+                return jsonify({"success": False, "message": "Passwords must have at least 12 characters"})
+            
+            has_digit = any(char.isdigit() for char in p1)
+            if not has_digit:
+                return jsonify({"success" : False, "message" : "Passwords must have at least one numerical digit"})
 
-        special_characters = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "[", "]", "{", "}", "|", ";", ":", ",", ".", "<", ">", "?", "/"]
-        
-        if not any(character in p1 for character in special_characters):
-            return jsonify({"success": False, "message": "Passwords must have at least one special character"})
+            special_characters = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "[", "]", "{", "}", "|", ";", ":", ",", ".", "<", ">", "?", "/"]
+            
+            if not any(character in p1 for character in special_characters):
+                return jsonify({"success": False, "message": "Passwords must have at least one special character"})
 
-        with Session(engine) as db:
+            
             existing_user = db.exec(
                 select(User).where(User.username == username)
             ).first()
@@ -331,11 +334,11 @@ def registering():
             db.add(new_user)
             db.commit()
             return jsonify({"success": True, "message": "Successfully registered"})
-            
-    except Exception as error:
-        db.rollback()
-        log_action('Registering', False, traceback.format_exc(), None, 'FAILED_REGISTRATION')
-        return jsonify({"success": False, "message": "There was an unexpected error with our database"})
+                
+        except Exception as error:
+            db.rollback()
+            log_action('Registering', False, traceback.format_exc(), None, 'FAILED_REGISTRATION')
+            return jsonify({"success": False, "message": "There was an unexpected error with our database"})
 
 #endregion
 
@@ -1184,7 +1187,7 @@ def save_route():
         except IntegrityError as e:
             db.rollback()
 
-            log_action('Saving Route', True, traceback.format_exc(), None, 'SAVE_ROUTE')
+            log_action('Saving Route', False, traceback.format_exc(), None, 'SAVE_ROUTE')
 
             return jsonify({"success" : False, "message" : "There was an error saving your route. "})
 
@@ -1699,46 +1702,6 @@ def map_view():
 
             return jsonify({"success": False, "message": f"Error whilst getting map: {error}"})
 
-
-@app.route("/reset", methods=["GET"])
-@limiter.limit("200 per minute")
-def reset_view():
-
-    try: 
-        # gets list of available routes for the load dropdown
-        user = get_current_user()
-        if user is None:
-            available_routes = []
-            saved_points = []
-        else:
-            available_routes = Route.query.filter_by(user_id=user.id).all()
-            saved_points = Point.query.filter_by(user_id=user.id).all()
-
-        web_mercator_points = []
-        for point in saved_points:
-            try:
-                bng_x, bng_y = json.loads(point.coordinates)
-                web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-                web_mercator_points.append({
-                    "name": point.name,
-                    "coordinates": [web_mercator_x, web_mercator_y]
-                })
-            except Exception as e:
-                log_action('Reset View', False, traceback.format_exc(), None, 'RESET_VIEW')
-                continue
-        
-        return render_template("map.html",
-                            map_centre = default_centre,
-                            map_zoom = 10,
-                            current_path = session.get('current_path', None),
-                            available_routes=available_routes,
-                            saved_points=web_mercator_points,
-                            logged_in = (user is not None)) 
-    except Exception as error:
-
-        with Session(engine) as db:
-
-            log_action('Reset View', False, traceback.format_exc(), None, 'RESET_VIEW')
 
 @app.route("/search_area", methods=["POST"])
 @limiter.limit("10 per minute")
