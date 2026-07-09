@@ -229,3 +229,22 @@ export function createRouteCard(routeName, formattedDate, distanceInKm, ETA, ele
                           </div>
                           `;
 }
+
+/**
+ * This returns a card showing users that there are no saved routes for both a clean UI and a UX
+ * 
+ * @returns {string} HTML string for the route card showing that there are no routes 
+ */
+export function createNoRouteCard() {
+  return `<div id="no-routes-wrapper" class="no-routes-wrapper">
+              <div class="no-routes-card">
+                  <h2 class="no-routes-title">No routes saved yet</h2>
+                  <p class="no-routes-description">
+                      You haven’t created any routes. Start planning your next adventure below.
+                  </p>
+                  <button id="no-route-create-button" class="no-routes-create-btn generate-button">
+                      Create a route
+                  </button>
+              </div>
+          </div>`
+}
