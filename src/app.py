@@ -1496,12 +1496,18 @@ def import_route():
                 for feature in geo.get("features", []):
                     if "geometry" in feature:
                         geometries.append(feature["geometry"])
-            elif root_type == "Features":
+            elif root_type == "Feature":
                 if "geometry" in geo:
                     geometries.append(geo["geometry"])
             else:
                 # this is if the root is geometry itself
-                geometries.append(geo)
+
+                # validate that the geom type is actually a geometry 
+                if geo.get('type') in ["Point", "LineString", "MultiLineString", "Polygon"]:
+                    geometries.append(geo)
+                else:
+                    log_action('Importing Route', False, 'Invalid GeoJSON Structure', None, "IMPORT_ROUTE");
+                    return jsonify({"success": False, "message": "There was an error on our end, please try again later."})
 
             # this is for processing LineString geometries
             for geom in geometries:
@@ -1524,6 +1530,7 @@ def import_route():
             return jsonify({"success": True, "coords": coords})
     except Exception as e:
             log_action('Importing Route', False, traceback.format_exc(), None, 'IMPORT_ROUTE')
+            return jsonify({"success": False, "message": "There was an error on our end, please try again later."})
 
 
 
