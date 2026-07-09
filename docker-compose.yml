@@ -17,8 +17,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
   web:
     build: .
-    command: gunicorn -c src/gunicorn.config.py src.app:app ### Use this command for prod 
-    ### command: flask run --host=0.0.0.0 --port=5000 --debug ### Use this command for dev logs --> easier debugging + more info on errors
+    ### command: gunicorn -c src/gunicorn.config.py src.app:app ### Use this command for prod 
+    command: flask run --host=0.0.0.0 --port=5000 --debug ### Use this command for dev logs --> easier debugging + more info on errors
     volumes:
       # this mounts the entire src (backend python flask / FastAPI) folder
       - ./src:/app/src

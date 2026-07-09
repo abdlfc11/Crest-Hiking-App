@@ -58,6 +58,11 @@ from flask_limiter.util import get_remote_address
 import requests
 from config import Config
 
+# This import is for typing (better readbility and understanding of code)
+from typing import Optional, Any
+
+# traceback import for custom action logging 
+import traceback
 
 # default map centre (web_mercator coordinates)
 default_centre = [-356034, 7258806]
@@ -99,6 +104,76 @@ limiter = Limiter(
     default_limits=["200 per day", "500 per hour"],
     storage_uri="memory://",
 )
+
+#region ACTION LOGGING
+
+def log_action(
+    action: str, 
+    outcome: bool, 
+    info: Optional[Any] = None, 
+    duration_ms: Optional[int] = None,
+    code: Optional[str] = None
+) -> None:
+    """
+    Records an application event or metric into the central ActionLog table.
+
+    This function operates entirely within its own isolated database session 
+    to guarantee that transaction failures in the main application flow do 
+    not disrupt or prevent the creation of the event log. 
+
+    Args:
+        - action (str): The name of the event or endpoint (e.g., 'pathfind_request').
+
+        - outcome (bool): True if the operation succeeded, False if it failed.
+
+        - info (Any, optional): Contextual metadata. Accepts raw exceptions (which 
+            are stringified) or dictionaries/lists (which are automatically 
+            serialized into JSON strings). Defaults to None.
+
+        - duration_ms (int, optional): Performance metric representing execution 
+            time strictly formatted as milliseconds. Defaults to None.
+
+        - error_code (str, optional): An application-specific identifier 
+            (e.g., 'FAILED_SAVE_ROUTE').
+            Defaults to None.
+
+    Returns:
+        None
+
+    Raises:
+        Does not propagate exceptions. Internal failures (e.g., complete database 
+        unreachability) are caught silently and dumped safely to system standard error logs.
+    """
+    with Session(engine) as log_db:
+        try:
+            # This handles info parsing safely depending on data type, mainly a guard clause as most info (if not all) passed in is a string
+            processed_info = None
+            if info is not None:
+                if isinstance(info, Exception):
+                    processed_info = str(info)
+                elif isinstance(info, (dict, list)):
+                    processed_info = json.dumps(info)
+                else:
+                    processed_info = str(info)
+
+            # This builds the record / row
+            log_entry = ActionLog(
+                action=action,
+                outcome=outcome,
+                info=processed_info,
+                duration_ms=duration_ms,
+                error_code=code
+            )
+            
+            log_db.add(log_entry)
+            log_db.commit()
+            
+        except Exception as log_err:
+            # Fallback if the database becomes entirely unreachable
+            print(f"CRITICAL: Failed to write to ActionLog table: {log_err}")
+            print(traceback.format_exc())
+
+#endregion
 
 
 # useful helper for getting the current user during route and point creation as well as logging in and out 
@@ -174,28 +249,31 @@ def validate_beta_code():
 @app.route("/login", methods=["POST"])
 @limiter.limit("10 per minute")
 def login():
+    try:
 
-    data = request.get_json()
-    username = data.get("username", "").strip()
-    password = data.get("password", "")
+        data = request.get_json()
+        username = data.get("username", "").strip()
+        password = data.get("password", "")
 
-    if not username or not password:
-        return jsonify({"success": False, "message": "Username and Password are required"})
+        if not username or not password:
+            return jsonify({"success": False, "message": "Username and Password are required"})
 
-    with Session(engine) as db:
-        user = db.exec(
-            select(User).where(User.username == username)
-        ).first()
+        with Session(engine) as db:
+            user = db.exec(
+                select(User).where(User.username == username)
+            ).first()
 
-    if user and check_password_hash(user.password_hashed, password):
-        session["username"] = username
-        session["preferred_name"] = user.preferred_name if user.preferred_name else user.username
-        print(session["username"])
-        print(session["preferred_name"])
-        session.permanent = True  # Make session respect PERMANENT_SESSION_LIFETIME
-        return jsonify({"success": True, "message": "Successfully logged in"})
-    if user is None or not check_password_hash(user.password_hashed, password):
-        return jsonify({"success": False, "message": "Username and/or Password are incorrect"})
+        if user and check_password_hash(user.password_hashed, password):
+            session["username"] = username
+            session["preferred_name"] = user.preferred_name if user.preferred_name else user.username
+            print(session["username"])
+            print(session["preferred_name"])
+            session.permanent = True  # Make session respect PERMANENT_SESSION_LIFETIME
+            return jsonify({"success": True, "message": "Successfully logged in"})
+        if user is None or not check_password_hash(user.password_hashed, password):
+            return jsonify({"success": False, "message": "Username and/or Password are incorrect"})
+    except Exception:
+        log_action('Login', False, traceback.format_exc(), None, 'LOGIN')
 
 @app.route("/logout", methods=["POST"])
 @limiter.limit("10 per minute")
@@ -210,40 +288,40 @@ def logout():
 @app.route("/registering", methods=["POST"])
 @limiter.limit("10 per minute")
 def registering():
-    data = request.get_json()
-    username = data.get("username", "").strip()
-    p1 = data.get("password1", "")
-    p2 = data.get("password2", "")
-    preferred_name = data.get("preferred_name").strip()
+    try:
+        data = request.get_json()
+        username = data.get("username", "").strip()
+        p1 = data.get("password1", "")
+        p2 = data.get("password2", "")
+        preferred_name = data.get("preferred_name").strip()
 
-    if not username or len(username) <= 7:
-        return jsonify({"success": False, "message": "Username must have at least 8 characters"})
-    
-    if p1 != p2:
-        return jsonify({"success": False, "message": "The passwords must match each other"})
-    
-    if len(p1) <= 11:
-        return jsonify({"success": False, "message": "Passwords must have at least 12 characters"})
-    
-    has_digit = any(char.isdigit() for char in p1)
-    if not has_digit:
-        return jsonify({"success" : False, "message" : "Passwords must have at least one numerical digit"})
-
-    special_characters = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "[", "]", "{", "}", "|", ";", ":", ",", ".", "<", ">", "?", "/"]
-    
-    if not any(character in p1 for character in special_characters):
-        return jsonify({"success": False, "message": "Passwords must have at least one special character"})
-
-    with Session(engine) as db:
-        existing_user = db.exec(
-            select(User).where(User.username == username)
-        ).first()
-
-    
-        if existing_user:
-            return jsonify({"success": False, "message": "Someone has already chosen this username"})
+        if not username or len(username) <= 7:
+            return jsonify({"success": False, "message": "Username must have at least 8 characters"})
         
-        try:
+        if p1 != p2:
+            return jsonify({"success": False, "message": "The passwords must match each other"})
+        
+        if len(p1) <= 11:
+            return jsonify({"success": False, "message": "Passwords must have at least 12 characters"})
+        
+        has_digit = any(char.isdigit() for char in p1)
+        if not has_digit:
+            return jsonify({"success" : False, "message" : "Passwords must have at least one numerical digit"})
+
+        special_characters = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "[", "]", "{", "}", "|", ";", ":", ",", ".", "<", ">", "?", "/"]
+        
+        if not any(character in p1 for character in special_characters):
+            return jsonify({"success": False, "message": "Passwords must have at least one special character"})
+
+        with Session(engine) as db:
+            existing_user = db.exec(
+                select(User).where(User.username == username)
+            ).first()
+
+        
+            if existing_user:
+                return jsonify({"success": False, "message": "Someone has already chosen this username"})
+            
             new_user = User(
                 username = username,
                 preferred_name = preferred_name,
@@ -253,11 +331,11 @@ def registering():
             db.add(new_user)
             db.commit()
             return jsonify({"success": True, "message": "Successfully registered"})
-        
-        except Exception as error:
-            db.rollback()
-            print("Registration error: ", error)
-            return jsonify({"success": False, "message": "There was an unexpected error with our database"})
+            
+    except Exception as error:
+        db.rollback()
+        log_action('Registering', False, traceback.format_exc(), None, 'FAILED_REGISTRATION')
+        return jsonify({"success": False, "message": "There was an unexpected error with our database"})
 
 #endregion
 
@@ -294,15 +372,7 @@ def delete_account():
             except Exception as e:
                 db.rollback()
 
-                new_error = ActionLog(
-                    action="Deleting Account",
-                    info=e,
-                    outcome=False,
-                    error_code='FAILED_ACCOUNT_DELETION'
-                )
-
-                db.add(new_error)
-                db.commit()
+                log_action('Deleting Account', False, traceback.format_exc(), None, 'FAILED_ACCOUNT_DELETION')
 
                 return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
@@ -338,15 +408,9 @@ def get_settings():
             }), 200
 
     except Exception as error:
-        new_error = ActionLog(
-                    action="Getting Settings",
-                    info=error,
-                    outcome=False,
-                    error_code='FAILED_GET_SETTINGS'
-                )
 
-        db.add(new_error)
-        db.commit()
+        log_action('Getting Settings', False, traceback.format_exc(), None, 'FAILED_GET_SETTINGS')
+
         return jsonify({"success": False, "message": "There was an error whilst retrieving settings"}), 500
 
 @app.route("/save_settings", methods=["POST"]) 
@@ -397,15 +461,7 @@ def save_settings():
     except Exception as error:
         db.rollback()
 
-        new_error = ActionLog(
-                    action="Saving Settings",
-                    info=error,
-                    outcome=False,
-                    error_code='FAILED_SAVE_SETTINGS'
-                )
-
-        db.add(new_error)
-        db.commit()
+        log_action('Saving Settings', False, traceback.format_exc(), None, 'FAILED_SAVE_SETTINGS')
 
         return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
 #endregion
@@ -924,17 +980,8 @@ def calculate_path():
             else:
                 available_routes = []
 
-            new_error = ActionLog(
-                    action="Calculating Path",
-                    info=e,
-                    outcome=False,
-                    error_code='NO_PATH_CREATED'
-                )
+            log_action('Calculating Path', False, traceback.format_exc(), None, 'INVALID_COORDS_AUTO_PATH_CREATION')
 
-            db.add(new_error)
-            db.commit()
-
-            
         return jsonify({
             "success": False,
             "map_centre": default_centre,
@@ -955,16 +1002,8 @@ def calculate_path():
                 ).all()
             else:
                 available_routes = []
-            
-            new_error = ActionLog(
-                    action="Calculating Path",
-                    info='No path could be created',
-                    outcome=False,
-                    error_code='NO_PATH_FOUND'
-                )
 
-            db.add(new_error)
-            db.commit()
+            log_action('Calculating Path', False, traceback.format_exc(), None, 'NO_PATH_FOUND')
             
             return jsonify({
                 "success": False,
@@ -972,19 +1011,6 @@ def calculate_path():
                 "available_routes": available_routes,
                 "message": "No path could be created"
             })
-    
-    with Session(engine) as db:
-        
-        new_error = ActionLog(
-                        action="Calculating Path",
-                        info="Successful Generation",
-                        duration_ms=time_taken,
-                        outcome=True,
-                        error_code='PATH_CREATED'
-                    )
-
-        db.add(new_error)
-        db.commit()
 
     web_mercator_coordinates = [] 
     
@@ -1034,6 +1060,10 @@ def calculate_path():
         "eta_seconds": eta_seconds
     }
 
+    with Session(engine) as db:
+
+        log_action('Calculating Path', True, f"{round(total_distance_km, 2)}km distance", time_taken, 'PATH_CREATED')
+
     user = get_current_user()
     if user:
         with Session(engine) as db:
@@ -1080,6 +1110,8 @@ def save_point():
                 db.add(new_point)
                 db.commit()
 
+                log_action('Saving Point', True, None, None, 'SAVING_POINT')
+
             return jsonify({"success": True, "message": 'Successfully saved the point'})
         
     except ValueError:
@@ -1090,15 +1122,7 @@ def save_point():
 
         with Session(engine) as db: 
         
-            new_error = ActionLog(
-                        action="Saving Point",
-                        info=e,
-                        outcome=False,
-                        error_code='FAILED_SAVING_POINT'
-                    )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Saving Point', False, None, None, 'SAVING_POINT')
 
         return jsonify({"success": False, "message": "Failed to save point."}), 500
 
@@ -1149,6 +1173,8 @@ def save_route():
             db.add(route)
             db.commit()
 
+            log_action('Saving Route', True, None, None, 'SAVE_ROUTE')
+
             return jsonify({
                 "success": True,
                 "route_info": route_info
@@ -1158,15 +1184,7 @@ def save_route():
         except IntegrityError as e:
             db.rollback()
 
-            new_error = ActionLog(
-                    action="Saving Route",
-                    info=e,
-                    outcome=False,
-                    error_code='FAILED_SAVE_ROUTE'
-                )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Saving Route', True, traceback.format_exc(), None, 'SAVE_ROUTE')
 
             return jsonify({"success" : False, "message" : "There was an error saving your route. "})
 
@@ -1174,15 +1192,7 @@ def save_route():
         except Exception as e:
             db.rollback()
             
-            new_error = ActionLog(
-                    action="Saving Route",
-                    info=e,
-                    outcome=False,
-                    error_code='FAILED_SAVE_ROUTE'
-                )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Saving Route', True, traceback.format_exc(), None, 'SAVE_ROUTE')
 
             return jsonify({"success": False, "message": "There was an error saving your route. "})
     
@@ -1238,16 +1248,8 @@ def load_route():
                         web_mercator_coordinates.append([web_x, web_y, 0])
 
             if not web_mercator_coordinates:
-                
-                new_error = ActionLog(
-                    action="Loading Route",
-                    info="No coordinates found in the route",
-                    outcome=False,
-                    error_code='FAILED_LOAD_ROUTE'
-                )
 
-                db.add(new_error)
-                db.commit()
+                log_action('Loading Route', False, "No coordinates found in the route", None, 'LOAD_ROUTE')
 
                 return jsonify({"success": False, "message": "No valid coordinates found in route file"})
             
@@ -1276,6 +1278,8 @@ def load_route():
                 "eta_seconds": eta_seconds,
                 "elevation_change": elevation_change
             }
+
+            log_action('Loading Route', True, None, None, 'LOAD_ROUTE')
             
             return jsonify({
                 "success": True, 
@@ -1288,15 +1292,7 @@ def load_route():
         
         except Exception as e:
             
-            new_error = ActionLog(
-                    action="Loading Route",
-                    info=e,
-                    outcome=False,
-                    error_code='FAILED_LOAD_ROUTE'
-                )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Loading Route', False, traceback.format_exc(), None, 'LOAD_ROUTE')
 
             return jsonify({"success": False, "message": "The route could not be loaded"})
 
@@ -1332,15 +1328,7 @@ def download_route():
         # ensures that a route is found before attempting to convert
         if not route:
 
-            new_error = ActionLog(
-                    action="Downloading Route",
-                    info="Route not found",
-                    outcome=False,
-                    error_code='FAILED_DOWNLOAD_ROUTE'
-                )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Downloading Route', False, 'Route not found', None, 'DOWNLOAD_ROUTE')
 
             return jsonify({"success": False, "message": "Route not found or you don't own it"}), 404
 
@@ -1361,6 +1349,8 @@ def download_route():
                 for char in route.name
             )
 
+            log_action('Downloading Route', True, extension, None, 'DOWNLOAD_ROUTE')
+
             return send_file(
                 io.BytesIO(content.encode('utf-8')),
                 mimetype=mimetype,
@@ -1370,15 +1360,8 @@ def download_route():
 
         except Exception as e:
 
-            new_error = ActionLog(
-                    action="Downloading Route",
-                    info=e,
-                    outcome=False,
-                    error_code='FAILED_DOWNLOAD_ROUTE'
-                )
+            log_action('Downloading Route', False, traceback.format_exc(), None, 'DOWNLOAD_ROUTE')
 
-            db.add(new_error)
-            db.commit()
             return jsonify({"success": False, "message": "Failed to download route"}), 500
 
 @app.route("/import_route_file", methods=["POST"])
@@ -1402,15 +1385,7 @@ def import_route():
 
         with Session(engine) as db:
 
-            new_error = ActionLog(
-                        action="Importing Route",
-                        info="Uploaded file could not be retrieved",
-                        outcome=False,
-                        error_code='FAILED_IMPORT_ROUTE'
-                    )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Importing Route', False, 'Uploaded file could not be retrieved', None, 'IMPORT_ROUTE')
 
         return jsonify({"success": False, "message": "Cannot receive uploaded file"}), 400
     
@@ -1540,20 +1515,12 @@ def import_route():
 
                         web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(lon, lat)
                         coords.append([web_mercator_x, web_mercator_y, ele])
+            
+            log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
 
             return jsonify({"success": True, "coords": coords})
     except Exception as e:
-        with Session(engine) as db:
-
-            new_error = ActionLog(
-                        action="Importing Route",
-                        info=e,
-                        outcome=False,
-                        error_code='FAILED_IMPORT_ROUTE'
-                    )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Importing Route', False, traceback.format_exc(), None, 'IMPORT_ROUTE')
 
 
 
@@ -1582,20 +1549,9 @@ def get_saved_points():
                 "coordinates": [web_mercator_x, web_mercator_y]
             })
         except Exception as e:
-            with Session(engine) as db:
-
-                new_error = ActionLog(
-                            action="Getting saved points",
-                            info=e,
-                            outcome=False,
-                            error_code='FAILED_GET_SAVED_POINT'
-                        )
-
-                db.add(new_error)
-                db.commit()
-            continue
+            log_action('Getting Saved Points', False, traceback.format_exc(), None, 'GET_SAVED_POINT')
     
-
+    
     return jsonify({"success": True, "points": web_mercator_points})
 
 # route which deletes a saved point that is passed into the back-end from the front-end
@@ -1619,9 +1575,14 @@ def delete_point():
             db.delete(point_to_delete)
             db.commit()
 
+            log_action('Deleting Point', True, None, None, 'DELETE_POINT')
+
             return jsonify({"success": True, "message": f"Successfully deleted the {point_name} point"})
 
     except Exception:
+        
+        log_action('Deleting Point', False, traceback.format_exc(), None, 'DELETE_POINT')
+
         return jsonify({"success": False, "message": f"Could not successfully save the {point_name} point"})
     
     
@@ -1647,6 +1608,9 @@ def delete_route():
 
             return jsonify({"success": True, "message": f"Successfully saved the {route.name}"})
     except Exception:
+        
+        log_action('Deleting Route', False, traceback.format_exc(), None, 'DELETE_ROUTE')
+
         return jsonify({"success": False, "message": "Could not delete the route."})
 
 
@@ -1720,7 +1684,6 @@ def map_view():
                         "coordinates": [web_mercator_x, web_mercator_y]
                     })
                 except Exception as e:
-                    print(f"Error in conversion: {e}")
                     continue
             
             return render_template("map.html",
@@ -1731,16 +1694,8 @@ def map_view():
                                 saved_points=web_mercator_points,
                                 logged_in = (user is not None))
         except Exception as error:
-            
-            new_error = ActionLog(
-                        action="Loading Map",
-                        info=error,
-                        outcome=False,
-                        error_code='FAILED_LOAD_MAP'
-                    )
 
-            db.add(new_error)
-            db.commit()
+            log_action('Loading Map', False, traceback.format_exc(), None, 'LOAD_MAP')
 
             return jsonify({"success": False, "message": f"Error whilst getting map: {error}"})
 
@@ -1769,7 +1724,7 @@ def reset_view():
                     "coordinates": [web_mercator_x, web_mercator_y]
                 })
             except Exception as e:
-                print(f"Error in conversion: {e}")
+                log_action('Reset View', False, traceback.format_exc(), None, 'RESET_VIEW')
                 continue
         
         return render_template("map.html",
@@ -1783,15 +1738,7 @@ def reset_view():
 
         with Session(engine) as db:
 
-            new_error = ActionLog(
-                        action="Reseting View",
-                        info=error,
-                        outcome=False,
-                        error_code='FAILED_RESET_VIEW'
-                    )
-
-            db.add(new_error)
-            db.commit()
+            log_action('Reset View', False, traceback.format_exc(), None, 'RESET_VIEW')
 
 @app.route("/search_area", methods=["POST"])
 @limiter.limit("10 per minute")
@@ -1834,17 +1781,7 @@ def search_area():
         else:
             return jsonify({"success": False, "message": "Could not find area"})
     except Exception as error:
-        with Session(engine) as db:
-
-            new_error = ActionLog(
-                        action="Searching for area",
-                        info=error,
-                        outcome=False,
-                        error_code='FAILED_SEARCH_FOR_AREA'
-                    )
-
-            db.add(new_error)
-            db.commit()
+        log_action('Searching for Area', False, traceback.format_exc(), None, 'SEARCH_AREA')
 
 
 
