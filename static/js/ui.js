@@ -414,12 +414,20 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showError("Could not parse coordinates from file.");
+        showError("There was an error on our end. Please try again later.");
         return false;
       }
 
+      const today = new Date();
+        
+      const formattedToday = new Intl.DateTimeFormat('en-GB', {
+      "day": "2-digit",
+      "month": "2-digit",
+      "year": "numeric"
+      }).format(today);
+
       if (!importRouteNameEntry.value) {
-        routeName = file.name;
+        routeName = `${file.name} saved on ${formattedToday}`
       }
       else {
         routeName = importRouteNameEntry.value;
