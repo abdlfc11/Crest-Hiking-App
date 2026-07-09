@@ -218,7 +218,7 @@
                     <div class="route-card" data-route-name="{{ route.name }}">
                         <div class="route-card-header">
                             <h3 class="route-card-name">{{ route.name }}</h3>
-                            <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%y") }}</span>
+                            <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%Y") }}</span>
                         </div>
                         <div class="route-card-stats">
                             <div class="stat-item">
@@ -227,11 +227,11 @@
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">ETA:</span>
-                                <span class="stat-value">{{ route.eta_seconds | format_eta}}</span>
+                                <span class="stat-value">{{ route.eta_seconds | format_eta }}</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Elevation Change:</span>
-                                <span class="stat-value">{{ route.elevation_change }}</span>
+                                <span class="stat-value">{{ route.elevation_change | format_elevation }}</span>
                             </div>
                         </div>
                         <div class="route-card-actions">
