@@ -6,23 +6,53 @@ import { getTheme, getDistanceUnit } from './settingsState.js';
 let elevationChart = null;
 let currentCoordinates = null;
 const toggleElevationChartButton = document.getElementById('toggle-elevation-chart');
-const dimCheckbox = document.getElementById('toggle-chart-dim');
-const chartCanvas = document.getElementById('elevation-chart');
+
+export function resetElevationChart() {
+
+    if (elevationChart) {
+        elevationChart.destroy();
+        elevationChart = null;
+    }
+    currentCoordinates = null;
+}
 
 export function createElevationProfile(coordinates) {
 
     coordinates = normaliseCoordLength(coordinates)
 
+    const container = document.getElementById('elevation-chart-container');
     const ctx = document.getElementById('elevation-chart');
+
     if (!ctx) {
         console.warn("Elevation chart canvas not found");
         return;
     }
 
     if (!coordinates || coordinates.length < 2) {
-        console.warn("Not enough coordinates for profile");
+        ctx.style.display = 'none';
+
+        if (!document.getElementById('chart-placeholder-message')) {
+            const placeholder = document.createElement('div');
+            placeholder.id = 'chart-placeholder-message';
+
+            // Put whatever custom HTML/CSS classes you want here!
+            placeholder.innerHTML = `
+                <div class="empty-chart-state">
+                    <p>Plot at least two points to generate an elevation profile.</p>
+                </div>
+            `;
+            container.appendChild(placeholder);
+        }
+
         return;
     }
+
+    const placeholder = document.getElementById('chart-placeholder-message');
+
+    if (placeholder) {
+        placeholder.remove()
+    }
+    ctx.style.display = 'block'
 
     currentCoordinates = coordinates;
 
@@ -78,71 +108,91 @@ export function createElevationProfile(coordinates) {
 
 
     // this destroys the old chart if there is a new one present
-    if (elevationChart) elevationChart.destroy();
+    if (elevationChart) {
+        elevationChart.data.datasets[0].data = chartData;
 
-    elevationChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: [{
-                label: 'Elevation (m)',
-                data: chartData,
-                borderColor: border,
-                backgroundColor: fill,
-                borderWidth: 1,
-                tension: 0.3,
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        title: (ctx) => ctx[0].raw.x + distanceExtension,
-                        label: (ctx) => `${ctx.raw.y} m`
+        // 2. Dynamic style updates 
+        elevationChart.data.datasets[0].borderColor = border;
+        elevationChart.data.datasets[0].backgroundColor = fill;
+        
+        elevationChart.options.scales.x.title.text = distanceLabel;
+        elevationChart.options.scales.x.title.color = text;
+        elevationChart.options.scales.x.ticks.color = text;
+        elevationChart.options.scales.x.grid.color = grid;
+        
+        elevationChart.options.scales.y.title.color = text;
+        elevationChart.options.scales.y.ticks.color = text;
+        elevationChart.options.scales.y.grid.color = grid;
+        
+        elevationChart.options.plugins.tooltip.callbacks.title = (ctx) => ctx[0].raw.x + distanceExtension;
+
+        elevationChart.update();
+    }
+    else {
+        elevationChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Elevation (m)',
+                    data: chartData,
+                    borderColor: border,
+                    backgroundColor: fill,
+                    borderWidth: 1,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (ctx) => ctx[0].raw.x + distanceExtension,
+                            label: (ctx) => `${ctx.raw.y} m`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: { 
+                            display: true, 
+                            text: distanceLabel, 
+                            color: text,
+                            font: { size: 13 }
+                        },
+                        ticks: {
+                            color: text,
+                            font: { size: 12 },
+                            callback: function(value) {
+                                return Math.round(value);
+                            },
+                            stepSize: 1,
+                            maxTicksLimit: 12
+                        },
+                        grid: { color: grid }
+                    },
+                    y: {
+                        title: { 
+                            display: true, 
+                            text: 'Elevation (m)', 
+                            color: text,
+                            font: { size: 13 }
+                        },
+                        ticks: { color: text },
+                        grid: { color: grid }
                     }
                 }
-            },
-            scales: {
-                x: {
-                    type: 'linear',
-                    title: { 
-                        display: true, 
-                        text: distanceLabel, 
-                        color: text,
-                        font: { size: 13 }
-                    },
-                    ticks: {
-                        color: text,
-                        font: { size: 12 },
-                        callback: function(value) {
-                            return Math.round(value);
-                        },
-                        stepSize: 1,
-                        maxTicksLimit: 12
-                    },
-                    grid: { color: grid }
-                },
-                y: {
-                    title: { 
-                        display: true, 
-                        text: 'Elevation (m)', 
-                        color: text,
-                        font: { size: 13 }
-                    },
-                    ticks: { color: text },
-                    grid: { grid }
-                }
             }
-        }
-    });
+        });
+    }
 }
 
-function toggleElevationChart() {
+export function toggleElevationChart() {
     const container = document.getElementById('elevation-chart-container');
     if (!container) return;
 
@@ -162,16 +212,6 @@ export function initChartToggleListener() {
     const toggleButton = document.getElementById('toggle-elevation-chart');
     if (toggleButton) {
         toggleButton.onclick = toggleElevationChart;
-    }
-    if (dimCheckbox && chartCanvas) {
-        dimCheckbox.addEventListener('change', function() {
-            // checked = hide chart || unchecked = show chart
-            if (this.checked) {
-                chartCanvas.classList.add('dimmed');
-            } else {
-                chartCanvas.classList.remove('dimmed');
-            }
-        });
     }
 }
 
