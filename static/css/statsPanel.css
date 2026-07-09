@@ -79,6 +79,11 @@
     transition: all 0.1s ease-in-out;
 }
 
+#toggle-elevation-chart.one-point-only {
+    cursor: not-allowed;
+    background: #888889
+}
+
 .stats-button:hover {
     background: #314ca5;
     transform: translateY(-1px);
@@ -102,6 +107,9 @@
     border-left: 1px solid transparent;
     transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out;
     box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #elevation-chart-container.active {
@@ -116,6 +124,30 @@
     display: flex;
     flex-direction: row;
     align-items: stretch; /* this is so that it matches the height of the stats text side */
+}
+
+/* Container for the empty message */
+.empty-chart-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem;
+    background-color: #f8fafc; /* Subtle, clean off-white background */
+    border: 1px dashed #cbd5e1; /* Clean dashed boundary border */
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+}
+
+/* Simple typography styling matching your application colors */
+.empty-chart-state p {
+    margin: 0;
+    color: #1f2937; /* Clean dark text */
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.4;
 }
 
 

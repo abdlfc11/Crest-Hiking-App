@@ -11,7 +11,8 @@ import {
   showError,
   addClickListener,
   formatETA,
-  removeDOMElement
+  removeDOMElement,
+  createStatsPanel
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -67,7 +68,7 @@ import {
 import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
-import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
+import { createElevationProfile, initChartToggleListener, resetElevationChart, toggleElevationChart } from "./elevationChart.js";
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
 import { createAutomaticRoutingTour, createImportRoutePanelTour, createManualRoutingTour, createSavedRouteDashboardTour, createSavingRoutesTour, createSettingsTour } from "./tours/tours.js";
 
@@ -695,7 +696,7 @@ export function clearManualRoute() {
 
   clearPathState();
   getRouteLayer()?.getSource().clear();
-
+  resetElevationChart();
   
 };
 
@@ -1029,47 +1030,46 @@ export function updateManualRoute() {
   map.addLayer(manualRouteLayer);
 
   let statsDiv = document.getElementById("route-stats");
-  if (!statsDiv) {
+  let firstRender = !statsDiv
+
+  if (firstRender) {
+
     statsDiv = document.createElement("div");
     statsDiv.id = "route-stats";
     document.body.appendChild(statsDiv);
+
+    statsDiv.innerHTML = createStatsPanel(distanceDisplay, etaDisplay, elevationDisplay);
+
+    initChartToggleListener();   
+  }
+  else {
+    document.getElementById("route-distance-display").textContent = distanceDisplay;
+    document.getElementById("route-eta-display").textContent = etaDisplay;
+    document.getElementById("route-elevation-change-display").textContent = elevationDisplay;
   }
 
-  statsDiv.innerHTML = `
-      <div class="stats-header">
-          <span class="stats-title">Route Information</span>
-          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-      </div>
-      <div id="stat-content-and-chart-container">
-          <div class="stats-content">
-              <div class="stat-row">
-                  <span class="stat-label">Distance:</span>
-                  <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
-              </div>
-          </div>
+  const toggleChartButton = document.getElementById('toggle-elevation-chart');
+  const isOnePoint = pathCoords.length === 1;
 
-          <div class="chart-wrapper"> 
-              <div id="elevation-chart-container">
-                  <canvas id="elevation-chart"></canvas>
-              </div>
-          </div>
-      </div>
-  `;
-  initChartToggleListener();
+  if (toggleChartButton) {
+    toggleChartButton.classList.toggle('one-point-only', isOnePoint);
+    toggleChartButton.disabled = isOnePoint;
+  }
+
   createElevationProfile(pathCoords);
 };
 
 export function undoManualRoutePoint() {
 
   const { userClicks, segmentCache } = manualRouteState;
+
+  // guard clause to prevent redundant running of code if userClicks is none / has no coords
+  if (!userClicks || userClicks.length === 0) {
+    if (saveContainer) saveContainer.style.display = 'none';
+    document.getElementById('route-stats')?.remove();
+    resetElevationChart();
+    return;
+  }
 
   // this removes the last click
   const removed = userClicks.pop();
