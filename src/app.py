@@ -150,11 +150,11 @@ def log_action(
             processed_info = None
             if info is not None:
                 if isinstance(info, Exception):
-                    processed_info = str(info)
+                    processed_info = str(info)[:2000]
                 elif isinstance(info, (dict, list)):
                     processed_info = json.dumps(info)
                 else:
-                    processed_info = str(info)
+                    processed_info = str(info)[:2000]
 
             # This builds the record / row
             log_entry = ActionLog(
@@ -272,8 +272,11 @@ def login():
             return jsonify({"success": True, "message": "Successfully logged in"})
         if user is None or not check_password_hash(user.password_hashed, password):
             return jsonify({"success": False, "message": "Username and/or Password are incorrect"})
-    except Exception:
-        log_action('Login', False, traceback.format_exc(), None, 'LOGIN')
+    except Exception as e:
+
+        short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+        log_action('Login', False, short_traceback, None, 'LOGIN')
 
         return jsonify({"success": False, "message": "Sorry, there was an unexpected error whilst logging in."}), 500 
 
@@ -337,7 +340,11 @@ def registering():
                 
         except Exception as error:
             db.rollback()
-            log_action('Registering', False, traceback.format_exc(), None, 'FAILED_REGISTRATION')
+
+            short_traceback = "".join(traceback.format_exception_only(type(error), error)).strip()
+
+            log_action('Registering', False, short_traceback, None, 'FAILED_REGISTRATION')
+
             return jsonify({"success": False, "message": "There was an unexpected error with our database"})
 
 #endregion
@@ -375,7 +382,9 @@ def delete_account():
             except Exception as e:
                 db.rollback()
 
-                log_action('Deleting Account', False, traceback.format_exc(), None, 'FAILED_ACCOUNT_DELETION')
+                short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+                log_action('Deleting Account', False, short_traceback, None, 'FAILED_ACCOUNT_DELETION')
 
                 return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
     return jsonify({"success": False, "message": "Could not delete your account, try again later. "})
@@ -410,9 +419,11 @@ def get_settings():
                 "settings_dict": settings_payload
             }), 200
 
-    except Exception as error:
+    except Exception as e:
 
-        log_action('Getting Settings', False, traceback.format_exc(), None, 'FAILED_GET_SETTINGS')
+        short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+        log_action('Getting Settings', False, short_traceback, None, 'FAILED_GET_SETTINGS')
 
         return jsonify({"success": False, "message": "There was an error whilst retrieving settings"}), 500
 
@@ -461,10 +472,12 @@ def save_settings():
             
             return jsonify({"success": True, "message": "Successfully saved settings"}), 200
 
-    except Exception as error:
+    except Exception as e:
         db.rollback()
 
-        log_action('Saving Settings', False, traceback.format_exc(), None, 'FAILED_SAVE_SETTINGS')
+        short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+        log_action('Saving Settings', False, short_traceback, None, 'FAILED_SAVE_SETTINGS')
 
         return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
 #endregion
@@ -983,7 +996,9 @@ def calculate_path():
             else:
                 available_routes = []
 
-            log_action('Calculating Path', False, traceback.format_exc(), None, 'INVALID_COORDS_AUTO_PATH_CREATION')
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+            log_action('Calculating Path', False, short_traceback, None, 'INVALID_COORDS_AUTO_PATH_CREATION')
 
         return jsonify({
             "success": False,
@@ -1005,8 +1020,9 @@ def calculate_path():
                 ).all()
             else:
                 available_routes = []
+                
 
-            log_action('Calculating Path', False, traceback.format_exc(), None, 'NO_PATH_FOUND')
+            log_action('Calculating Path', False, 'Path not created', None, 'NO_PATH_FOUND')
             
             return jsonify({
                 "success": False,
@@ -1065,7 +1081,7 @@ def calculate_path():
 
     with Session(engine) as db:
 
-        log_action('Calculating Path', True, f"{round(total_distance_km, 2)}km distance", time_taken, 'PATH_CREATED')
+        log_action('Calculating Path', True, f"distance: {round(total_distance_km, 2)}km", time_taken, 'PATH_CREATED')
 
     user = get_current_user()
     if user:
@@ -1116,16 +1132,22 @@ def save_point():
                 log_action('Saving Point', True, None, None, 'SAVING_POINT')
 
             return jsonify({"success": True, "message": 'Successfully saved the point'})
-        
-    except ValueError:
-        # if float() fails
+    
+    # if float() fails
+    except ValueError as e:
+
+        short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()     
+        log_action('Saving Point', False, short_traceback, None, 'SAVING_POINT')
+
         return jsonify({"success": False, "message": "Invalid coordinate format. Coordinates must be numbers."}), 400
         
     except Exception as e:
 
         with Session(engine) as db: 
+
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
         
-            log_action('Saving Point', False, None, None, 'SAVING_POINT')
+            log_action('Saving Point', False, short_traceback, None, 'SAVING_POINT')
 
         return jsonify({"success": False, "message": "Failed to save point."}), 500
 
@@ -1187,15 +1209,19 @@ def save_route():
         except IntegrityError as e:
             db.rollback()
 
-            log_action('Saving Route', False, traceback.format_exc(), None, 'SAVE_ROUTE')
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+            log_action('Saving Route', False, short_traceback, None, 'SAVE_ROUTE')
 
             return jsonify({"success" : False, "message" : "There was an error saving your route. "})
 
 
         except Exception as e:
             db.rollback()
+
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
             
-            log_action('Saving Route', True, traceback.format_exc(), None, 'SAVE_ROUTE')
+            log_action('Saving Route', True, short_traceback, None, 'SAVE_ROUTE')
 
             return jsonify({"success": False, "message": "There was an error saving your route. "})
     
@@ -1294,8 +1320,10 @@ def load_route():
             })
         
         except Exception as e:
+
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
             
-            log_action('Loading Route', False, traceback.format_exc(), None, 'LOAD_ROUTE')
+            log_action('Loading Route', False, short_traceback, None, 'LOAD_ROUTE')
 
             return jsonify({"success": False, "message": "The route could not be loaded"})
 
@@ -1363,7 +1391,9 @@ def download_route():
 
         except Exception as e:
 
-            log_action('Downloading Route', False, traceback.format_exc(), None, 'DOWNLOAD_ROUTE')
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+            log_action('Downloading Route', False, short_traceback, None, 'DOWNLOAD_ROUTE')
 
             return jsonify({"success": False, "message": "Failed to download route"}), 500
 
@@ -1529,7 +1559,10 @@ def import_route():
 
             return jsonify({"success": True, "coords": coords})
     except Exception as e:
-            log_action('Importing Route', False, traceback.format_exc(), None, 'IMPORT_ROUTE')
+            
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+            log_action('Importing Route', False, short_traceback, None, 'IMPORT_ROUTE')
             return jsonify({"success": False, "message": "There was an error on our end, please try again later."})
 
 
@@ -1559,7 +1592,10 @@ def get_saved_points():
                 "coordinates": [web_mercator_x, web_mercator_y]
             })
         except Exception as e:
-            log_action('Getting Saved Points', False, traceback.format_exc(), None, 'GET_SAVED_POINT')
+            
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+
+            log_action('Getting Saved Points', False, short_traceback, None, 'GET_SAVED_POINT')
     
     
     return jsonify({"success": True, "points": web_mercator_points})
@@ -1589,9 +1625,11 @@ def delete_point():
 
             return jsonify({"success": True, "message": f"Successfully deleted the {point_name} point"})
 
-    except Exception:
+    except Exception as e:
+
+        short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
         
-        log_action('Deleting Point', False, traceback.format_exc(), None, 'DELETE_POINT')
+        log_action('Deleting Point', False, short_traceback, None, 'DELETE_POINT')
 
         return jsonify({"success": False, "message": f"Could not successfully save the {point_name} point"})
     
@@ -1617,9 +1655,11 @@ def delete_route():
             db.commit()
 
             return jsonify({"success": True, "message": f"Successfully saved the {route.name}"})
-    except Exception:
+    except Exception as e:
+
+        short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
         
-        log_action('Deleting Route', False, traceback.format_exc(), None, 'DELETE_ROUTE')
+        log_action('Deleting Route', False, short_traceback, None, 'DELETE_ROUTE')
 
         return jsonify({"success": False, "message": "Could not delete the route."})
 
@@ -1703,11 +1743,13 @@ def map_view():
                                 available_routes=available_routes,
                                 saved_points=web_mercator_points,
                                 logged_in = (user is not None))
-        except Exception as error:
+        except Exception as e:
 
-            log_action('Loading Map', False, traceback.format_exc(), None, 'LOAD_MAP')
+            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
 
-            return jsonify({"success": False, "message": f"Error whilst getting map: {error}"})
+            log_action('Loading Map', False, short_traceback, None, 'LOAD_MAP')
+
+            return jsonify({"success": False, "message": f"Error whilst getting map: {e}"})
 
 
 @app.route("/search_area", methods=["POST"])
