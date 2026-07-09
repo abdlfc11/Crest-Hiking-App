@@ -153,6 +153,7 @@
             </div>
         </dialog>
 
+        <!-- ##### ROUTE STATS PANEL ##### -->
         {% if route_stats %}
         <div id="route-stats">
             <div class="stats-header">
@@ -230,7 +231,7 @@
                                 <span class="stat-value">{{ route.eta_seconds | format_eta }}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Elevation Change:</span>
+                                <span class="stat-label">Elevation Gain:</span>
                                 <span class="stat-value">{{ route.elevation_change | format_elevation }}</span>
                             </div>
                         </div>

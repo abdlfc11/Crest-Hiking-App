@@ -216,7 +216,7 @@ export function createRouteCard(routeName, formattedDate, distanceInKm, ETA, ele
                                       <span class="stat-value">${ETA}</span>
                                   </div>
                                   <div class="stat-item">
-                                      <span class="stat-label">Elevation Change:</span>
+                                      <span class="stat-label">Elevation Gain:</span>
                                       <span class="stat-value">${elevDisplayValue}</span>
                                   </div>
                               </div>
@@ -247,4 +247,35 @@ export function createNoRouteCard() {
                   </button>
               </div>
           </div>`
+}
+
+export function createStatsPanel(distanceDisplay, etaDisplay, elevationDisplay) {
+  return `
+      <div class="stats-header">
+          <span class="stats-title">Route Information</span>
+          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
+      </div>
+      <div id="stat-content-and-chart-container">
+          <div class="stats-content">
+              <div class="stat-row">
+                  <span class="stat-label">Distance:</span>
+                  <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">ETA:</span>
+                  <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">Elevation Gain:</span>
+                  <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
+              </div>
+          </div>
+
+          <div class="chart-wrapper"> 
+              <div id="elevation-chart-container">
+                  <canvas id="elevation-chart"></canvas>
+              </div>
+          </div>
+      </div>
+  `
 }

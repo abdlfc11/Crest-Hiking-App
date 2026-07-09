@@ -807,7 +807,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     routeStats.eta_seconds = formatETA(routeStats.eta_seconds)
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
-    setAutoRouteStatDisplay(getLastAutoRouteStats());
+    displayAutoRouteStats(getLastAutoRouteStats());
     initChartToggleListener();
     createElevationProfile(response.coordinates);
     if (saveContainer) saveContainer.style.display = "flex";
@@ -888,40 +888,15 @@ function displayPath(data) {
   return data.route_stats;
 };
 
-function setAutoRouteStatDisplay(routeStats) {
-  const statsHtml = `
-    <div id="route-stats">
-      <div class="stats-header">
-          <span class="stats-title">Route Information</span>
-          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-      </div>
-      <div id="stat-content-and-chart-container">
-          <div class="stats-content">
-              <div class="stat-row">
-                  <span class="stat-label">Distance:</span>
-                  <span class="stat-value" id="route-distance-display">${formatDistance(parseFloat(routeStats.total_distance))}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${routeStats.eta_seconds}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
-              </div>
-          </div>
+function displayAutoRouteStats(routeStats) {
 
-          <div class="chart-wrapper"> 
-              <div id="elevation-chart-container">
-                  <canvas id="elevation-chart"></canvas>
-              </div>
-          </div>
-      </div>
-    </div>
-  `;
+  let statsDiv = document.getElementById("route-stats");
 
-  document.getElementById("route-stats")?.remove();
-  document.body.insertAdjacentHTML("beforeend", statsHtml);
+  statsDiv = document.createElement("div");
+  statsDiv.id = "route-stats";
+  document.body.appendChild(statsDiv);
+
+  statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), routeStats.eta_seconds, routeStats.elevation_change)
 };
 
 function checkIfCircularRoute() {
@@ -1029,6 +1004,10 @@ export function updateManualRoute() {
 
   map.addLayer(manualRouteLayer);
 
+  updateManualRouteStats(distanceDisplay, etaDisplay, elevationDisplay, pathCoords);
+};
+
+function updateManualRouteStats(distanceDisplay, etaDisplay, elevationDisplay, pathCoords) {
   let statsDiv = document.getElementById("route-stats");
   let firstRender = !statsDiv
 
@@ -1057,7 +1036,7 @@ export function updateManualRoute() {
   }
 
   createElevationProfile(pathCoords);
-};
+}
 
 export function undoManualRoutePoint() {
 
@@ -1293,7 +1272,7 @@ function handleDistanceUnitToggle() {
     updateManualRoute();
   }
   else if (getLastAutoRouteStats()) {
-    setAutoRouteStatDisplay(getLastAutoRouteStats());
+    displayAutoRouteStats(getLastAutoRouteStats());
   }
   else if (getLastLoadedRouteStats) {
     displayLoadedRouteStats(getLastLoadedRouteStats());
