@@ -195,12 +195,33 @@ def is_beta_code_validated():
     else:
         return True
 
+@app.template_filter('format_elevation')
+def format_elevation(elevation_gain):
+    if not isinstance(elevation_gain, int) or isinstance(elevation_gain, float):
+        elevation_gain = float(elevation_gain)
+
+    if elevation_gain >= 0:
+        return f"+{elevation_gain}"
+    else:
+        return f"{elevation_gain}"
+
+@app.template_filter('format_eta')
+def format_eta(seconds):
+    hours = math.floor(seconds / 3600)
+    minutes = math.floor((seconds % 3600) / 60)
+
+    if hours == 0:
+        return f"{minutes}m"
+    else:
+        return f"{hours}h {minutes}m"
+    
 # STRFTIME FILTER
 @app.template_filter("strftime")
 def strftime_filter(date, format: str):
     if isinstance(date, str):
         date = datetime.isoformat(date)
     return date.strftime(format)
+
 
 #region ERROR HANDLER RENDER_TEMPLATES()
 
@@ -663,17 +684,6 @@ if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
 
 # Create once at module level
 transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
-
-def format_eta(seconds):
-    hours = math.floor(seconds / 3600)
-    minutes = math.floor((seconds % 3600) / 60)
-
-    if hours == 0:
-        return f"{minutes}m"
-    else:
-        return f"{hours}h {minutes}m"
-    
-app.jinja_env.filters['format_eta'] = format_eta
 
 
 def haversine(x1, y1, x2, y2):
