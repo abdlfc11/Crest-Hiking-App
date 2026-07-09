@@ -8,7 +8,7 @@ import { closeNav, closeSavedRoutesDash,  } from "../ui.js"
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
 import { createElevationProfile, initChartToggleListener } from "../elevationChart.js";
-import {addClickListener} from "../utils.js"
+import {addClickListener, createNoRouteCard} from "../utils.js"
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 
@@ -67,7 +67,14 @@ async function onDeleteClick(event) {
   try {
     const response = await deleteRoute(route.routeName);
     if (response.success) {
-     routeCard.remove();
+      routeCard.remove();
+
+      const remainingCards = document.querySelectorAll('.route-card');
+
+      if (remainingCards.length === 0) {
+        allRoutesContainer.insertAdjacentHTML('beforeend', createNoRouteCard());
+      }
+
     }
   } catch (error) {
     console.error("Delete route failed:", error);
@@ -85,7 +92,6 @@ async function onDeleteClick(event) {
  */
 async function onDownloadClick(event, format, DOMElement) {
 
-  const temp = DOMElement.innerHTML
   DOMElement.classList.add('loading')
   DOMElement.disabled = true;
 
