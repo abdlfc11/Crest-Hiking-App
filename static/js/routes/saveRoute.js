@@ -112,7 +112,7 @@ function handleSaveRoute(e) {
         const formattedToday = new Intl.DateTimeFormat('en-GB', {
           "day": "2-digit",
           "month": "2-digit",
-          "year": "2-digit"
+          "year": "numeric"
         }).format(today);
         
         elevDisplayValue = formatElevation(routeInfo.elevation_gain_metres);
