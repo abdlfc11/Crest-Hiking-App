@@ -16,7 +16,16 @@ By default, this project includes a **pgAdmin** instance exposed via your `docke
    SELECT action, outcome, duration_ms, error_code, info 
    FROM action_log 
    ORDER BY created_at DESC;
+    ```
 
+### Benefits for Self-Hosters:
+
+- **Instant Diagnosis:** Instead of digging through raw, unformatted Docker container logs, you can quickly check the error_code column to identify exactly why a feature (like a map tile loading or account creation) is failing in your local environment.
+- **Environmental Integrity Checks:** Codes like `NO_PATH_FOUND` or `LOAD_MAP` failures instantly signal if your local osm/map data assets are missing or disconnected from your containers.
+
+### Benefits for Contributors:
+- **Performance Profiling:** Successful events (where outcome is true) often populate the duration_ms column. This allows you to benchmark optimisations made to pathfinding algorithms or database queries directly from your local deployment.
+- **No Lost Stack Traces:** If a route handler crashes during development, the complete Python exception stack trace is securely captured in the info column, even if the main API response returned a generic 500 error to the client.
 
 ---
 
