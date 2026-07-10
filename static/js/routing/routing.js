@@ -104,11 +104,9 @@ export async function addManualPoint(x, y) {
   try {
 
     if (segmentCache[key]) { // this checks if the segment already exists in cache 
-      console.log("DEBUG: Found existing cache");
       segment = segmentCache[key];
     }
     else {
-      console.log("DEBUG: no existing cache found");
       const data = await getPathSegment(lastClickedPoint, finalClick);
 
       if (!data.success) {

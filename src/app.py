@@ -1,7 +1,6 @@
 # These imports are for pathfinding.
 from pathfinder import (
     a_star,
-    snap_to_largest_component,
     build_global_kdtree,
 )
 
@@ -38,7 +37,7 @@ import time
 import io
 
 # These imports are for date and time handling.
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 
 # These imports are for geospatial processing.
 from pyproj import Transformer
@@ -226,15 +225,15 @@ def strftime_filter(date, format: str):
 #region ERROR HANDLER RENDER_TEMPLATES()
 
 @app.errorhandler(404)
-def page_not_found(error):
+def page_error_404(error):
     return render_template('Error-Pages/404.html')
 
 @app.errorhandler(405)
-def page_not_found(error):
+def page_error_405(error):
     return render_template('Error-Pages/405.html')
 
 @app.errorhandler(500)
-def page_not_found(error):
+def page_error_500(error):
     return render_template('Error-Pages/500.html')
 
 #endregion
@@ -376,8 +375,6 @@ def registering():
 @app.route("/delete_account", methods=["POST"])
 @limiter.limit("10 per minute")
 def delete_account():
-    username = session.get('username')
-
     with Session(engine) as db:
 
        
@@ -779,7 +776,7 @@ def parse_elevation(elevation_string: str):
         return None
     try:
         return float(elevation_string.replace('m', '').strip())
-    except:
+    except Exception:
         return None
 
 # helper function used in creation of gpx / geojson files which converts hrs and minutes to seconds 
@@ -794,7 +791,7 @@ def parse_eta_to_seconds(eta_string: str):
             minutes_part = eta_string.split('h')[-1] if 'h' in eta_string else eta_string
             minutes = int(minutes_part.replace('m', '').strip())
         return hours * 3600 + minutes * 60
-    except:
+    except Exception:
         return None
 
 #region GEOSPATIAL FILE PROCESSING HELPER FUNCTIONS
@@ -1051,6 +1048,23 @@ def calculate_path():
             web_mercator_coordinates.append([x, y, elev])
         else:
             web_mercator_coordinates.append([x, y])
+
+    elevation_gain = 0
+    elevation_change = 0
+    
+    # this calculates the elevation GAIN
+    for node1, node2 in zip(path, path[1:]):
+        elev1 = graph.nodes.get(node1, {}).get('elev')
+        elev2 = graph.nodes.get(node2, {}).get('elev')
+
+        if elev1 is not None and elev2 is not None:
+            elevation_gain += max(0, elev2 - elev1)
+
+    # this calculates the elevation CHANGE
+    start_elevation = int(graph.nodes[start_node]['elev'])
+    end_elevation = int(graph.nodes[end_node]['elev'])
+
+    elevation_change = end_elevation - start_elevation
     
     start_coords = web_mercator_coordinates[0]
     end_coords = web_mercator_coordinates[-1]
@@ -1075,16 +1089,11 @@ def calculate_path():
     # Calculates optimal map centre and zoom
     map_centre, map_zoom = service.calculate_map_center_and_zoom(web_mercator_coordinates)
 
-    start_elevation = int(graph.nodes[start_node]['elev'])
-    end_elevation = int(graph.nodes[end_node]['elev'])
-
-    elevation_difference = end_elevation - start_elevation
-    elevation_change = f"+{elevation_difference}m" if elevation_difference >= 0 else f"{elevation_difference}m" 
-
     route_stats = {
         "start_elevation": start_elevation,
         "end_elevation": end_elevation,
         "elevation_change": elevation_change,
+        "elevation_gain": elevation_gain, 
         "total_distance": round(total_distance_km, 2),
         "eta_seconds": eta_seconds
     }
@@ -1426,9 +1435,7 @@ def import_route():
 
     if not uploaded_file:
 
-        with Session(engine) as db:
-
-            log_action('Importing Route', False, 'Uploaded file could not be retrieved', None, 'IMPORT_ROUTE')
+        log_action('Importing Route', False, 'Uploaded file could not be retrieved', None, 'IMPORT_ROUTE')
 
         return jsonify({"success": False, "message": "Cannot receive uploaded file"}), 400
     
@@ -1499,7 +1506,7 @@ def import_route():
 
         # this handles KML file types
         elif ext == "kml":
-            uploaded_file.stream.seek(0);
+            uploaded_file.stream.seek(0)
             doc = KML.parse(uploaded_file.stream, strict=False)
             coords = extract_kml_coords(doc)
             return jsonify({"success": True, "coords": coords})
@@ -1546,7 +1553,7 @@ def import_route():
                 if geo.get('type') in ["Point", "LineString", "MultiLineString", "Polygon"]:
                     geometries.append(geo)
                 else:
-                    log_action('Importing Route', False, 'Invalid GeoJSON Structure', None, "IMPORT_ROUTE");
+                    log_action('Importing Route', False, 'Invalid GeoJSON Structure', None, "IMPORT_ROUTE")
                     return jsonify({"success": False, "message": "There was an error on our end, please try again later."})
 
             # this is for processing LineString geometries
@@ -1743,7 +1750,7 @@ def map_view():
                         "name": point.name,
                         "coordinates": [web_mercator_x, web_mercator_y]
                     })
-                except Exception as e:
+                except Exception:
                     continue
             
             return render_template("map.html",
@@ -1802,7 +1809,7 @@ def search_area():
             })
         else:
             return jsonify({"success": False, "message": "Could not find area"})
-    except Exception as error:
+    except Exception:
         log_action('Searching for Area', False, traceback.format_exc(), None, 'SEARCH_AREA')
 
 
