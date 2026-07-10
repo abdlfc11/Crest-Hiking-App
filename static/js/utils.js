@@ -95,11 +95,9 @@ export function calculateEta(distanceKm) {
   const etaMinutesRemainder = etaMinutes % 60;
 
   if (etaHoursInt > 0) {
-    console.log(`DEBUG: ETA CALCULATED IS ${etaHoursInt} + ${etaMinutes}`)
     return `${etaHoursInt}h ${etaMinutesRemainder}m`;
   }
 
-  console.log(`DEBUG: ETA CALCULATED IS ${etaHoursInt} + ${etaMinutes}`)
   return `${etaMinutesRemainder}m`;
 }
 
@@ -249,7 +247,7 @@ export function createNoRouteCard() {
           </div>`
 }
 
-export function createStatsPanel(distanceDisplay, etaDisplay, elevationDisplay) {
+export function createStatsPanel(distanceDisplay, etaDisplay, elevationGain) {
   return `
       <div class="stats-header">
           <span class="stats-title">Route Information</span>
@@ -267,7 +265,7 @@ export function createStatsPanel(distanceDisplay, etaDisplay, elevationDisplay) 
               </div>
               <div class="stat-row">
                   <span class="stat-label">Elevation Gain:</span>
-                  <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
+                  <span class="stat-value" id="route-elevation-gain-display">${elevationGain}</span>
               </div>
           </div>
 
