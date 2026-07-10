@@ -456,7 +456,7 @@ body {
 #save-route-button-container {
     z-index: 1000;
     position: absolute;
-    right: 12rem;
+    right: 9rem;
     width: 15rem;
     display: flex;
     flex-direction: column; /* to stack button + panel */
@@ -468,11 +468,10 @@ body {
     justify-content: space-between;
     align-items: center;
     background: rgb(255 255 255 / 0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 8px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0 0 8px 8px;
     border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     color: #1f2937;
     padding: 8px 14px;
     font-size: 14px;
@@ -490,7 +489,7 @@ body {
 }
 
 #save-route-toggle-button.opened {
-    border-radius: 8px 8px 0 0;
+    border-radius: 0;
 }
 
 /* this panel sits below the button under the same container */
@@ -502,21 +501,18 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 0 0 8px 8px;
-    border: 1px solid transparent;
+    border: none;
     border-top: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     width: 15rem;
     transition: all 0.15s ease-in-out;
 }
 
 #save-route-toggle-button:hover {
     background: rgba(223, 221, 221, 0.65);
-    border-color: #cbd5e1;
 }
 
 #save-route-toggle-button:hover + #save-route {
     background: rgba(223, 221, 221, 0.65);
-    border-color: #cbd5e1;
 }
 
 

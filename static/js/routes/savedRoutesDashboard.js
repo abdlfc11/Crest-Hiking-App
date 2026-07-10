@@ -12,6 +12,18 @@ import {addClickListener, createNoRouteCard} from "../utils.js"
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 
+/**
+ * Function responsible for 
+ */
+export function updateSavedRouteCards() {
+  const statValues = document.querySelectorAll('[data-distance-km]');
+  statValues.forEach(value => {
+    const rawKm = parseFloat(value.dataset.distanceKm);
+    if (isNaN(rawKm)) return;
+    const formattedValue = formatDistance(rawKm);
+    value.textContent = formattedValue;
+  });
+};
 
 /**
  * reads the route name and format from the closest route card

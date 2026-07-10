@@ -95,8 +95,12 @@ export function createSavedRouteDashboardTour() {
 export function createAutomaticRoutingTour(onTourEnd) {
     return driver({
         popoverClass: 'app-tour-theme',
-        onNext: () => {
-            if (typeof onTourEnd === 'function') onTourEnd();
+        onDoneClick: async (element, step, options) => {
+            options.driver.destroy();
+
+            if (typeof onTourEnd === 'function') {
+                await onTourEnd();
+            }
         },
         steps: [
             {

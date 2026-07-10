@@ -120,7 +120,7 @@ const saveRouteDiv = document.getElementById("save-route");
 const routeNameEntry = document.getElementById("route-name");
 const saveContainer = document.getElementById('save-route-container');
 const saveRouteToggleButton = document.getElementById("save-route-toggle-button");
-const saveRouteButtonContainer = document.getElementById('save-route-toggle-button');
+const saveRouteContainer = document.getElementById('save-route-container');
 
 // delete point modal
 const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
@@ -172,15 +172,12 @@ let selectedPoint = null;
 //#endregion
 
 // hides save route button + panel if there is no route
-if (!window.appConfig.initialCurrentPath) {
-    if (saveContainer) {
-        saveContainer.style.display = 'none';
-    }
-}
 
 export function getClickMode() {
   return clickMode;
 }
+
+//#region MOBILE CHECK
 
 // check if user is on mobile and take subsequent action to inform them of decision to make Crest desktop only on web
 function checkIfMobile() {
@@ -208,11 +205,15 @@ function checkIfMobile() {
   }
 }
 
+//#endregion
+
 // this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
 function noRouteCreateFunction() {
   closeNav()
   closeSavedRoutesDash()
 }
+
+//#region COORDINATE INPUT FUNCTIONS
 
 function showCoordInputError(entry, message) {
   entry.placeholder = message;
@@ -315,6 +316,8 @@ export function mapClickHandler(event) {
   }
 }
 
+//#endregion
+
 //#region OPEN/CLOSE PANEL FUNCTIONS
 
 function openNav() {
@@ -379,7 +382,7 @@ export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
 };
 
-export function updateSaveRouteContainer() {
+export function toggleSaveRouteContainer() {
   const isOpen = saveRouteToggleButton.classList.toggle("opened");
 
     if (isOpen) {
@@ -388,6 +391,16 @@ export function updateSaveRouteContainer() {
         saveRouteDiv.style.height = "0px";
     }
 };
+
+function collapseSaveRouteContainer() {
+  if (saveRouteToggleButton) {
+    saveRouteToggleButton.classList.remove("opened");
+  }
+
+  if (saveRouteDiv) {
+    saveRouteDiv.style.height = "0px";
+  }
+}
 
 //#endregion
 
@@ -580,18 +593,13 @@ function handleRouteImportType() {
 
 //#endregion
 
+//#region MODE SWITCHING
+
 function handleToggles(event) {
   manualModeOption.classList.remove("active");
   autoModeOption.classList.remove("active");
   event.currentTarget.classList.add("active");
 };
-
-function manualRouteClickHandler(event) {
-  const coordinate = event.coordinate;
-  addManualPoint(coordinate[0], coordinate[1]);
-};
-
-//#region MODE SWITCHING
 
 function switchToAutoMode() {
   const map = getMap();
@@ -675,7 +683,7 @@ export function clearAutoRoute() {
   if (endCoordEntry) endCoordEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveContainer) saveContainer.style.display = "none";
-  closeSaveRouteContainer();
+  updateSaveRouteContainer();
   
 };
 
@@ -693,7 +701,7 @@ export function clearManualRoute() {
   document.getElementById("route-stats")?.remove();
 
   if (saveContainer) saveContainer.style.display = "none";
-  closeSaveRouteContainer();
+  updateSaveRouteContainer();
 
   clearPathState();
   getRouteLayer()?.getSource().clear();
@@ -714,7 +722,7 @@ export function homeButtonFunction() {
   clearManualRoute();
   clearAutoRoute();
   clearLastLoadedRouteStats();
-  closeSaveRouteContainer()
+  updateSaveRouteContainer()
 
   const layersToRemove = [];
   map.getLayers().forEach((layer) => {
@@ -795,7 +803,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
   const startPoint = start || startCoordEntry?.value || "";
   const endPoint = end || endCoordEntry?.value || "";
 
-  console.log(`startPoint is ${startPoint}`)
 
   if (validateInputCoords(startPoint, endPoint) !== true) return;
 
@@ -924,8 +931,10 @@ function checkIfCircularRoute() {
 function removeExistingStats() {
   if (manualRouteState.userClicks.length === 0) {
     document.getElementById("route-stats")?.remove();
-    if (saveRouteDiv && getCurrentMode() === "manual") {
-      saveRouteDiv.style.display = "none";
+    resetElevationChart();
+    if (saveRouteContainer && getCurrentMode() === "manual") {
+      saveRouteContainer.style.display = "none";
+      collapseSaveRouteContainer();
     }
     return false;
   }
@@ -1037,6 +1046,7 @@ export function undoManualRoutePoint() {
     if (saveContainer) saveContainer.style.display = 'none';
     document.getElementById('route-stats')?.remove();
     resetElevationChart();
+    collapseSaveRouteContainer();
     return;
   }
 
@@ -1086,33 +1096,32 @@ function redoManualRoutePoint() {
   addManualPoint(restoredPoint[0], restoredPoint[1]);
 };
 
+function manualRouteClickHandler(event) {
+  const coordinate = event.coordinate;
+  addManualPoint(coordinate[0], coordinate[1]);
+};
+
 //#endregion
 
-function closeSaveRouteContainer() {
-  const isOpen = saveRouteToggleButton.classList.contains('opened')
+//#region SAVE ROUTE PANEL
 
-  if (!isOpen) {
-    return true;
-  };
+if (!window.appConfig.initialCurrentPath) {
+    if (saveContainer) {
+        saveContainer.style.display = 'none';
+    }
+}
 
-  saveRouteToggleButton.classList.remove('opened')
+export function updateSaveRouteContainer() {
+  collapseSaveRouteContainer();
   return true;
 }
 
-export function updateSavedRouteCards() {
-  const statValues = document.querySelectorAll('[data-distance-km]');
-  statValues.forEach(value => {
-    const rawKm = parseFloat(value.dataset.distanceKm);
-    if (isNaN(rawKm)) return;
-    const formattedValue = formatDistance(rawKm);
-    value.textContent = formattedValue;
-  });
-};
+//#endregion
 
 //#region DRIVER.JS
 
 async function handleSaveRouteTour() {
-  await handleAutoRouteGeneration('-209579, 7053648', '-202103, 7051314');
+  await handleAutoRouteGeneration('-363769, 7256750', '-357507, 7256649');
 
   setTimeout(() => {
     savingRoutesTourDriver = createSavingRoutesTour(homeButtonFunction);
@@ -1199,13 +1208,41 @@ function initPointDeleteHandlers() {
 
 //#endregion
 
+//#region SETTINGS
+
 // ##### LIGHT / DARK THEME #####
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
   document.documentElement.classList.toggle("dark", effective === "dark");
 }
 
-// ##### KEYBOARD SHORTCUTS ##### 
+// ##### HANDLING TOGGLING OF DISTANCE UNITS #####
+function handleDistanceUnitToggle() {
+
+  // if there is a manual route present
+  if (manualRouteState.pathCoords.length > 0) {
+    updateManualRoute();
+  }
+  else if (getLastAutoRouteStats()) {
+    displayAutoRouteStats(getLastAutoRouteStats());
+  }
+  else if (getLastLoadedRouteStats) {
+    displayLoadedRouteStats(getLastLoadedRouteStats());
+  }
+  initChartToggleListener();
+
+  const coords =
+    manualRouteState.pathCoords.length > 1
+      ? manualRouteState.pathCoords
+      : (getCurrentPathData() || getLoadedRouteCoordinates());
+
+  if (coords && coords.length > 1) createElevationProfile(coords);
+};
+
+//#endregion
+
+//#region KEYBOARD SHORTCUTS
+
 function handleKeyboardShortcuts(e) {
 
   // this returns if the user is typing 
@@ -1234,7 +1271,7 @@ function handleKeyboardShortcuts(e) {
     }
      
     // this switches to manual mode if ctrl/cmd + m is pressed
-    if (key === 'm' && e.shiftKey) {
+    if ((e.metaKey && key === 'm' && e.shiftKey) || (e.ctrlKey && key === 'm')) {
       e.preventDefault();
       switchToManualMode();
       return;
@@ -1263,29 +1300,7 @@ function handleKeyboardShortcuts(e) {
 
 };
 
-
-// ##### HANDLING TOGGLING OF DISTANCE UNITS #####
-function handleDistanceUnitToggle() {
-
-  // if there is a manual route present
-  if (manualRouteState.pathCoords.length > 0) {
-    updateManualRoute();
-  }
-  else if (getLastAutoRouteStats()) {
-    displayAutoRouteStats(getLastAutoRouteStats());
-  }
-  else if (getLastLoadedRouteStats) {
-    displayLoadedRouteStats(getLastLoadedRouteStats());
-  }
-  initChartToggleListener();
-
-  const coords =
-    manualRouteState.pathCoords.length > 1
-      ? manualRouteState.pathCoords
-      : (getCurrentPathData() || getLoadedRouteCoordinates());
-
-  if (coords && coords.length > 1) createElevationProfile(coords);
-};
+//#endregion
 
 
 //#region EVENT LISTENERS
@@ -1300,8 +1315,6 @@ export function initUi() {
 
   initSaveRoute();
   initPointDeleteHandlers();
-
-  updateSavedRouteCards();
 
 
   // initial tour (automatic routing and saving the first route)
@@ -1353,7 +1366,7 @@ export function initUi() {
   addClickListener(noRouteCreateButton, noRouteCreateFunction, "click");
 
   // These event listeners are for route saving.
-  addClickListener(saveRouteToggleButton, updateSaveRouteContainer, "click");
+  addClickListener(saveRouteToggleButton, toggleSaveRouteContainer, "click");
 
   // These event listeners are for keyboard shortcuts.
   addClickListener(document, handleKeyboardShortcuts, "keydown");
