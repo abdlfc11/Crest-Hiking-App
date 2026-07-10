@@ -29,6 +29,7 @@ export function createElevationProfile(coordinates) {
     }
 
     if (!coordinates || coordinates.length < 2) {
+        resetElevationChart();
         ctx.style.display = 'none';
 
         if (!document.getElementById('chart-placeholder-message')) {
