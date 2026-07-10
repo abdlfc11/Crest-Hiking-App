@@ -13,7 +13,7 @@ import {addClickListener, createNoRouteCard} from "../utils.js"
 const allRoutesContainer = document.getElementById("all-routes-container");
 
 /**
- * Function responsible for 
+ * Function responsible for updating the distance values of saved route cards
  */
 export function updateSavedRouteCards() {
   const statValues = document.querySelectorAll('[data-distance-km]');
