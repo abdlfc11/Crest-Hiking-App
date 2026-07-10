@@ -18,8 +18,9 @@ import {
 } from "./settingsState.js";
 import { formatDistance } from "./utils.js";
 import { logout, deleteAccount } from "./auth.js";
-import { applyTheme, updateSavedRouteCards } from "./ui.js";
+import { applyTheme } from "./ui.js";
 import { hasActiveRouteStatsPanel } from "./routes/routeState.js";
+import { updateSavedRouteCards } from "./routes/savedRoutesDashboard.js";
 
 /** @type {(() => void) | null} */
 let onDistanceUnitChange = null;
@@ -58,7 +59,7 @@ export function initSettings() {
       console.warn("[settings] server load failed, using local", err);
     });
  
-  // Note: we intentionally do NOT attach open/close here.
+  // NOTE: we intentionally do NOT attach open/close here.
   // ui.js does: addClickListener(settingOpenButton, openSettings...) and closeSettings()
  
   initAccountManagementButtons();
