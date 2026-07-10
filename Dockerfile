@@ -15,14 +15,13 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # this installs pg_isready so the entrypoint can wait for postgres
+# it also installs curl (to be used when getting the graph)
 # no install recommends is used to keep the layer small
 RUN apt-get update \
- && apt-get install -y --no-install-recommends postgresql-client \
+ && apt-get install -y --no-install-recommends postgresql-client curl \
  && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app/Pathfinding
-
-COPY Pathfinding/better_path_graph.pkl /app/Pathfinding/better_path_graph.pkl
 
 # this copies python backend 
 COPY src/ /app/src/
