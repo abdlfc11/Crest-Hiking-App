@@ -129,37 +129,44 @@ export function extractElevationProfile(coords) {
  * @returns The range of elevation of a path in the form { min: min_elevation, max: max_elevation }
  */
 export function getElevationRange(coords) {
-  return coords.reduce((range, coord) => {
-    if (coord.length === 3) {
-      const elevation = coord[2];
+  if (!coords || coords.length === 0) return { min: null, max: null };
 
-      if (range.min === null || elevation < range.min) range.min = elevation;
-      if (range.max === null || elevation > range.max) range.max = elevation;
-    }
-    return range;
-  }, { min: null, max: null})
+  // this extracts the elevation values of each coordinate
+  const elevations = coords
+    .filter(coord => coord && coord.length === 3)
+    .map(coord => coord[2]);
+
+  // this returns null values if no elevation data is present
+  if (elevations.length === 0) return { min: null, max: null };
+
+  // this uses the spread operator to find min and max values instantly
+  return {
+    min: Math.min(...elevations),
+    max: Math.max(...elevations)
+  };
 }
 
 /**
- * 
- * @param {Array} coords 
- * @returns The elevation change that the hiker would climb 
+ * @param {Array} coords - Array of [long, lat, elev] arrays
+ * @returns {number} The total elevation gain 
 */
-export function calculateElevationChange(coords) {
+export function calculateElevationGain(coords) {
   if (!coords || coords.length < 2) return 0;
 
-  let totalChange = 0;
+  let totalGain = 0;
 
   for (let i = 1; i < coords.length; i++) {
     const prev = coords[i - 1];
     const curr = coords[i];
 
     if (prev.length === 3 && curr.length === 3) {
-      totalChange += curr[2] - prev[2];
+      const elevationDifference = curr[2] - prev[2];
+      // Only add positive differences (uphill)
+      totalGain += Math.max(0, elevationDifference);
     }
   }
 
-  return totalChange;
+  return totalGain;
 }
 
 /**
@@ -187,7 +194,6 @@ export function normaliseCoordLength(coords) {
     const secondElev = normalisedCoords[1][2];
 
     if (firstElev === 0 && secondElev !== 0) { // check if the first coord element doesn't have elevation AND that there is second Elevation
-      console.log(`Copied elevation ${secondElev} to first point`); // for debugging
       normalisedCoords[0][2] = secondElev;
     }
   }

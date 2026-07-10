@@ -12,7 +12,8 @@ import {
   addClickListener,
   formatETA,
   removeDOMElement,
-  createStatsPanel
+  createStatsPanel,
+  formatElevation
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -57,7 +58,7 @@ import {
   extractElevation,
   extractElevationProfile,
   getElevationRange,
-  calculateElevationChange
+  calculateElevationGain
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -788,7 +789,7 @@ async function mapRenderComplete() {
   loadAndDisplaySavedPoints();  
 };
 
-//#region ROUTING
+//#region AUTOMATIC ROUTING
 
 async function handleAutoRouteGeneration(start=null, end=null) {
   const startPoint = start || startCoordEntry?.value || "";
@@ -896,8 +897,12 @@ function displayAutoRouteStats(routeStats) {
   statsDiv.id = "route-stats";
   document.body.appendChild(statsDiv);
 
-  statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), routeStats.eta_seconds, routeStats.elevation_change)
+  statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), routeStats.eta_seconds, formatElevation(routeStats.elevation_gain))
 };
+
+//#endregion
+
+//#region MANUAL ROUTING
 
 function checkIfCircularRoute() {
   const tolerance = 0.000001;
@@ -927,16 +932,6 @@ function removeExistingStats() {
   return true;
 };
 
-export function updateSavedRouteCards() {
-  const statValues = document.querySelectorAll('[data-distance-km]');
-  statValues.forEach(value => {
-    const rawKm = parseFloat(value.dataset.distanceKm);
-    if (isNaN(rawKm)) return;
-    const formattedValue = formatDistance(rawKm);
-    value.textContent = formattedValue;
-  });
-};
-
 export function updateManualRoute() {
   const map = getMap();
   if (!map) return;
@@ -952,13 +947,8 @@ export function updateManualRoute() {
   const etaDisplay = calculateEta(totalDistanceKm);
   const isSnappedToEnd = checkIfCircularRoute();
   const features = [];
-  let elevationDisplay = "N/A";
-  const range = getElevationRange(pathCoords);
-  if (range && typeof range.min === 'number' && typeof range.max === 'number') {
-    const change = range.max - range.min;
-    elevationDisplay = `${change >= 0 ? '+' : ''}${change}m`
-  }
-
+  const elevationGainDisplay = formatElevation(calculateElevationGain(pathCoords));
+  
   setLastKnownDistanceKm(totalDistanceKm);
 
   userClicks.forEach((point, index) => {
@@ -1004,10 +994,13 @@ export function updateManualRoute() {
 
   map.addLayer(manualRouteLayer);
 
-  updateManualRouteStats(distanceDisplay, etaDisplay, elevationDisplay, pathCoords);
+  const isOnePoint = pathCoords.length === 1;
+
+  updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords);
+  createElevationProfile(pathCoords);
 };
 
-function updateManualRouteStats(distanceDisplay, etaDisplay, elevationDisplay, pathCoords) {
+function updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords) {
   let statsDiv = document.getElementById("route-stats");
   let firstRender = !statsDiv
 
@@ -1017,25 +1010,22 @@ function updateManualRouteStats(distanceDisplay, etaDisplay, elevationDisplay, p
     statsDiv.id = "route-stats";
     document.body.appendChild(statsDiv);
 
-    statsDiv.innerHTML = createStatsPanel(distanceDisplay, etaDisplay, elevationDisplay);
+    statsDiv.innerHTML = createStatsPanel(distanceDisplay, etaDisplay, elevationGainDisplay);
 
     initChartToggleListener();   
   }
   else {
     document.getElementById("route-distance-display").textContent = distanceDisplay;
     document.getElementById("route-eta-display").textContent = etaDisplay;
-    document.getElementById("route-elevation-change-display").textContent = elevationDisplay;
+    document.getElementById("route-elevation-gain-display").textContent = elevationGainDisplay;
   }
 
   const toggleChartButton = document.getElementById('toggle-elevation-chart');
-  const isOnePoint = pathCoords.length === 1;
 
   if (toggleChartButton) {
     toggleChartButton.classList.toggle('one-point-only', isOnePoint);
     toggleChartButton.disabled = isOnePoint;
   }
-
-  createElevationProfile(pathCoords);
 }
 
 export function undoManualRoutePoint() {
@@ -1096,6 +1086,8 @@ function redoManualRoutePoint() {
   addManualPoint(restoredPoint[0], restoredPoint[1]);
 };
 
+//#endregion
+
 function closeSaveRouteContainer() {
   const isOpen = saveRouteToggleButton.classList.contains('opened')
 
@@ -1107,7 +1099,15 @@ function closeSaveRouteContainer() {
   return true;
 }
 
-//#endregion
+export function updateSavedRouteCards() {
+  const statValues = document.querySelectorAll('[data-distance-km]');
+  statValues.forEach(value => {
+    const rawKm = parseFloat(value.dataset.distanceKm);
+    if (isNaN(rawKm)) return;
+    const formattedValue = formatDistance(rawKm);
+    value.textContent = formattedValue;
+  });
+};
 
 //#region DRIVER.JS
 
