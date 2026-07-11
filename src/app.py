@@ -1,108 +1,89 @@
-# These imports are for pathfinding.
-from pathfinder import (
-    a_star,
-    build_global_kdtree,
-)
+#region IMPORTS
 
-# These imports are for Flask.
-from flask import (
-    Flask,
-    render_template,
-    request,
-    jsonify,
-    session,
-    send_file,
-    redirect,
-    url_for,
-)
-
-# These imports are for system utilities.
-import sys
-import os
-
-sys.path.insert(0, "/app/src")
-
-# These imports are for the database.
-from sqlmodel import Session, select, delete
-from sqlalchemy.exc import IntegrityError
-
-from db import engine
-from models import User, Route, Point, Settings, BetaCode, ActionLog
-
-# These imports are for data processing.
-import pickle as pkl
+# Standard Library Imports 
+import io
 import json
 import math
-import time
-import io
+import os
+import sys
+import traceback
+from datetime import datetime
+from typing import Any, Optional
 
-# These imports are for date and time handling.
-from datetime import datetime, timedelta
-
-# These imports are for geospatial processing.
-from pyproj import Transformer
-from scipy.spatial import KDTree
-import networkx as nx
+# Third-Party Libraries
 import gpxpy
 import gpxpy.gpx
+import requests
 from fastkml.kml import KML
 from fitparse import FitFile
-
-# These imports are for authentication and security.
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import (
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    session,
+    url_for,
+)
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session, delete, select
+from werkzeug.security import check_password_hash, generate_password_hash
 
-# These imports are for HTTP requests and configuration.
-import requests
+# Local Modules
 from config import Config
+from db import engine
+from models import ActionLog, BetaCode, Point, Route, Settings, User
+from Nodefinder import NodeFinder
+from constants import DEFAULT_CENTRE
 
-# This import is for typing (better readability and understanding of code)
-from typing import Optional, Any
+#endregion
 
-# traceback import for custom action logging 
-import traceback
+#region App Initialisation and General Configs 
 
-# default map centre (web_mercator coordinates)
-default_centre = [-356034, 7258806]
+app = Flask(
+    __name__, 
+    template_folder='../templates', 
+    static_folder='../static'
+)
 
+# Configuration Keys
+app.secret_key = Config.SECRET_KEY
+locationiq_api_key = Config.LOCATIONIQ_API_KEY
+app.config["SQLALCHEMY_DATABASE_URI"] = Config.DATABASE_URI
 
-app = Flask(__name__,
-            template_folder='../templates',
-            static_folder='../static')
-
+# Environment Specifics
 if os.environ.get("FLASK_ENV") == "development":
     app.debug = True
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-app.permanent_session_lifetime = timedelta(minutes=30)
+# Session and Security Settings 
 
 
-# SQL_ALCHEMY SET UP
-
-# secret key for sessions
-app.secret_key = Config.SECRET_KEY 
-locationiq_api_key = Config.LOCATIONIQ_API_KEY
-
-# binds for multiple databases
-app.config["SQLALCHEMY_DATABASE_URI"] = Config.DATABASE_URI
-
-
-# Session security settings for production
 app.config.update(
-    SESSION_COOKIE_SECURE=False,      # CHANGE TO TRUE BEFORE PRODUCTION SO IT IS HTTPS AND NOT HTTP
-    SESSION_COOKIE_HTTPONLY=True,    # prevents JavaScript access
-    SESSION_COOKIE_SAMESITE='Lax',  # provides CSRF protection
-    PERMANENT_SESSION_LIFETIME=3600  # so that sessions expire after 1 hour
+    # TODO: CHANGE TO TRUE BEFORE PRODUCTION (Enforces HTTPS)
+    SESSION_COOKIE_SECURE=True,      
+    SESSION_COOKIE_HTTPONLY=True,    # Prevents JavaScript access (XSS mitigation)
+    SESSION_COOKIE_SAMESITE='Lax',   # CSRF protection
+    PERMANENT_SESSION_LIFETIME=3600  # Expires sessions after 1 hour (overrides the 30m above)
 )
 
+# Rate Limiter Setup
 limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["200 per day", "500 per hour"],
     storage_uri="memory://",
 )
+
+#endregion
+
+# ==========================================
+# 3. Global Constants / Application Data
+# ==========================================
 
 #region ACTION LOGGING
 
@@ -500,187 +481,12 @@ def save_settings():
         return jsonify({"success": False, "message": "There was an error whilst saving settings"}), 500
 #endregion
 
-
-#region NODEFINDER CLASS
-
-class NodeFinder:
-    def __init__(self, graph_path=None, max_distance=5000, early_exit_distance=100):
-        if graph_path is None:
-            graph_path = Config.GRAPH_PATH
-        self.graph_path = graph_path
-        self._graph = None
-        self._kdtree = None
-        self.max_distance = max_distance
-        self.early_exit_distance = early_exit_distance
-        
-        # Coord conversions
-        self._bng_to_web_mercator = Transformer.from_crs("EPSG:27700", "EPSG:3857", always_xy=True)
-        self._bng_to_wgs84 = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
-        self._wgs84_to_web_mercator = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
-        self._web_mercator_to_wgs84 = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
-
-    def load_graph(self):
-        if self._graph is None:
-            if not os.path.exists(self.graph_path):
-                raise FileNotFoundError(
-                    f"\n\n=== GRAPH FILE MISSING ===\n"
-                    f"Expected graph at: {os.path.abspath(self.graph_path)}\n\n"
-                )
-
-            with open(self.graph_path, "rb") as file:
-                self._graph = pkl.load(file)
-
-            largest_cc_nodes = max(nx.weakly_connected_components(self._graph), key=len)
-            self._graph = self._graph.subgraph(largest_cc_nodes).copy()
-
-            nodes_coords = list(self._graph.nodes())
-            self._nodes_list = nodes_coords
-            self._kdtree = KDTree(nodes_coords)
-
-            build_global_kdtree(self._graph)
-
-            print(f"Graph initialised with {len(self._nodes_list)} reachable nodes.")
-
-            if self._nodes_list:
-                sample_node = self._graph.nodes[self._nodes_list[0]]
-                if 'elev' not in sample_node:
-                    print("WARNING: Graph loaded successfully but nodes have no 'elev' attribute.")
-        
-        return self._graph
-    
-    def convert_bng_to_web_mercator(self, bng_x, bng_y):
-        x, y = self._bng_to_web_mercator.transform(bng_x, bng_y)
-        return x, y
-
-    def convert_web_mercator_to_bng(self, x, y):
-        bng_x, bng_y = self._bng_to_web_mercator.transform(x, y, direction="INVERSE")
-        return bng_x, bng_y
-
-    def convert_bng_to_wgs84(self, bng_x, bng_y):
-        wgs84_lon, wgs84_lat = self._bng_to_wgs84.transform(bng_x, bng_y)
-        return wgs84_lon, wgs84_lat
-
-    def convert_wgs84_to_bng(self, wgs84_lon, wgs84_lat):
-        bng_x, bng_y = self._bng_to_wgs84.transform(wgs84_lon, wgs84_lat, direction="INVERSE")
-        return bng_x, bng_y
-    
-    def convert_wgs84_to_web_mercator(self, wgs84_lon, wgs84_lat):
-        x, y = self._wgs84_to_web_mercator.transform(wgs84_lon, wgs84_lat)
-        return x, y
-    
-    def convert_web_mercator_to_wgs84(self, x: float, y: float):
-        lon, lat = self._web_mercator_to_wgs84.transform(x, y)
-        return lon, lat  
-
-
-    def euclidean_distance(self, node, target_x, target_y):
-        return ((node[0] - target_x) ** 2 + (node[1] - target_y) ** 2) ** 0.5
-    
-    def find_nearest_node(self, target_x, target_y):
-        self.load_graph()
-        target_point = (target_x, target_y)
-        distance, index = self._kdtree.query(target_point)
-
-        if distance > self.max_distance:
-            return None  
-        
-        return self._nodes_list[index]
-
-    def build_route(self, s_x, s_y, e_x, e_y):
-        start_time = time.time()
-        full_graph = self.load_graph()
-
-        path, start_node, end_node = a_star(full_graph, (s_x, s_y), (e_x, e_y))
-
-        if not path:
-            print("Pathfinding failed")
-            return None, None, None, None
-
-        end_time = time.time()
-        
-        time_taken = round(end_time - start_time, 3) * 1000 
-        
-        return path, start_node, end_node, time_taken
-
-    def calculate_route_distance(self, path):
-        # Calculates total distance of the route in true meters
-        total_distance_metres = 0
-        if len(path) > 1:
-            for i in range(1, len(path)):
-                if len(path[i]) == 2 and len(path[i-1]) == 2:
-                    x1, y1 = path[i-1]
-                    x2, y2 = path[i]
-                else:
-                    continue
-
-                # these calculations compensate for distortion caused by web mercator projection
-                
-                # this gets the raw web_merc distance
-                stretched_distance = ((x2 - x1)**2 + (y2 - y1)**2)**0.5
-                
-                # this finds the centre latitude of the segment to find out the distortion
-                _, mid_lat = self.convert_web_mercator_to_wgs84((x1 + x2) / 2, (y1 + y2) / 2)
-                
-                # this finds the scale factor, the equation is 1/ cos(latitude_radians)
-                scale_factor = 1.0 / math.cos(math.radians(mid_lat))
-                
-                # this divides the distance by the scale factor to get the real value
-                total_distance_metres += (stretched_distance / scale_factor)
-                
-        return total_distance_metres
-
-    def calculate_eta(self, path, graph):
-        total_seconds = sum(
-            graph[start_coordinate][end_coordinate]['cost'] for start_coordinate, end_coordinate in zip(path, path[1:])
-        )
-
-        return total_seconds
-
-    def calculate_map_center_and_zoom(self, web_mercator_coordinates):
-        if len(web_mercator_coordinates) > 1:
-            x_coords = [coord[0] for coord in web_mercator_coordinates]
-            y_coords = [coord[1] for coord in web_mercator_coordinates]
-            
-            min_x, max_x = min(x_coords), max(x_coords)
-            min_y, max_y = min(y_coords), max(y_coords)
-            
-            center_x = (min_x + max_x) / 2
-            center_y = (min_y + max_y) / 2
-            
-            width = max_x - min_x
-            height = max_y - min_y
-            
-            padded_width = width * 1.4
-            padded_height = height * 1.4
-            max_dimension = max(padded_width, padded_height)
-            
-            if max_dimension < 1000:
-                zoom_level = 14
-            elif max_dimension < 5000:
-                zoom_level = 12
-            elif max_dimension < 20000:
-                zoom_level = 10
-            elif max_dimension < 50000:
-                zoom_level = 8
-            else:
-                zoom_level = 6
-            
-            map_center = [center_x, center_y]
-            map_zoom = zoom_level
-        else:
-            midpoint = web_mercator_coordinates[0] if web_mercator_coordinates else [0, 0]
-            map_center = [midpoint[0], midpoint[1]]
-            map_zoom = 10
-        
-        return map_center, map_zoom
-#endregion
-
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
+
 if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
     service.load_graph()
 
-# Create once at module level
-transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
+
 
 
 def haversine(x1, y1, x2, y2):
@@ -1009,7 +815,7 @@ def calculate_path():
 
         return jsonify({
             "success": False,
-            "map_centre": default_centre,
+            "map_centre": DEFAULT_CENTRE,
             "available_routes": available_routes, 
             "message": f"Invalid coordinates: {str(e)}"
         })
@@ -1033,7 +839,7 @@ def calculate_path():
             
             return jsonify({
                 "success": False,
-                "map_centre": default_centre,
+                "map_centre": DEFAULT_CENTRE,
                 "available_routes": available_routes,
                 "message": "No path could be created"
             })
@@ -1313,7 +1119,7 @@ def load_route():
             
             
             # calculates midpoint for map centring
-            midpoint = web_mercator_coordinates[len(web_mercator_coordinates)//2] if web_mercator_coordinates else default_centre
+            midpoint = web_mercator_coordinates[len(web_mercator_coordinates)//2] if web_mercator_coordinates else DEFAULT_CENTRE
 
             # data collected directly from database values
             eta_seconds = route.eta_seconds
@@ -1754,7 +1560,7 @@ def map_view():
                     continue
             
             return render_template("map.html",
-                                map_centre = default_centre,
+                                map_centre = DEFAULT_CENTRE,
                                 map_zoom = 10.5,
                                 current_path = session.get('current_path', None),
                                 available_routes=available_routes,
