@@ -259,6 +259,7 @@ body {
     background: white;
     color: #1e293b;
     width: 180px;
+    transition: all 0.14s ease-in-out
 }
 
 .coord-input:hover {
@@ -1094,6 +1095,26 @@ html.dark .coord-input {
     background: #374151;
     color: #f3f4f6;
     border-color: #4b5563;
+}
+
+html.dark .coord-input:focus {
+    border-color: #3b82f6; 
+    box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+                0 0 12px 4px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+html.dark .coord-input.is-active {
+    border-color: #3b82f6; 
+    box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+                0 0 12px 4px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* This overrides the white autofill background for dark mode */
+html.dark input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px #374151 inset !important; 
+    -webkit-text-fill-color: #f3f4f6 !important;
 }
 
 html.dark .coord-input::placeholder {
