@@ -3,19 +3,44 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NEA Map Project</title>
+    <title>Crestr Hiking App</title>
+
+    <!-- OpenLayers -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+
+    <!-- #region CSS FILES -->
+
+    <!-- Main CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+
+    <!-- Saved Routes Dashboard CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/saved_routes.css') }}" />
+
+    <!-- Settings Panel CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings_panel.css') }}" />
+
+    <!-- Route Stats Panel CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/statsPanel.css') }}" />
+
+    <!-- Import Route Panel CSS File-->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/import-route.css') }}" />
+
+    <!-- Error PopUp CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/error-toast.css') }}" />
+
+    <!-- #endregion -->
+
+    <!-- ICONS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Driver.js -->
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tours.css') }}" />
+    
+    <!-- Chart.js -->
+
 </head>
 <body>
 
@@ -472,8 +497,6 @@
         };
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/routes/savedRoutesDashboard.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/importRoute.js') }}"></script>
