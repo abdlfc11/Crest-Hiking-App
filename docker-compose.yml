@@ -27,7 +27,7 @@ services:
       - ./templates:/app/templates
       - ./static:/app/static
       - ./migrations:/app/migrations
-      - ./Pathfinding:/app/Pathfinding
+      - ./graph_generation:/app/graph_generation
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1

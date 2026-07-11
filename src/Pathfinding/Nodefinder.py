@@ -11,7 +11,7 @@ from scipy.spatial import KDTree
 
 # Local File Imports
 from config import Config
-from pathfinder import a_star, build_global_kdtree
+from src.Pathfinding.pathfinder import a_star, build_global_kdtree
 
 
 class NodeFinder:
