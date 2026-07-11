@@ -713,10 +713,19 @@ export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
 
-  endCoordEntry?.classList.remove("input-error");
-  startCoordEntry?.classList.remove("input-error");
-  if (startCoordEntry) startCoordEntry.placeholder = "Coordinates";
-  if (endCoordEntry) endCoordEntry.placeholder = "Coordinates";
+  if (startCoordEntry) {
+    startCoordEntry.classList.remove('input-error');
+    startCoordEntry.classList.remove('is-active');
+    startCoordEntry.placeholder = "Coordinates";
+  }
+
+  if (endCoordEntry) {
+    endCoordEntry.classList.remove('input-error');
+    endCoordEntry.classList.remove('is-active');
+    endCoordEntry.placeholder = "Coordinates";
+  }
+
+  clickMode = null;
   generatePathButton?.classList.remove("loading");
 
   clearManualRoute();
@@ -759,6 +768,7 @@ export function homeButtonFunction() {
 //#endregion
 
 function searchArea() {
+  if (searchEntry) searchEntry.value = "";
   const map = getMap();
   if (!map) return;
 
@@ -770,6 +780,7 @@ function searchArea() {
     .then((response) => response.json())
     .then((data) => {
       if (!data.success) return;
+
       const view = map.getView();
       if (view.getZoom() >= 7) {
         view.animate(
@@ -789,7 +800,7 @@ function searchArea() {
         });
       }
     })
-    .catch((error) => console.log("Error: ", error));
+    .catch((error) => showError("There was an unexpected error, please try again later."));
 };
 
 async function mapRenderComplete() {
