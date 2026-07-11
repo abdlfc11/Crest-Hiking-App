@@ -1,6 +1,11 @@
-from app import NodeFinder as n
+import sys
+import os
+
+# This prevents 'ModuleNotFoundError's (run via this command : 'python -m graph_generation.elevation_upgrade')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
+from src.Pathfinding.Nodefinder import NodeFinder as n
 import rasterio as r
-import numpy as np
 import pickle as p
 import math
 
@@ -32,7 +37,7 @@ terrain_costs = {
     "paved": 0.90,
 }
 
-with open("Pathfinding/new_path_graph.pkl", "rb") as node_file:
+with open("graph_generation/unpopulated_graph.pkl", "rb") as node_file:
     print("loading graph")
     node_graph = p.load(node_file)
 
@@ -166,6 +171,6 @@ for i, (node, data) in enumerate(node_graph.nodes(data=True)):
         break
 
 # new graph is added to the directory 
-with open("Pathfinding/better_path_graph.pkl", "wb") as file: 
+with open("graph_generation/elevation_populated_graph.pkl", "wb") as file: 
     p.dump(node_graph, file) 
 print("Saved enriched graph successfully.")
