@@ -40,7 +40,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
     
     <!-- Chart.js -->
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -477,23 +477,20 @@
             apiLoginUrl: "{{ url_for('login') }}",
             apiLogoutUrl: "{{ url_for('logout') }}",
             apiRegisterUrl: "{{ url_for('registering') }}",
-            apiCalculatePathUrl: "{{ url_for('calculate_path') }}",
+            apiCalculatePathUrl: "{{ url_for('route_api.calculate_path') }}",
             apiSearchAreaUrl: "{{ url_for('search_area') }}",
             apiSavePointUrl: "{{ url_for('save_point') }}",
             apiGetSavedPointsUrl: "{{ url_for('get_saved_points') }}",
             apiDeletePointUrl: "{{ url_for('delete_point') }}",
-            apiLoadRouteUrl: "{{ url_for('load_route') }}",
-            apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
-            apiSaveRouteUrl: "{{ url_for('save_route') }}",
+            apiDeleteRouteUrl: "{{ url_for('route_api.delete_route') }}",
+            apiSaveRouteUrl: "{{ url_for('route_api.save_route') }}",
             apiDeleteAccountUrl: "{{ url_for('delete_account') }}",
-            apiLoadRouteUrl: "{{ url_for('load_route') }}",
-            apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
-            apiSaveRouteUrl: "{{ url_for('save_route') }}",
+            apiLoadRouteUrl: "{{ url_for('route_api.load_route') }}",
             mapPageUrl: "{{ url_for('map_view') }}",
-            apiDownloadRouteUrl: "{{ url_for('download_route') }}",
+            apiDownloadRouteUrl: "{{ url_for('route_api.download_route') }}",
             apiSaveSettings: "{{ url_for('save_settings') }}",
             apiGetSettings: "{{ url_for('get_settings') }}",
-            apiImportRoute: "{{ url_for('import_route') }}"
+            apiImportRoute: "{{ url_for('route_api.import_route') }}"
         };
     </script>
 
