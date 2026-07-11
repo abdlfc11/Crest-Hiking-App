@@ -29,6 +29,9 @@
     <!-- Error PopUp CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/error-toast.css') }}" />
 
+    <!-- Tours (custom driver.js) CSS file -->
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/tours.css') }}">
+
     <!-- #endregion -->
 
     <!-- ICONS -->
@@ -488,8 +491,8 @@
             apiLoadRouteUrl: "{{ url_for('route_api.load_route') }}",
             mapPageUrl: "{{ url_for('map_view') }}",
             apiDownloadRouteUrl: "{{ url_for('route_api.download_route') }}",
-            apiSaveSettings: "{{ url_for('save_settings') }}",
-            apiGetSettings: "{{ url_for('get_settings') }}",
+            apiSaveSettings: "{{ url_for('settings_api.save_settings') }}",
+            apiGetSettings: "{{ url_for('settings_api.get_settings') }}",
             apiImportRoute: "{{ url_for('route_api.import_route') }}"
         };
     </script>
