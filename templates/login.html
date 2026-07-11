@@ -30,6 +30,6 @@
 </body>
 <script type="module" src="{{ url_for('static', filename='js/auth.js') }}"></script>
 <script>
-    const apiLoginUrl = "{{ url_for('login') }}";
+    const apiLoginUrl = "{{ url_for('auth_api.login') }}";
 </script>
 </html>
