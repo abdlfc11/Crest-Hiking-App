@@ -259,6 +259,7 @@ body {
     background: white;
     color: #1e293b;
     width: 180px;
+    transition: all 0.14s ease-in-out
 }
 
 .coord-input:hover {
@@ -456,8 +457,8 @@ body {
 #save-route-button-container {
     z-index: 1000;
     position: absolute;
-    right: 12rem;
-    width: 9rem;
+    right: 9rem;
+    width: 15rem;
     display: flex;
     flex-direction: column; /* to stack button + panel */
 }
@@ -468,29 +469,28 @@ body {
     justify-content: space-between;
     align-items: center;
     background: rgb(255 255 255 / 0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 8px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0 0 8px 8px;
     border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     color: #1f2937;
     padding: 8px 14px;
     font-size: 14px;
     cursor: pointer;
     gap: 6px;
-    transition: all 0.1s ease-in-out;
+    transition: all 0.15s ease-in-out;
 }
 
-#save-route-toggle-button i {
-    transition: transform 0.25s ease;
+#save-route-toggle-button svg {
+    transition: transform .2s ease-in-out;
 }
 
-#save-route-toggle-button.opened i {
+#save-route-toggle-button.opened svg {
     transform: rotate(180deg);
 }
 
 #save-route-toggle-button.opened {
-    border-radius: 8px 8px 0 0;
+    border-radius: 0;
 }
 
 /* this panel sits below the button under the same container */
@@ -504,19 +504,16 @@ body {
     border-radius: 0 0 8px 8px;
     border: none;
     border-top: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    width: 9rem;
-    transition: height 0.1s ease-in-out;
+    width: 15rem;
+    transition: all 0.15s ease-in-out;
 }
 
 #save-route-toggle-button:hover {
-    background: rgb(255 255 255 / 0.75);
-    border-color: #cbd5e1;
-    transform: scale(1.03);
+    background: rgba(223, 221, 221, 0.65);
 }
 
-#save-route-toggle-button:active {
-    transform: scale(1);
+#save-route-toggle-button:hover + #save-route {
+    background: rgba(223, 221, 221, 0.65);
 }
 
 
@@ -1098,6 +1095,26 @@ html.dark .coord-input {
     background: #374151;
     color: #f3f4f6;
     border-color: #4b5563;
+}
+
+html.dark .coord-input:focus {
+    border-color: #3b82f6; 
+    box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+                0 0 12px 4px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+html.dark .coord-input.is-active {
+    border-color: #3b82f6; 
+    box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+                0 0 12px 4px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* This overrides the white autofill background for dark mode */
+html.dark input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px #374151 inset !important; 
+    -webkit-text-fill-color: #f3f4f6 !important;
 }
 
 html.dark .coord-input::placeholder {

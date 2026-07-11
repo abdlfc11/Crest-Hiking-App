@@ -1,7 +1,6 @@
 import math as m
 import heapq as h
 from scipy.spatial import KDTree
-import networkx as nx
 
 _global_kdtree = None
 _global_node_list = None

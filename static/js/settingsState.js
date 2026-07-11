@@ -147,3 +147,11 @@ export function getTheme() {
   }
   return currentTheme
 } 
+
+/**
+ * Returns the current distance unit preference.
+ * @returns {'km' | 'miles'}
+ */
+export function getDistanceUnit() {
+  return appSettings.distanceUnit;
+}

@@ -17,7 +17,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
   web:
     build: .
-    command: gunicorn -c src/gunicorn.config.py src.app:app
+    ### command: gunicorn -c src/gunicorn.config.py src.app:app ### Use this command for prod 
+    command: flask run --host=0.0.0.0 --port=5000 --debug ### Use this command for dev logs --> easier debugging + more info on errors
     volumes:
       # this mounts the entire src (backend python flask / FastAPI) folder
       - ./src:/app/src
@@ -26,13 +27,19 @@ services:
       - ./templates:/app/templates
       - ./static:/app/static
       - ./migrations:/app/migrations
-      - ./Pathfinding:/app/Pathfinding
+      - ./graph_generation:/app/graph_generation
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - GUNICORN_WORKERS=2 
       - GUNICORN_LOG_LEVEL=info
       - PYTHONPATH=/app/src
+
+      ### DEBUGGING ENVIRONMENT VARIABLES ###
+      # Uncomment the lines below for local development debugging
+      - FLASK_DEBUG=1
+      - LOAD_GRAPH_ON_IMPORT=0    # 0 stops graph loading on import for fast hot-reloads
+      - FLASK_ENV=development
     ports:
       - "5000:5000"
     env_file:

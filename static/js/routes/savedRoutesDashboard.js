@@ -8,10 +8,22 @@ import { closeNav, closeSavedRoutesDash,  } from "../ui.js"
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
 import { createElevationProfile, initChartToggleListener } from "../elevationChart.js";
-import {addClickListener} from "../utils.js"
+import {addClickListener, createNoRouteCard} from "../utils.js"
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 
+/**
+ * Function responsible for updating the distance values of saved route cards
+ */
+export function updateSavedRouteCards() {
+  const statValues = document.querySelectorAll('[data-distance-km]');
+  statValues.forEach(value => {
+    const rawKm = parseFloat(value.dataset.distanceKm);
+    if (isNaN(rawKm)) return;
+    const formattedValue = formatDistance(rawKm);
+    value.textContent = formattedValue;
+  });
+};
 
 /**
  * reads the route name and format from the closest route card
@@ -67,7 +79,14 @@ async function onDeleteClick(event) {
   try {
     const response = await deleteRoute(route.routeName);
     if (response.success) {
-     routeCard.remove();
+      routeCard.remove();
+
+      const remainingCards = document.querySelectorAll('.route-card');
+
+      if (remainingCards.length === 0) {
+        allRoutesContainer.insertAdjacentHTML('beforeend', createNoRouteCard());
+      }
+
     }
   } catch (error) {
     console.error("Delete route failed:", error);
@@ -85,7 +104,6 @@ async function onDeleteClick(event) {
  */
 async function onDownloadClick(event, format, DOMElement) {
 
-  const temp = DOMElement.innerHTML
   DOMElement.classList.add('loading')
   DOMElement.disabled = true;
 

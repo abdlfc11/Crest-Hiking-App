@@ -95,11 +95,9 @@ export function calculateEta(distanceKm) {
   const etaMinutesRemainder = etaMinutes % 60;
 
   if (etaHoursInt > 0) {
-    console.log(`DEBUG: ETA CALCULATED IS ${etaHoursInt} + ${etaMinutes}`)
     return `${etaHoursInt}h ${etaMinutesRemainder}m`;
   }
 
-  console.log(`DEBUG: ETA CALCULATED IS ${etaHoursInt} + ${etaMinutes}`)
   return `${etaMinutesRemainder}m`;
 }
 
@@ -216,7 +214,7 @@ export function createRouteCard(routeName, formattedDate, distanceInKm, ETA, ele
                                       <span class="stat-value">${ETA}</span>
                                   </div>
                                   <div class="stat-item">
-                                      <span class="stat-label">Elevation Change:</span>
+                                      <span class="stat-label">Elevation Gain:</span>
                                       <span class="stat-value">${elevDisplayValue}</span>
                                   </div>
                               </div>
@@ -228,4 +226,54 @@ export function createRouteCard(routeName, formattedDate, distanceInKm, ETA, ele
                               </div>
                           </div>
                           `;
+}
+
+/**
+ * This returns a card showing users that there are no saved routes for both a clean UI and a UX
+ * 
+ * @returns {string} HTML string for the route card showing that there are no routes 
+ */
+export function createNoRouteCard() {
+  return `<div id="no-routes-wrapper" class="no-routes-wrapper">
+              <div class="no-routes-card">
+                  <h2 class="no-routes-title">No routes saved yet</h2>
+                  <p class="no-routes-description">
+                      You haven’t created any routes. Start planning your next adventure below.
+                  </p>
+                  <button id="no-route-create-button" class="no-routes-create-btn generate-button">
+                      Create a route
+                  </button>
+              </div>
+          </div>`
+}
+
+export function createStatsPanel(distanceDisplay, etaDisplay, elevationGain) {
+  return `
+      <div class="stats-header">
+          <span class="stats-title">Route Information</span>
+          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
+      </div>
+      <div id="stat-content-and-chart-container">
+          <div class="stats-content">
+              <div class="stat-row">
+                  <span class="stat-label">Distance:</span>
+                  <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">ETA:</span>
+                  <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
+              </div>
+              <div class="stat-row">
+                  <span class="stat-label">Elevation Gain:</span>
+                  <span class="stat-value" id="route-elevation-gain-display">${elevationGain}</span>
+              </div>
+          </div>
+
+          <div class="chart-wrapper"> 
+              <div id="elevation-chart-container">
+                  <canvas id="elevation-chart"></canvas>
+              </div>
+          </div>
+      </div>
+  `
 }

@@ -11,7 +11,9 @@ import {
   showError,
   addClickListener,
   formatETA,
-  removeDOMElement
+  removeDOMElement,
+  createStatsPanel,
+  formatElevation
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -56,7 +58,7 @@ import {
   extractElevation,
   extractElevationProfile,
   getElevationRange,
-  calculateElevationChange
+  calculateElevationGain
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -67,7 +69,7 @@ import {
 import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
-import { createElevationProfile, initChartToggleListener } from "./elevationChart.js";
+import { createElevationProfile, initChartToggleListener, resetElevationChart, toggleElevationChart } from "./elevationChart.js";
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
 import { createAutomaticRoutingTour, createImportRoutePanelTour, createManualRoutingTour, createSavedRouteDashboardTour, createSavingRoutesTour, createSettingsTour } from "./tours/tours.js";
 
@@ -113,12 +115,12 @@ const navBar = document.getElementById("the-sidenav");
 const autoModeContent = document.getElementById("auto-mode-content");
 const manualModeContent = document.getElementById("manual-mode-content");
 
-// saved route div + saving routes
+// saved route div 
 const saveRouteDiv = document.getElementById("save-route");
 const routeNameEntry = document.getElementById("route-name");
 const saveContainer = document.getElementById('save-route-container');
 const saveRouteToggleButton = document.getElementById("save-route-toggle-button");
-const saveRouteButtonContainer = document.getElementById('save-route-toggle-button');
+const saveRouteContainer = document.getElementById('save-route-container');
 
 // delete point modal
 const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
@@ -170,15 +172,12 @@ let selectedPoint = null;
 //#endregion
 
 // hides save route button + panel if there is no route
-if (!window.appConfig.initialCurrentPath) {
-    if (saveContainer) {
-        saveContainer.style.display = 'none';
-    }
-}
 
 export function getClickMode() {
   return clickMode;
 }
+
+//#region MOBILE CHECK
 
 // check if user is on mobile and take subsequent action to inform them of decision to make Crest desktop only on web
 function checkIfMobile() {
@@ -206,11 +205,15 @@ function checkIfMobile() {
   }
 }
 
+//#endregion
+
 // this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
 function noRouteCreateFunction() {
   closeNav()
   closeSavedRoutesDash()
 }
+
+//#region COORDINATE INPUT FUNCTIONS
 
 function showCoordInputError(entry, message) {
   entry.placeholder = message;
@@ -313,6 +316,8 @@ export function mapClickHandler(event) {
   }
 }
 
+//#endregion
+
 //#region OPEN/CLOSE PANEL FUNCTIONS
 
 function openNav() {
@@ -377,6 +382,26 @@ export function  closeImportRoute() {
   importRoutePanel.style.width = "0";
 };
 
+export function toggleSaveRouteContainer() {
+  const isOpen = saveRouteToggleButton.classList.toggle("opened");
+
+    if (isOpen) {
+        saveRouteDiv.style.height = `${saveRouteDiv.scrollHeight}px`;
+    } else {
+        saveRouteDiv.style.height = "0px";
+    }
+};
+
+function collapseSaveRouteContainer() {
+  if (saveRouteToggleButton) {
+    saveRouteToggleButton.classList.remove("opened");
+  }
+
+  if (saveRouteDiv) {
+    saveRouteDiv.style.height = "0px";
+  }
+}
+
 //#endregion
 
 //#region IMPORT ROUTE PANEL FUNCTIONS
@@ -404,12 +429,20 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showError("Could not parse coordinates from file.");
+        showError("There was an error on our end. Please try again later.");
         return false;
       }
 
+      const today = new Date();
+        
+      const formattedToday = new Intl.DateTimeFormat('en-GB', {
+      "day": "2-digit",
+      "month": "2-digit",
+      "year": "numeric"
+      }).format(today);
+
       if (!importRouteNameEntry.value) {
-        routeName = file.name;
+        routeName = `${file.name} saved on ${formattedToday}`
       }
       else {
         routeName = importRouteNameEntry.value;
@@ -560,18 +593,13 @@ function handleRouteImportType() {
 
 //#endregion
 
+//#region MODE SWITCHING
+
 function handleToggles(event) {
   manualModeOption.classList.remove("active");
   autoModeOption.classList.remove("active");
   event.currentTarget.classList.add("active");
 };
-
-function manualRouteClickHandler(event) {
-  const coordinate = event.coordinate;
-  addManualPoint(coordinate[0], coordinate[1]);
-};
-
-//#region MODE SWITCHING
 
 function switchToAutoMode() {
   const map = getMap();
@@ -655,7 +683,7 @@ export function clearAutoRoute() {
   if (endCoordEntry) endCoordEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveContainer) saveContainer.style.display = "none";
-  closeSaveRouteContainer();
+  updateSaveRouteContainer();
   
 };
 
@@ -673,11 +701,11 @@ export function clearManualRoute() {
   document.getElementById("route-stats")?.remove();
 
   if (saveContainer) saveContainer.style.display = "none";
-  closeSaveRouteContainer();
+  updateSaveRouteContainer();
 
   clearPathState();
   getRouteLayer()?.getSource().clear();
-
+  resetElevationChart();
   
 };
 
@@ -685,16 +713,25 @@ export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
 
-  endCoordEntry?.classList.remove("input-error");
-  startCoordEntry?.classList.remove("input-error");
-  if (startCoordEntry) startCoordEntry.placeholder = "Coordinates";
-  if (endCoordEntry) endCoordEntry.placeholder = "Coordinates";
+  if (startCoordEntry) {
+    startCoordEntry.classList.remove('input-error');
+    startCoordEntry.classList.remove('is-active');
+    startCoordEntry.placeholder = "Coordinates";
+  }
+
+  if (endCoordEntry) {
+    endCoordEntry.classList.remove('input-error');
+    endCoordEntry.classList.remove('is-active');
+    endCoordEntry.placeholder = "Coordinates";
+  }
+
+  clickMode = null;
   generatePathButton?.classList.remove("loading");
 
   clearManualRoute();
   clearAutoRoute();
   clearLastLoadedRouteStats();
-  closeSaveRouteContainer()
+  updateSaveRouteContainer()
 
   const layersToRemove = [];
   map.getLayers().forEach((layer) => {
@@ -731,6 +768,7 @@ export function homeButtonFunction() {
 //#endregion
 
 function searchArea() {
+  if (searchEntry) searchEntry.value = "";
   const map = getMap();
   if (!map) return;
 
@@ -742,6 +780,7 @@ function searchArea() {
     .then((response) => response.json())
     .then((data) => {
       if (!data.success) return;
+
       const view = map.getView();
       if (view.getZoom() >= 7) {
         view.animate(
@@ -761,7 +800,7 @@ function searchArea() {
         });
       }
     })
-    .catch((error) => console.log("Error: ", error));
+    .catch((error) => showError("There was an unexpected error, please try again later."));
 };
 
 async function mapRenderComplete() {
@@ -769,13 +808,12 @@ async function mapRenderComplete() {
   loadAndDisplaySavedPoints();  
 };
 
-//#region ROUTING
+//#region AUTOMATIC ROUTING
 
 async function handleAutoRouteGeneration(start=null, end=null) {
   const startPoint = start || startCoordEntry?.value || "";
   const endPoint = end || endCoordEntry?.value || "";
 
-  console.log(`startPoint is ${startPoint}`)
 
   if (validateInputCoords(startPoint, endPoint) !== true) return;
 
@@ -788,7 +826,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     routeStats.eta_seconds = formatETA(routeStats.eta_seconds)
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
-    setAutoRouteStatDisplay(getLastAutoRouteStats());
+    displayAutoRouteStats(getLastAutoRouteStats());
     initChartToggleListener();
     createElevationProfile(response.coordinates);
     if (saveContainer) saveContainer.style.display = "flex";
@@ -869,41 +907,20 @@ function displayPath(data) {
   return data.route_stats;
 };
 
-function setAutoRouteStatDisplay(routeStats) {
-  const statsHtml = `
-    <div id="route-stats">
-      <div class="stats-header">
-          <span class="stats-title">Route Information</span>
-          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-      </div>
-      <div id="stat-content-and-chart-container">
-          <div class="stats-content">
-              <div class="stat-row">
-                  <span class="stat-label">Distance:</span>
-                  <span class="stat-value" id="route-distance-display">${formatDistance(parseFloat(routeStats.total_distance))}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${routeStats.eta_seconds}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
-              </div>
-          </div>
+function displayAutoRouteStats(routeStats) {
 
-          <div class="chart-wrapper"> 
-              <div id="elevation-chart-container">
-                  <canvas id="elevation-chart"></canvas>
-              </div>
-          </div>
-      </div>
-    </div>
-  `;
+  let statsDiv = document.getElementById("route-stats");
 
-  document.getElementById("route-stats")?.remove();
-  document.body.insertAdjacentHTML("beforeend", statsHtml);
+  statsDiv = document.createElement("div");
+  statsDiv.id = "route-stats";
+  document.body.appendChild(statsDiv);
+
+  statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), routeStats.eta_seconds, formatElevation(routeStats.elevation_gain))
 };
+
+//#endregion
+
+//#region MANUAL ROUTING
 
 function checkIfCircularRoute() {
   const tolerance = 0.000001;
@@ -925,22 +942,14 @@ function checkIfCircularRoute() {
 function removeExistingStats() {
   if (manualRouteState.userClicks.length === 0) {
     document.getElementById("route-stats")?.remove();
-    if (saveRouteDiv && getCurrentMode() === "manual") {
-      saveRouteDiv.style.display = "none";
+    resetElevationChart();
+    if (saveRouteContainer && getCurrentMode() === "manual") {
+      saveRouteContainer.style.display = "none";
+      collapseSaveRouteContainer();
     }
     return false;
   }
   return true;
-};
-
-export function updateSavedRouteCards() {
-  const statValues = document.querySelectorAll('[data-distance-km]');
-  statValues.forEach(value => {
-    const rawKm = parseFloat(value.dataset.distanceKm);
-    if (isNaN(rawKm)) return;
-    const formattedValue = formatDistance(rawKm);
-    value.textContent = formattedValue;
-  });
 };
 
 export function updateManualRoute() {
@@ -958,13 +967,8 @@ export function updateManualRoute() {
   const etaDisplay = calculateEta(totalDistanceKm);
   const isSnappedToEnd = checkIfCircularRoute();
   const features = [];
-  let elevationDisplay = "N/A";
-  const range = getElevationRange(pathCoords);
-  if (range && typeof range.min === 'number' && typeof range.max === 'number') {
-    const change = range.max - range.min;
-    elevationDisplay = `${change >= 0 ? '+' : ''}${change}m`
-  }
-
+  const elevationGainDisplay = formatElevation(calculateElevationGain(pathCoords));
+  
   setLastKnownDistanceKm(totalDistanceKm);
 
   userClicks.forEach((point, index) => {
@@ -1010,48 +1014,52 @@ export function updateManualRoute() {
 
   map.addLayer(manualRouteLayer);
 
+  const isOnePoint = pathCoords.length === 1;
+
+  updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords);
+  createElevationProfile(pathCoords);
+};
+
+function updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords) {
   let statsDiv = document.getElementById("route-stats");
-  if (!statsDiv) {
+  let firstRender = !statsDiv
+
+  if (firstRender) {
+
     statsDiv = document.createElement("div");
     statsDiv.id = "route-stats";
     document.body.appendChild(statsDiv);
+
+    statsDiv.innerHTML = createStatsPanel(distanceDisplay, etaDisplay, elevationGainDisplay);
+
+    initChartToggleListener();   
+  }
+  else {
+    document.getElementById("route-distance-display").textContent = distanceDisplay;
+    document.getElementById("route-eta-display").textContent = etaDisplay;
+    document.getElementById("route-elevation-gain-display").textContent = elevationGainDisplay;
   }
 
-  statsDiv.innerHTML = `
-      <div class="stats-header">
-          <span class="stats-title">Route Information</span>
-          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-      </div>
-      <div id="stat-content-and-chart-container">
-          <div class="stats-content">
-              <div class="stat-row">
-                  <span class="stat-label">Distance:</span>
-                  <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route-elevation-change-display">${elevationDisplay}</span>
-              </div>
-          </div>
+  const toggleChartButton = document.getElementById('toggle-elevation-chart');
 
-          <div class="chart-wrapper"> 
-              <div id="elevation-chart-container">
-                  <canvas id="elevation-chart"></canvas>
-              </div>
-          </div>
-      </div>
-  `;
-  initChartToggleListener();
-  createElevationProfile(pathCoords);
-};
+  if (toggleChartButton) {
+    toggleChartButton.classList.toggle('one-point-only', isOnePoint);
+    toggleChartButton.disabled = isOnePoint;
+  }
+}
 
 export function undoManualRoutePoint() {
 
   const { userClicks, segmentCache } = manualRouteState;
+
+  // guard clause to prevent redundant running of code if userClicks is none / has no coords
+  if (!userClicks || userClicks.length === 0) {
+    if (saveContainer) saveContainer.style.display = 'none';
+    document.getElementById('route-stats')?.remove();
+    resetElevationChart();
+    collapseSaveRouteContainer();
+    return;
+  }
 
   // this removes the last click
   const removed = userClicks.pop();
@@ -1099,24 +1107,23 @@ function redoManualRoutePoint() {
   addManualPoint(restoredPoint[0], restoredPoint[1]);
 };
 
-export function updateSaveRouteContainer() {
-  const isOpen = saveRouteToggleButton.classList.toggle("opened");
-
-    if (isOpen) {
-        saveRouteDiv.style.height = "12.625rem";
-    } else {
-        saveRouteDiv.style.height = "0px";
-    }
+function manualRouteClickHandler(event) {
+  const coordinate = event.coordinate;
+  addManualPoint(coordinate[0], coordinate[1]);
 };
 
-function closeSaveRouteContainer() {
-  const isOpen = saveRouteToggleButton.classList.contains('opened')
+//#endregion
 
-  if (!isOpen) {
-    return true;
-  };
+//#region SAVE ROUTE PANEL
 
-  saveRouteToggleButton.classList.remove('opened')
+if (!window.appConfig.initialCurrentPath) {
+    if (saveContainer) {
+        saveContainer.style.display = 'none';
+    }
+}
+
+export function updateSaveRouteContainer() {
+  collapseSaveRouteContainer();
   return true;
 }
 
@@ -1125,7 +1132,7 @@ function closeSaveRouteContainer() {
 //#region DRIVER.JS
 
 async function handleSaveRouteTour() {
-  await handleAutoRouteGeneration('-209579, 7053648', '-202103, 7051314');
+  await handleAutoRouteGeneration('-363769, 7256750', '-357507, 7256649');
 
   setTimeout(() => {
     savingRoutesTourDriver = createSavingRoutesTour(homeButtonFunction);
@@ -1212,13 +1219,41 @@ function initPointDeleteHandlers() {
 
 //#endregion
 
+//#region SETTINGS
+
 // ##### LIGHT / DARK THEME #####
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
   document.documentElement.classList.toggle("dark", effective === "dark");
 }
 
-// ##### KEYBOARD SHORTCUTS ##### 
+// ##### HANDLING TOGGLING OF DISTANCE UNITS #####
+function handleDistanceUnitToggle() {
+
+  // if there is a manual route present
+  if (manualRouteState.pathCoords.length > 0) {
+    updateManualRoute();
+  }
+  else if (getLastAutoRouteStats()) {
+    displayAutoRouteStats(getLastAutoRouteStats());
+  }
+  else if (getLastLoadedRouteStats) {
+    displayLoadedRouteStats(getLastLoadedRouteStats());
+  }
+  initChartToggleListener();
+
+  const coords =
+    manualRouteState.pathCoords.length > 1
+      ? manualRouteState.pathCoords
+      : (getCurrentPathData() || getLoadedRouteCoordinates());
+
+  if (coords && coords.length > 1) createElevationProfile(coords);
+};
+
+//#endregion
+
+//#region KEYBOARD SHORTCUTS
+
 function handleKeyboardShortcuts(e) {
 
   // this returns if the user is typing 
@@ -1247,7 +1282,7 @@ function handleKeyboardShortcuts(e) {
     }
      
     // this switches to manual mode if ctrl/cmd + m is pressed
-    if (key === 'm' && e.shiftKey) {
+    if ((e.metaKey && key === 'm' && e.shiftKey) || (e.ctrlKey && key === 'm')) {
       e.preventDefault();
       switchToManualMode();
       return;
@@ -1276,21 +1311,7 @@ function handleKeyboardShortcuts(e) {
 
 };
 
-
-// ##### HANDLING TOGGLING OF DISTANCE UNITS #####
-function handleDistanceUnitToggle() {
-
-  // if there is a manual route present
-  if (manualRouteState.pathCoords.length > 0) {
-    updateManualRoute();
-  }
-  else if (getLastAutoRouteStats()) {
-    setAutoRouteStatDisplay(getLastAutoRouteStats());
-  }
-  else if (getLastLoadedRouteStats) {
-    displayLoadedRouteStats(getLastLoadedRouteStats());
-  }
-};
+//#endregion
 
 
 //#region EVENT LISTENERS
@@ -1305,8 +1326,6 @@ export function initUi() {
 
   initSaveRoute();
   initPointDeleteHandlers();
-
-  updateSavedRouteCards();
 
 
   // initial tour (automatic routing and saving the first route)
@@ -1358,7 +1377,7 @@ export function initUi() {
   addClickListener(noRouteCreateButton, noRouteCreateFunction, "click");
 
   // These event listeners are for route saving.
-  addClickListener(saveRouteToggleButton, updateSaveRouteContainer, "click");
+  addClickListener(saveRouteToggleButton, toggleSaveRouteContainer, "click");
 
   // These event listeners are for keyboard shortcuts.
   addClickListener(document, handleKeyboardShortcuts, "keydown");

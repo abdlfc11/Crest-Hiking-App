@@ -3,19 +3,47 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NEA Map Project</title>
+    <title>Crestr Hiking App</title>
+
+    <!-- OpenLayers -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+
+    <!-- #region CSS FILES -->
+
+    <!-- Main CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+
+    <!-- Saved Routes Dashboard CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/saved_routes.css') }}" />
+
+    <!-- Settings Panel CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings_panel.css') }}" />
+
+    <!-- Route Stats Panel CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/statsPanel.css') }}" />
+
+    <!-- Import Route Panel CSS File-->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/import-route.css') }}" />
+
+    <!-- Error PopUp CSS File -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/error-toast.css') }}" />
+
+    <!-- Tours (custom driver.js) CSS file -->
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/tours.css') }}">
+
+    <!-- #endregion -->
+
+    <!-- ICONS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Driver.js -->
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tours.css') }}" />
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -153,37 +181,6 @@
             </div>
         </dialog>
 
-        {% if route_stats %}
-        <div id="route-stats">
-            <div class="stats-header">
-                <span class="stats-title">Route Information</span>
-                <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-            </div>
-            <div id="stat-content-and-chart-container">
-                <div class="stats-content">
-                    <div class="stat-row">
-                        <span class="stat-label">Distance:</span>
-                        <span class="stat-value" id="route-distance-display">{{ route_stats.total_distance }}km</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">ETA:</span>
-                        <span class="stat-value" id="route-eta-display">{{ route_stats.eta }}</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Elevation Change:</span>
-                        <span class="stat-value" id="route-elevation-change-display">{{ route_stats.elevation_change }}</span>
-                    </div>
-                </div>
-
-                <div> 
-                    <div id="elevation-chart-container">
-                        <canvas id="elevation-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
 
         <div id="map"></div>
     </div>
@@ -218,7 +215,7 @@
                     <div class="route-card" data-route-name="{{ route.name }}">
                         <div class="route-card-header">
                             <h3 class="route-card-name">{{ route.name }}</h3>
-                            <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%y") }}</span>
+                            <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%Y") }}</span>
                         </div>
                         <div class="route-card-stats">
                             <div class="stat-item">
@@ -227,11 +224,11 @@
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">ETA:</span>
-                                <span class="stat-value">{{ route.eta_seconds | format_eta}}</span>
+                                <span class="stat-value">{{ route.eta_seconds | format_eta }}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Elevation Change:</span>
-                                <span class="stat-value">{{ route.elevation_change }}</span>
+                                <span class="stat-label">Elevation Gain:</span>
+                                <span class="stat-value">{{ route.elevation_change | format_elevation }}</span>
                             </div>
                         </div>
                         <div class="route-card-actions">
@@ -480,31 +477,26 @@
                 {% endfor %}
             {% endif %}
             },
-            apiLoginUrl: "{{ url_for('login') }}",
-            apiLogoutUrl: "{{ url_for('logout') }}",
-            apiRegisterUrl: "{{ url_for('registering') }}",
-            apiCalculatePathUrl: "{{ url_for('calculate_path') }}",
+            apiLoginUrl: "{{ url_for('auth_api.login') }}",
+            apiLogoutUrl: "{{ url_for('auth_api.logout') }}",
+            apiRegisterUrl: "{{ url_for('auth_api.registering') }}",
+            apiCalculatePathUrl: "{{ url_for('route_api.calculate_path') }}",
             apiSearchAreaUrl: "{{ url_for('search_area') }}",
-            apiSavePointUrl: "{{ url_for('save_point') }}",
-            apiGetSavedPointsUrl: "{{ url_for('get_saved_points') }}",
-            apiDeletePointUrl: "{{ url_for('delete_point') }}",
-            apiLoadRouteUrl: "{{ url_for('load_route') }}",
-            apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
-            apiSaveRouteUrl: "{{ url_for('save_route') }}",
-            apiDeleteAccountUrl: "{{ url_for('delete_account') }}",
-            apiLoadRouteUrl: "{{ url_for('load_route') }}",
-            apiDeleteRouteUrl: "{{ url_for('delete_route') }}",
-            apiSaveRouteUrl: "{{ url_for('save_route') }}",
+            apiSavePointUrl: "{{ url_for('point_api.save_point') }}",
+            apiGetSavedPointsUrl: "{{ url_for('point_api.get_saved_points') }}",
+            apiDeletePointUrl: "{{ url_for('point_api.delete_point') }}",
+            apiDeleteRouteUrl: "{{ url_for('route_api.delete_route') }}",
+            apiSaveRouteUrl: "{{ url_for('route_api.save_route') }}",
+            apiDeleteAccountUrl: "{{ url_for('auth_api.delete_account') }}",
+            apiLoadRouteUrl: "{{ url_for('route_api.load_route') }}",
             mapPageUrl: "{{ url_for('map_view') }}",
-            apiDownloadRouteUrl: "{{ url_for('download_route') }}",
-            apiSaveSettings: "{{ url_for('save_settings') }}",
-            apiGetSettings: "{{ url_for('get_settings') }}",
-            apiImportRoute: "{{ url_for('import_route') }}"
+            apiDownloadRouteUrl: "{{ url_for('route_api.download_route') }}",
+            apiSaveSettings: "{{ url_for('settings_api.save_settings') }}",
+            apiGetSettings: "{{ url_for('settings_api.get_settings') }}",
+            apiImportRoute: "{{ url_for('route_api.import_route') }}"
         };
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/routes/savedRoutesDashboard.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/importRoute.js') }}"></script>
