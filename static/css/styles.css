@@ -661,6 +661,13 @@ html.dark #save-route-toggle-button {
     color: #f3f4f6;
 }
 
+html.dark #save-route-toggle-button:hover + #save-route,
+html.dark #save-route-toggle-button:hover {
+    background: rgba(18, 25, 34, 0.75);
+    color: #f3f4f6;
+}
+
+
 html.dark .coords-header,
 html.dark .stats-header {
     background: rgb(55 65 81 / 0.75);
