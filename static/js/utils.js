@@ -178,7 +178,7 @@ export function removeDOMElement(element) {
  * @returns {string} this is a string which has been formated to add a + or leave the string unchanged if it is negative 
  */
 export function formatElevation(elevationChange) {
-  const elevNum = isNaN(elevationChange) ? parseFloat(elevationChange) : elevationChange;
+  const elevNum = isNaN(elevationChange) ? parseInt(elevationChange) : elevationChange;
   const elevDisplayValue = isNaN(elevNum) ? "0m" : (elevNum >= 0 ? `+${elevNum}m` : `${elevNum}m`)
 
   return elevDisplayValue
