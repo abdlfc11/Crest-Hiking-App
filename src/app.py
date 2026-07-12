@@ -82,12 +82,12 @@ app.config.update(
 @app.template_filter('format_elevation')
 def format_elevation(elevation_gain):
     if not isinstance(elevation_gain, int) or isinstance(elevation_gain, float):
-        elevation_gain = float(elevation_gain)
+        elevation_gain = int(float(elevation_gain))
 
     if elevation_gain >= 0:
-        return f"+{elevation_gain}"
+        return f"+{elevation_gain}m"
     else:
-        return f"{elevation_gain}"
+        return f"{elevation_gain}m"
 
 @app.template_filter('format_eta')
 def format_eta(seconds):
