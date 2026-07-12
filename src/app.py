@@ -24,7 +24,7 @@ from sqlmodel import Session, select
 # Local Modules
 from config import Config
 from db import engine
-from models import Point, Route
+from models import Point, Route, Settings
 from constants import DEFAULT_CENTRE
 from extensions import limiter, service, log_action, get_current_user
 
@@ -79,15 +79,31 @@ app.config.update(
 
 #region TEMPLATE FILTERS
 
+@app.template_filter('format_distance')
+def format_distance(distance_km):
+    try: 
+        with Session(engine) as db:
+            distance_unit = db.exec(
+                select(Settings.value)
+                .where(Settings.key == "distanceUnit")
+            ).first()
+
+            if distance_unit == "km":
+                return f"{round(distance_km, 2)} km"
+            elif distance_unit == "miles":
+                return f"{round(distance_km * 0.621371, 2)} mi"
+    except Exception as e:
+        log_action('Template filter for distance unit', False, e, None, 'TEMPLATE_FILTER: DISTANCE UNIT')
+
 @app.template_filter('format_elevation')
 def format_elevation(elevation_gain):
     if not isinstance(elevation_gain, int) or isinstance(elevation_gain, float):
         elevation_gain = int(float(elevation_gain))
 
     if elevation_gain >= 0:
-        return f"+{elevation_gain}m"
+        return f"+{elevation_gain} m"
     else:
-        return f"{elevation_gain}m"
+        return f"{elevation_gain} m"
 
 @app.template_filter('format_eta')
 def format_eta(seconds):
