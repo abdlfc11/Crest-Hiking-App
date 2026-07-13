@@ -43,15 +43,11 @@ function createMap() {
   map = new ol.Map({
     layers: [tileLayer],
     target: "map",
-    controls: new ol.control.defaults
-      .defaults({
-        attribution: false,
-      })
-      .extend([
-        new ol.control.Attribution({
-          collapsible: false,
-        }),
-      ]),
+    controls: ol.control.defaults.defaults({
+      attributionOptions: {
+        collapsible: false
+      }
+    }),
     view: new ol.View({
       projection: "EPSG:3857",
       maxZoom: 17,
@@ -78,10 +74,14 @@ export function createTileLayer() {
   tileLayer = new ol.layer.Tile({
     source: new ol.source.XYZ({
       url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
-      attributions: `Map data: © <a href="https://www.openstreetmap.org/copyright/">OpenStreetMap</a>,
+      attributions: `
+      <a href="https://docs.crestr.co.uk/privacy-policy/privacy_policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+      |
+      Map data: © <a href="https://www.openstreetmap.org/copyright/">OpenStreetMap</a>,
       SRTM
       |
-      Map style: © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)`,
+      Map style: © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)
+      `,
       maxZoom: 17,
     }),
   });
