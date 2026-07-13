@@ -769,14 +769,23 @@ export function homeButtonFunction() {
 
 //#region SEARCHING FUNCTION
 function searchArea() {
-  if (searchEntry) searchEntry.value = "";
+
+  if (!searchEntry) {
+    showError("Search entry not found.");
+    return;
+  }
+
+
+  const searchValue = searchEntry.value;
+  searchEntry.value = "";
+
   const map = getMap();
   if (!map) return;
 
   fetch(window.appConfig.apiSearchAreaUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ search_input: searchEntry.value }),
+    body: JSON.stringify({ search_input: searchValue }),
   })
     .then((response) => response.json())
     .then((data) => {
