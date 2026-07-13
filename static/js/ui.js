@@ -914,7 +914,7 @@ function displayAutoRouteStats(routeStats) {
   let statsDiv = document.getElementById("route-stats");
 
   if (statsDiv) {
-    statsDiv.remove
+    statsDiv.remove();
   };
 
   statsDiv = document.createElement("div");
@@ -1236,15 +1236,19 @@ export function applyTheme(theme) {
 // ##### HANDLING TOGGLING OF DISTANCE UNITS #####
 function handleDistanceUnitToggle() {
 
+  resetElevationChart();
+
   // if there is a manual route present
   if (manualRouteState.pathCoords.length > 0) {
     updateManualRoute();
   }
   else if (getLastAutoRouteStats()) {
     displayAutoRouteStats(getLastAutoRouteStats());
+    toggleElevationChart();
   }
   else if (getLastLoadedRouteStats) {
     displayLoadedRouteStats(getLastLoadedRouteStats());
+    toggleElevationChart();
   }
   initChartToggleListener();
 
