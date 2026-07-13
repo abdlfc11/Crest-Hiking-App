@@ -154,3 +154,22 @@
     top: 20px;
     left: 20px;
 }
+
+#register-privacy-notice {
+    font-size: 0.75rem;
+    color: #777;
+    text-align: center;
+    width: 17rem;
+    align-self: center;
+    line-height: 1.4;
+    padding: 0px;
+}
+
+#register-privacy-notice a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+#register-privacy-notice a:hover {
+    text-decoration: underline;
+}
