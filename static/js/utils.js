@@ -72,9 +72,9 @@ export function formatDistance(distanceKm) {
 
   if (distanceUnit === "miles") {
     const distanceMiles = distanceKm * 0.621371; 
-    return `${distanceMiles.toFixed(2)}mi`;
+    return `${distanceMiles.toFixed(2)} mi`;
   }
-  return `${distanceKm.toFixed(2)}km`;
+  return `${distanceKm.toFixed(2)} km`;
 }
 
 export function calculateTotalDistance(points) {
@@ -177,9 +177,9 @@ export function removeDOMElement(element) {
  * @param {string|number} elevationChange usually this is a string such as "938.0" or "-329.0" however the possibility of an int / float being passed is accounted for
  * @returns {string} this is a string which has been formated to add a + or leave the string unchanged if it is negative 
  */
-export function formatElevation(elevationChange) {
-  const elevNum = isNaN(elevationChange) ? parseInt(elevationChange) : elevationChange;
-  const elevDisplayValue = isNaN(elevNum) ? "0m" : (elevNum >= 0 ? `+${elevNum}m` : `${elevNum}m`)
+export function formatElevation(elevation) {
+  const elevNum = Math.round(Number(elevation))
+  const elevDisplayValue = isNaN(elevNum) ? "0m" : (elevNum >= 0 ? `+${elevNum} m` : `${elevNum} m`)
 
   return elevDisplayValue
 }

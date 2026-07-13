@@ -1,4 +1,4 @@
-import { showError, addClickListener, createRouteCard, calculateEta, formatDistance, formatETA } from "./utils.js";
+import { showError, addClickListener, createRouteCard, calculateEta, formatDistance, formatETA, formatElevation } from "./utils.js";
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 
@@ -41,7 +41,7 @@ export function displayImportedRouteCard(data) {
 
     const formattedETA = formatETA(routeInfo.eta_seconds);
 
-    const routeCard = createRouteCard(routeInfo.route_name, formattedToday, routeInfo.distance_km, formattedETA, routeInfo.elevation_gain_metres);
+    const routeCard = createRouteCard(routeInfo.route_name, formattedToday, routeInfo.distance_km, formattedETA, formatElevation(routeInfo.elevation_gain_metres));
 
     if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);            
 }
