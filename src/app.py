@@ -53,6 +53,7 @@ app.register_blueprint(auth_api_bp)
 app.register_blueprint(settings_api_bp)
 
 # Configuration Keys
+app.config.from_object(Config)
 app.secret_key = Config.SECRET_KEY
 locationiq_api_key = Config.LOCATIONIQ_API_KEY
 app.config["SQLALCHEMY_DATABASE_URI"] = Config.DATABASE_URI
@@ -283,6 +284,10 @@ def search_area():
 
 #endregion
 
+# This makes config available in Jinja templates
+@app.context_processor
+def inject_config():
+    return {"config": app.config}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

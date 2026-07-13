@@ -44,6 +44,17 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Umami Analytics -->
+    <!-- SELF HOSTERS: Change values in you .env file -->
+    <!-- Umami Analytics -->
+    {% if config.UMAMI_WEBSITE_ID %}
+    <script async defer 
+            src="{{ config.UMAMI_SCRIPT_URL }}" 
+            data-website-id="{{ config.UMAMI_WEBSITE_ID }}">
+    </script>
+    {% endif %}
+
 </head>
 <body>
 
