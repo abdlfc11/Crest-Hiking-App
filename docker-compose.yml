@@ -21,8 +21,8 @@ services:
   # MAIN APP
   web:
     build: .
-    command: gunicorn -c src/gunicorn.config.py src.app:app ### Use this command for prod 
-    ### command: flask run --host=0.0.0.0 --port=5000 --debug ### Use this command for dev logs --> easier debugging + more info on errors
+    ### command: gunicorn -c src/gunicorn.config.py src.app:app ### Use this command for prod 
+    command: flask run --host=0.0.0.0 --port=5000 --debug ### Use this command for dev logs --> easier debugging + more info on errors
     volumes:
       # this mounts the entire src (backend python flask / FastAPI) folder
       - ./src:/app/src
@@ -41,9 +41,9 @@ services:
 
       ### DEBUGGING ENVIRONMENT VARIABLES ###
       # Uncomment the lines below for local development debugging
-      # - FLASK_DEBUG=1
-      # - LOAD_GRAPH_ON_IMPORT=0    # 0 stops graph loading on import for fast hot-reloads
-      # - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - LOAD_GRAPH_ON_IMPORT=0    # 0 stops graph loading on import for fast hot-reloads
+      - FLASK_ENV=development
     ports:
       - "5000:5000" # Local access: http://localhost:5000
     env_file:
