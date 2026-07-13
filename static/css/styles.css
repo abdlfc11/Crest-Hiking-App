@@ -195,9 +195,10 @@ body {
 }
 
 .coord-input:focus {
+    border-color: #3b82f6; 
+    box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+                0 0 12px 4px rgba(59, 130, 246, 0.1);
     outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 0.2px rgba(37, 99, 235, 0.1);
 }
 
 .input-error {

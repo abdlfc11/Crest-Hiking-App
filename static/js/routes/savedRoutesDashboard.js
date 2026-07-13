@@ -8,7 +8,7 @@ import { closeNav, closeSavedRoutesDash,  } from "../ui.js"
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
 import { createElevationProfile, initChartToggleListener } from "../elevationChart.js";
-import {addClickListener, createNoRouteCard} from "../utils.js"
+import {addClickListener, createNoRouteCard, formatDistance} from "../utils.js"
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 

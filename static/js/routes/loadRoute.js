@@ -2,6 +2,7 @@ import { getMap, getRouteLayer, getPathColour } from "../map.js";
 import { formatDistance, getRouteStrokeStyle, createManualPointStyle, formatETA, createStatsPanel, formatElevation } from "../utils.js";
 import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
 import { deleteRoute, loadRoute } from "./routeApi.js";
+import { initChartToggleListener } from "../elevationChart.js";
 
 
 let routeList = null;
@@ -107,7 +108,7 @@ export function displayLoadedRouteStats(routeStats) {
   let statsDiv = document.getElementById("route-stats");
 
   if (statsDiv) {
-    statsDiv.remove
+    statsDiv.remove();
   };
 
   statsDiv = document.createElement("div");
