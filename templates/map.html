@@ -374,14 +374,14 @@
                         <span class="import-route-item-description">Choose how you want to load your route</span>
                     </div>
 
-                    <div class="settings-radio-pills">
+                    <div id="file-route-input-pill" class="settings-radio-pills">
                         <label class="radio-pill">
                             <input id="file-route-input-type" type="radio" name="import-route-method" value="file" checked>
                             <span>File</span>
                         </label>
 
-                        <label class="radio-pill">
-                            <input id="url-route-input-type" type="radio" name="import-route-method" value="url">
+                        <label id="url-route-input-pill" class="radio-pill disabled" data-tooltip="URL import is currently disabled. Please use the file upload option.">
+                            <input id="url-route-input-type" type="radio" name="import-route-method" value="url" disabled>
                             <span>URL</span>
                         </label>
                     </div>
