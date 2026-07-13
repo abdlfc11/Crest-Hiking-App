@@ -1,5 +1,5 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
-import { formatDistance, getRouteStrokeStyle, createManualPointStyle, formatETA } from "../utils.js";
+import { formatDistance, getRouteStrokeStyle, createManualPointStyle, formatETA, createStatsPanel, formatElevation } from "../utils.js";
 import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
 import { deleteRoute, loadRoute } from "./routeApi.js";
 
@@ -104,37 +104,15 @@ export function displayLoadedRouteStats(routeStats) {
 
   setLastKnownDistanceKm(routeStats.total_distance);
 
-  const statsHtml = `
-    <div id="route-stats">
-      <div class="stats-header">
-          <span class="stats-title">Route Information</span>
-          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-      </div>
-      <div id="stat-content-and-chart-container">
-          <div class="stats-content">
-              <div class="stat-row">
-                  <span class="stat-label">Distance:</span>
-                  <span class="stat-value" id="route-distance-display">${formatDistance(parseFloat(routeStats.total_distance))}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${formatETA(routeStats.eta_seconds)}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">Elevation Change:</span>
-                  <span class="stat-value" id="route-elevation-change-display">${routeStats.elevation_change}</span>
-              </div>
-          </div>
+  let statsDiv = document.getElementById("route-stats");
 
-          <div class="chart-wrapper"> 
-              <div id="elevation-chart-container">
-                  <canvas id="elevation-chart"></canvas>
-              </div>
-          </div>
-      </div>
-    </div>
-  `;
-  const existingStats = document.getElementById("route-stats");
-  if (existingStats) existingStats.remove();
-  document.body.insertAdjacentHTML("beforeend", statsHtml);
+  if (statsDiv) {
+    statsDiv.remove
+  };
+
+  statsDiv = document.createElement("div");
+  statsDiv.id = "route-stats";
+  document.body.appendChild(statsDiv);
+
+  statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), formatETA(routeStats.eta_seconds), formatElevation(routeStats.elevation_change))
 }

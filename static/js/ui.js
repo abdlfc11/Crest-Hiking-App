@@ -767,6 +767,7 @@ export function homeButtonFunction() {
 
 //#endregion
 
+//#region SEARCHING FUNCTION
 function searchArea() {
   if (searchEntry) searchEntry.value = "";
   const map = getMap();
@@ -802,6 +803,7 @@ function searchArea() {
     })
     .catch((error) => showError("There was an unexpected error, please try again later."));
 };
+//#endregion
 
 async function mapRenderComplete() {
 
@@ -910,6 +912,10 @@ function displayPath(data) {
 function displayAutoRouteStats(routeStats) {
 
   let statsDiv = document.getElementById("route-stats");
+
+  if (statsDiv) {
+    statsDiv.remove
+  };
 
   statsDiv = document.createElement("div");
   statsDiv.id = "route-stats";
