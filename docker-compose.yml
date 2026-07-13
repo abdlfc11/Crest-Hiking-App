@@ -1,4 +1,6 @@
 services:
+
+  # POSTGRES DATABASE 
   db:
     image: postgres:16-alpine
     env_file:
@@ -15,6 +17,8 @@ services:
       retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  # MAIN APP
   web:
     build: .
     command: gunicorn -c src/gunicorn.config.py src.app:app ### Use this command for prod 
@@ -41,7 +45,7 @@ services:
       # - LOAD_GRAPH_ON_IMPORT=0    # 0 stops graph loading on import for fast hot-reloads
       # - FLASK_ENV=development
     ports:
-      - "5000:5000"
+      - "5000:5000" # Local access: http://localhost:5000
     env_file:
       - path: example.env
         required: true
@@ -50,6 +54,45 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  
+  # UMAMI ANALYTICS 
+  umami-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD}
+    volumes:
+      - umami_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"   # Local access: http://localhost:3000
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD}@umami-db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET}
+      # Optional: uncomment these to make tracking harder to block (for self hosters + prod)
+      # COLLECT_API_ENDPOINT: /api/collect
+      # TRACKER_SCRIPT_NAME: analytics.js
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    # Healthcheck is commented out for now (see explanation below)
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl -f http://localhost:3000/api/heartbeat || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+  
+  # PGADMIN 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: crestr-pgadmin
@@ -61,7 +104,7 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: '${PGADMIN_SERVER_MODE}'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: '${PGADMIN_MASTER_REQ}'
     ports:
-      - "${PGADMIN_PORT}:80"
+      - "${PGADMIN_PORT}:80" # Local access: http://localhost:5050 (configured via .env file)
     depends_on:
       db:
         condition: service_healthy
@@ -70,3 +113,4 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
+  umami_postgres_data:

@@ -17,3 +17,5 @@ class Config:
     DATABASE_URI = os.getenv('DATABASE_URI')
     LOCAL_DATABASE_URI = os.getenv('LOCAL_DATABASE_URI')
     GRAPH_PATH = os.getenv('GRAPH_PATH')
+    UMAMI_WEBSITE_ID = os.getenv('UMAMI_WEBSITE_ID')
+    UMAMI_SCRIPT_URL = os.getenv('UMAMI_SCRIPT_URL')
