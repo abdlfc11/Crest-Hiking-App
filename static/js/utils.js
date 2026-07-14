@@ -113,12 +113,13 @@ export function formatETA(seconds) {
     return `${hours}h ${minutes}m`;
 }
 
-export function showError(message) {
+export function showError(message, colour = "#ff4d4f") {
     const container = document.getElementById("error-toast-container");
 
     const toast = document.createElement("div");
     toast.className = "error-toast";
     toast.textContent = message;
+    toast.style.background = colour;
 
     container.appendChild(toast);
 

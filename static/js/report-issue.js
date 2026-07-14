@@ -55,8 +55,26 @@ async function handleSubmission() {
             },
             body: JSON.stringify({ title: title, description: description })
         });
+        
+        if (!response.ok) {
+            showError("There was an unexpected error whilst submitting the issue report.");
+            return;
+        }
+
+        const data = await response.json()
+
+        if (!data.success) {
+            showError("There was an unexpected error whilst submitting the issue report.");
+            return;
+        }
+
+        showError("Thank You ! The issue was successfully reported", '#53b74c')
+
+        titleInput.value = '';
+        textarea.value = '';
+
     } catch (error) {
-        showError("An error occurred while submitting the issue report.");
+        showError("There was an unexpected error whilst submitting the issue report.");
     } finally {
         // This re-enables the submit button
         submitButton.disabled = false;
