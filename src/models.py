@@ -110,4 +110,12 @@ class ActionLog(SQLModel, table=True):
         )
     )
 
+# ISSUE REPORT TABLE
+class Issues(SQLModel, table=True):
+    __tablename__ = "issues"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(nullable=False, max_length=100)
+    description: str = Field(nullable=False, max_length=1000)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

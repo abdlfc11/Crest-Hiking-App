@@ -38,13 +38,14 @@ body {
 }
 
 /* if the loading class is attached to the generate path button */
-#generate-path-button.loading  #generate-path-button-text{
+.loading-button.loading  .loading-button-text{
     visibility: hidden;
 }
 
-#generate-path-button.loading .loader {
+.loading-button.loading .loader {
   display: inline-block; /* Show loader */
 }
+
 .route-btn.loading  .route-btn-text{
     visibility: hidden;
 }
