@@ -32,6 +32,7 @@ from Routes.routes_api import route_api_bp
 from Points.points_api import point_api_bp
 from Auth.auth_api import auth_api_bp
 from Settings.settings_api import settings_api_bp
+from Report_Issue.report_issue_api import report_issues_bp
 
 #endregion
 
@@ -51,6 +52,7 @@ app.register_blueprint(route_api_bp)
 app.register_blueprint(point_api_bp)
 app.register_blueprint(auth_api_bp)
 app.register_blueprint(settings_api_bp)
+app.register_blueprint(report_issues_bp)
 
 # Configuration Keys
 app.config.from_object(Config)
@@ -156,6 +158,11 @@ def root_url():
 @limiter.exempt
 def get_beta_page():
     return render_template("beta-code.html")
+
+@app.route('/report-an-issue', methods=["GET"])
+@limiter.exempt
+def report_issue():
+    return render_template("report-issue.html")
 
 # first route 
 @app.route("/login-page")
