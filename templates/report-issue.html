@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/report-issue.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/error-toast.css') }}" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
+</head>
+<body>
+
+    <!-- ##### ERROR TOAST CONTAINER ##### -->
+    <div id="error-toast-container"></div>
+
+    <nav id="navbar" class="surface">
+        <div id="left-nav-side" class="nav-sides">
+            <div id="navbar-logo-container">
+                <a href="https://crestr.co.uk">
+                    <img src="https://images.crestr.co.uk/Crest-Logo.png" id="navbar-logo-image" alt="Crest logo">
+                </a>
+            </div>
+        </div>
+
+        <div id="right-nav-side" class="nav-sides">
+            <a href="javascript:history.back()" id="back-button" class="btn btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+                Back
+            </a>
+        </div>
+    </nav>
+ 
+
+    <div id="report-issue-container" class="surface">
+        
+        <div id="report-issue-area">
+            <h1>Report an Issue</h1>
+                <div class="field">
+                    <label for="issue-title" class="field-label">Title</label>
+                    <input type="text" id="issue-title" name="issue-title" class="field-input" placeholder="A short summary of the issue" required>
+                </div>
+
+                <div class="field">
+                    <label for="issue-description" class="field-label">Describe the issue</label>
+                    <textarea id="issue-description" name="issue-description" class="field-textarea" rows="5" placeholder="What happened? What did you expect instead?" required></textarea>
+                </div>
+
+                <button id="submit-button" class="btn btn-primary">Submit</button>
+            <div id="response-message"></div>
+        </div>
+</div>
+
+<script> const apiReportIssueUrl = "{{ url_for('report_issues.report_issue_api') }}"; </script>
+<script type="module" src="{{ url_for('static', filename='js/report-issue.js') }}"></script>
+</body>
+</html>
