@@ -7,6 +7,55 @@ const titleInput = document.getElementById("issue-title");
 const textarea = document.getElementById("issue-description");
 const submitButton = document.getElementById("submit-button");
 
+// DARK MODE 
+
+// Helper to apply the class to the document
+function setDarkMode(isDark){
+    if (isDark) {
+        document.documentElement.classList.add("dark");
+    } else {
+        document.documentElement.classList.remove("dark");
+    }
+};
+
+function onThemeToggleClick() {
+    const isCurrentlyDark = document.documentElement.classList.contains("dark");
+    const newThemeState = !isCurrentlyDark;
+    
+    setDarkMode(newThemeState);
+    
+    localStorage.setItem("user-theme", newThemeState ? "dark" : "light");
+}
+
+function initDarkMode() {
+    const themeToggle = document.getElementById("theme-toggle");
+    const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    // This determines the initial state 
+    const savedTheme = localStorage.getItem("user-theme");
+    
+    if (savedTheme) {
+        // This ensure that if a user has explicitly chosen a setting before, use it
+        setDarkMode(savedTheme === "dark");
+    } else {
+        // Otherwise, it'll fall back to the OS system preference
+        setDarkMode(darkModeQuery.matches);
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener("click", onThemeToggleClick);
+    }
+
+    // This runs if the user hasn't overridden preferences
+    darkModeQuery.addEventListener("change", (e) => {
+        if (!localStorage.getItem("user-theme")) {
+            setDarkMode(e.matches);
+        }
+    });
+}
+
+initDarkMode();
+
 /**
  * This function validates the input fields for the report issue form.
  * @param {string} title 
