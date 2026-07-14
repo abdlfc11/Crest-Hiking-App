@@ -1,16 +1,27 @@
-
 :root {
+
+  /* Constant colours */
+  --error: #dc2626;
+  --ok: #16a34a;
+
+  /* Theme variables (Light Mode defaults) */
   --blue: #2563eb;
   --blue-dark: #1d4ed8;
   --blue-soft: rgba(37, 99, 235, 0.08);
   --blue-ring: rgba(37, 99, 235, 0.28);
 
+  --bg: #ffffff;
+  --surface-bg: rgba(255, 255, 255, 0.92);
+  --field-bg: #ffffff;
   --ink: #1f2937;
   --muted: #64748b;
+  --placeholder: #94a3b8;
   --border: #e2e8f0;
-  --error: #dc2626;
-  --ok: #16a34a;
+  
+  --btn-disabled-bg: #93b4f2;
+  --btn-disabled-text: #ffffff;
 
+  /* Layout and shapes */
   --radius-lg: 20px;
   --radius-md: 12px;
   --radius-sm: 8px;
@@ -22,24 +33,48 @@
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-body {
-  background: #ffffff;
-  font-family: var(--font-sans);
-  color: var(--ink);
+/* DARK MODE */
+html.dark {
+  --bg: #0f172a;
+  --surface-bg: rgba(30, 41, 59, 0.8);
+  --field-bg: #1e293b;
+  --ink: #f8fafc;
+  --muted: #94a3b8;
+  --placeholder: #64748b;
+  --border: #334155;
+
+  /* Slightly brighter blues for better contrast in dark mode */
+  --blue: #3b82f6; 
+  --blue-dark: #60a5fa;
+  --blue-soft: rgba(59, 130, 246, 0.15);
+  --blue-ring: rgba(59, 130, 246, 0.4);
+
+  --btn-disabled-bg: #1e293b;
+  --btn-disabled-text: #64748b;
+
+  --shadow-surface: 0 10px 35px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
+/* Base Styles */
+body {
+  background: var(--bg);
+  font-family: var(--font-sans);
+  color: var(--ink);
+  transition: background-color 0.3s ease, color 0.3s ease; 
+}
 
 .surface {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-surface);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Buttons */
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -83,7 +118,8 @@ body {
 }
 
 .btn-primary:disabled {
-  background: #93b4f2;
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -114,7 +150,6 @@ body {
 }
 
 /* Form fields */
-
 .field {
   display: flex;
   flex-direction: column;
@@ -133,11 +168,13 @@ body {
   font-size: 0.95rem;
   line-height: 1.45;
   color: var(--ink);
-  background: #fff;
+  background: var(--field-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.75rem 0.85rem;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              border 0.15s cubic-bezier(0.4, 0, 0.2, 1)
+              ;
 }
 
 .field-textarea {
@@ -147,20 +184,18 @@ body {
 
 .field-input::placeholder,
 .field-textarea::placeholder {
-  color: #94a3b8;
+  color: var(--placeholder);
 }
 
 .field-input:focus,
 .field-textarea:focus {
-  border-color: #3b82f6; 
-    box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
-                0 0 12px 4px rgba(59, 130, 246, 0.1);
-    outline: none;
+  border-color: var(--blue); 
+  box-shadow: 0 0 4px 1px var(--blue-soft),
+              0 0 12px 4px var(--blue-ring);
+  outline: none;
 }
 
-
 /* Navbar */
-
 #navbar {
   display: flex;
   align-items: center;
@@ -229,8 +264,35 @@ body {
   }
 }
 
-/* Report Issue page inputs */
+/* Theme Toggle */
+#theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--muted);
+}
 
+#theme-toggle:hover {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+/* Default state: show moon, hide sun */
+#theme-toggle .icon-sun {
+  display: none;
+}
+
+#theme-toggle .icon-moon {
+  color: #1a2030;
+  display: block;
+}
+
+/* Report Issue page inputs */
 #report-issue-container {
   max-width: 480px;
   margin: 3rem auto;
@@ -277,4 +339,25 @@ body {
   .field-textarea {
     transition: none;
   }
+  body, .surface {
+    transition: none;
+  }
+}
+
+/* DARK MODE */ 
+
+/* Crestr logo (dark mode) */
+html.dark #navbar-logo-image {
+  filter: brightness(0) invert(0.8);
+}
+
+/* light/dark theme toggle */
+
+html.dark #theme-toggle .icon-sun {
+  display: block;
+  color: #f59e0b;
+}
+
+html.dark #theme-toggle .icon-moon {
+  display: none;
 }
