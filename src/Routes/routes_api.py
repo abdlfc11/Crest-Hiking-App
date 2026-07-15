@@ -30,7 +30,8 @@ from Routes.helpers import (
     generate_geojson, 
     generate_gpx, 
     normalise_route,
-    extract_kml_coords
+    extract_kml_coords,
+    isRoughlyInCumbria
 )
 
 
@@ -61,10 +62,14 @@ def calculate_path():
 
         if len(start_coords) < 2 or len(end_coords) < 2:
             raise ValueError("Coordinates must be in format 'x, y'")
+        
 
         # this extracts the raw numerical coordinates
         start_coords_x, start_coords_y = get_xy(start_coords)
         end_coords_x, end_coords_y = get_xy(end_coords)
+
+        if not isRoughlyInCumbria(start_coords_x, start_coords_y) or not isRoughlyInCumbria(end_coords_x, end_coords_y):
+            return jsonify({"success": False, "message": "Please enter coordinates within Cumbria. "})
 
         all_coords = [start_coords_x, start_coords_y, end_coords_x, end_coords_y]
         if not all(isinstance(num, (int, float)) for num in all_coords):
@@ -76,6 +81,7 @@ def calculate_path():
         
         # COORD PROJECTION TYPE DETECTION
         # Lat / Lon coordinates will be small numbers, whereas web mercator uses large values in metres
+        # NOTE : as of July 2026 only web mercator is available, though WGS84 projection is planned so this remains 
     
         # this checks start and end coords to see if they are wgs84 projection and converts to web_mercator if so
         if abs(s_x) <= 180 and abs(s_y) <= 90:
