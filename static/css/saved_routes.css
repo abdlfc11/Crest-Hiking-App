@@ -66,6 +66,23 @@ BODY {
     flex-shrink: 0;
 }
 
+#saved-routes-dash-go-back-button {
+  padding: 10px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+  width: max-content;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+#saved-routes-dash-go-back-button:hover {
+  color: #000000;
+}
+
+
 #saved-routes-dashboard .closebtn {
     font-size: 32px;
     color: #4b5563;
@@ -239,21 +256,6 @@ BODY {
     padding: 14px;
     font-size: 1rem;
     border-radius: 10px;
-}
-
-#saved-routes-dashboard a {
-  padding: 8px 8px 8px 32px;
-  text-decoration: none;
-  font-size: 25px;
-  color: #818181;
-  display: block;
-  transition: 0.3s;
-  width: max-content;
-  cursor: pointer;
-}
-
-#saved-routes-dashboard a:hover {
-  color: #000000;
 }
 
 /* Dark theme */

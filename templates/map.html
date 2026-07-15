@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crestr Hiking App</title>
 
+    <!-- Favicon -->
+    <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
+
     <!-- OpenLayers -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css" />
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
@@ -44,6 +47,17 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Umami Analytics -->
+    <!-- SELF HOSTERS: Change values in you .env file -->
+    <!-- Umami Analytics -->
+    {% if config.UMAMI_WEBSITE_ID %}
+    <script async defer 
+            src="{{ config.UMAMI_SCRIPT_URL }}" 
+            data-website-id="{{ config.UMAMI_WEBSITE_ID }}">
+    </script>
+    {% endif %}
+
 </head>
 <body>
 
@@ -93,18 +107,12 @@
                         </div>
                     </div>
 
-                    <button type="button" class="generate-button" id="generate-path-button">
-                        <span id="generate-path-button-text">Generate path</span>
+                    <button type="button" class="generate-button loading-button" id="generate-path-button">
+                        <span class="loading-button-text" id="generate-path-button-text">Generate path</span>
                         <span class="loader"></span>
                     </button>
 
                     <button type="button" class="generate-button" id="clear-auto-route-button">Clear Path</button>
-                
-                {% if error %}
-                <div class="error-message">
-                    {{ error }}
-                </div>
-                {% endif %}
             </div>
         </div>
 
@@ -191,6 +199,7 @@
         <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
         <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
         <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
+    <a id="report-issues-button" href="/report-an-issue" ><i data-lucide="bug"></i>Report Issues</a>
     </div>
 
     </div>
@@ -220,7 +229,7 @@
                         <div class="route-card-stats">
                             <div class="stat-item">
                                 <span class="stat-label">Distance:</span>
-                                <span class="stat-value" data-distance-km="{{ route.distance_km }}">{{ route.distance_km }} km</span>
+                                <span class="stat-value" data-distance-km="{{ route.distance_km }}">{{ route.distance_km | format_distance }}</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">ETA:</span>
@@ -369,14 +378,14 @@
                         <span class="import-route-item-description">Choose how you want to load your route</span>
                     </div>
 
-                    <div class="settings-radio-pills">
+                    <div id="file-route-input-pill" class="settings-radio-pills">
                         <label class="radio-pill">
                             <input id="file-route-input-type" type="radio" name="import-route-method" value="file" checked>
                             <span>File</span>
                         </label>
 
-                        <label class="radio-pill">
-                            <input id="url-route-input-type" type="radio" name="import-route-method" value="url">
+                        <label id="url-route-input-pill" class="radio-pill disabled" data-tooltip="URL import is currently disabled. Please use the file upload option.">
+                            <input id="url-route-input-type" type="radio" name="import-route-method" value="url" disabled>
                             <span>URL</span>
                         </label>
                     </div>

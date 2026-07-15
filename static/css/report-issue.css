@@ -1,0 +1,363 @@
+:root {
+
+  /* Constant colours */
+  --error: #dc2626;
+  --ok: #16a34a;
+
+  /* Theme variables (Light Mode defaults) */
+  --blue: #2563eb;
+  --blue-dark: #1d4ed8;
+  --blue-soft: rgba(37, 99, 235, 0.08);
+  --blue-ring: rgba(37, 99, 235, 0.28);
+
+  --bg: #ffffff;
+  --surface-bg: rgba(255, 255, 255, 0.92);
+  --field-bg: #ffffff;
+  --ink: #1f2937;
+  --muted: #64748b;
+  --placeholder: #94a3b8;
+  --border: #e2e8f0;
+  
+  --btn-disabled-bg: #93b4f2;
+  --btn-disabled-text: #ffffff;
+
+  /* Layout and shapes */
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  --shadow-surface: 0 10px 35px rgba(15, 23, 42, 0.06);
+  --shadow-lift: 0 4px 12px rgba(37, 99, 235, 0.28);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* DARK MODE */
+html.dark {
+  --bg: #0f172a;
+  --surface-bg: rgba(30, 41, 59, 0.8);
+  --field-bg: #1e293b;
+  --ink: #f8fafc;
+  --muted: #94a3b8;
+  --placeholder: #64748b;
+  --border: #334155;
+
+  /* Slightly brighter blues for better contrast in dark mode */
+  --blue: #3b82f6; 
+  --blue-dark: #60a5fa;
+  --blue-soft: rgba(59, 130, 246, 0.15);
+  --blue-ring: rgba(59, 130, 246, 0.4);
+
+  --btn-disabled-bg: #1e293b;
+  --btn-disabled-text: #64748b;
+
+  --shadow-surface: 0 10px 35px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Base Styles */
+body {
+  background: var(--bg);
+  font-family: var(--font-sans);
+  color: var(--ink);
+  transition: background-color 0.3s ease, color 0.3s ease; 
+}
+
+.surface {
+  background: var(--surface-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-surface);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--blue-ring);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--blue);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--blue-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn-primary:disabled {
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-ghost {
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+  padding: 0.55rem 1rem 0.55rem 0.8rem;
+  border-radius: 999px;
+}
+
+.btn-ghost:hover {
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+}
+
+.btn-ghost svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-ghost:hover svg {
+  transform: translateX(-2px);
+}
+
+/* Form fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.field-input,
+.field-textarea {
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.85rem;
+  transition: box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              border 0.15s cubic-bezier(0.4, 0, 0.2, 1)
+              ;
+}
+
+.field-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: var(--placeholder);
+}
+
+.field-input:focus,
+.field-textarea:focus {
+  border-color: var(--blue); 
+  box-shadow: 0 0 4px 1px var(--blue-soft),
+              0 0 12px 4px var(--blue-ring);
+  outline: none;
+}
+
+/* Navbar */
+#navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  max-width: 98vw;
+  width: 900px;
+  margin: 1rem auto 1.4rem;
+  position: sticky;
+  top: 15px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.nav-sides {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#right-nav-side {
+  justify-content: flex-end;
+}
+
+#navbar-logo-container {
+  display: flex;
+  align-items: center;
+}
+
+#navbar-logo-image {
+  height: 3.2rem;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  #navbar {
+    position: static;
+    top: 0;
+    border-radius: 0;
+    padding: 0.65rem 1rem;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #navbar-logo-image {
+    height: 2.4rem;
+  }
+
+  .btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #navbar {
+    padding: 0.55rem 0.8rem;
+  }
+
+  #navbar-logo-image {
+    height: 2.2rem;
+  }
+}
+
+/* Theme Toggle */
+#theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--muted);
+}
+
+#theme-toggle:hover {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+/* Default state: show moon, hide sun */
+#theme-toggle .icon-sun {
+  display: none;
+}
+
+#theme-toggle .icon-moon {
+  color: #1a2030;
+  display: block;
+}
+
+/* Report Issue page inputs */
+#report-issue-container {
+  max-width: 480px;
+  margin: 3rem auto;
+  padding: 2rem 2rem 1.75rem;
+  text-align: left;
+  gap: 1rem;
+}
+
+#report-issue-container h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+#report-issue-area {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#report-issue-area .btn {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+#response-message {
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  min-height: 1.2em;
+}
+
+@media (max-width: 560px) {
+  #report-issue-container {
+    margin: 1.5rem 1rem;
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .field-input,
+  .field-textarea {
+    transition: none;
+  }
+  body, .surface {
+    transition: none;
+  }
+}
+
+/* DARK MODE */ 
+
+/* Crestr logo (dark mode) */
+html.dark #navbar-logo-image {
+  filter: brightness(0) invert(0.8);
+}
+
+/* light/dark theme toggle */
+
+html.dark #theme-toggle .icon-sun {
+  display: block;
+  color: #f59e0b;
+}
+
+html.dark #theme-toggle .icon-moon {
+  display: none;
+}

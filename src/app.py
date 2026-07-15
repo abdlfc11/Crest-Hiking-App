@@ -24,7 +24,7 @@ from sqlmodel import Session, select
 # Local Modules
 from config import Config
 from db import engine
-from models import Point, Route
+from models import Point, Route, Settings
 from constants import DEFAULT_CENTRE
 from extensions import limiter, service, log_action, get_current_user
 
@@ -32,6 +32,7 @@ from Routes.routes_api import route_api_bp
 from Points.points_api import point_api_bp
 from Auth.auth_api import auth_api_bp
 from Settings.settings_api import settings_api_bp
+from Report_Issue.report_issue_api import report_issues_bp
 
 #endregion
 
@@ -51,8 +52,10 @@ app.register_blueprint(route_api_bp)
 app.register_blueprint(point_api_bp)
 app.register_blueprint(auth_api_bp)
 app.register_blueprint(settings_api_bp)
+app.register_blueprint(report_issues_bp)
 
 # Configuration Keys
+app.config.from_object(Config)
 app.secret_key = Config.SECRET_KEY
 locationiq_api_key = Config.LOCATIONIQ_API_KEY
 app.config["SQLALCHEMY_DATABASE_URI"] = Config.DATABASE_URI
@@ -69,7 +72,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 session_cookie_secure = os.environ.get("FLASK_ENV") != "development"
 
 app.config.update(
-    SESSION_COOKIE_SECURE=session_cookie_secure,
+    SESSION_COOKIE_SECURE=False,
     SESSION_COOKIE_HTTPONLY=True,    # Prevents JavaScript access (XSS mitigation)
     SESSION_COOKIE_SAMESITE='Lax',   # CSRF protection
     PERMANENT_SESSION_LIFETIME=3600  # Expires sessions after 1 hour
@@ -79,15 +82,31 @@ app.config.update(
 
 #region TEMPLATE FILTERS
 
+@app.template_filter('format_distance')
+def format_distance(distance_km):
+    try: 
+        with Session(engine) as db:
+            distance_unit = db.exec(
+                select(Settings.value)
+                .where(Settings.key == "distanceUnit")
+            ).first()
+
+            if distance_unit == "km":
+                return f"{round(distance_km, 2)} km"
+            elif distance_unit == "miles":
+                return f"{round(distance_km * 0.621371, 2)} mi"
+    except Exception as e:
+        log_action('Template filter for distance unit', False, e, None, 'TEMPLATE_FILTER: DISTANCE UNIT')
+
 @app.template_filter('format_elevation')
 def format_elevation(elevation_gain):
     if not isinstance(elevation_gain, int) or isinstance(elevation_gain, float):
-        elevation_gain = float(elevation_gain)
+        elevation_gain = int(float(elevation_gain))
 
     if elevation_gain >= 0:
-        return f"+{elevation_gain}"
+        return f"+{elevation_gain} m"
     else:
-        return f"{elevation_gain}"
+        return f"{elevation_gain} m"
 
 @app.template_filter('format_eta')
 def format_eta(seconds):
@@ -139,6 +158,11 @@ def root_url():
 @limiter.exempt
 def get_beta_page():
     return render_template("beta-code.html")
+
+@app.route('/report-an-issue', methods=["GET"])
+@limiter.exempt
+def report_issue():
+    return render_template("report-issue.html")
 
 # first route 
 @app.route("/login-page")
@@ -267,6 +291,10 @@ def search_area():
 
 #endregion
 
+# This makes config available in Jinja templates
+@app.context_processor
+def inject_config():
+    return {"config": app.config}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

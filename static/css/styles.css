@@ -38,13 +38,14 @@ body {
 }
 
 /* if the loading class is attached to the generate path button */
-#generate-path-button.loading  #generate-path-button-text{
+.loading-button.loading .loading-button-text{
     visibility: hidden;
 }
 
-#generate-path-button.loading .loader {
+.loading-button.loading .loader {
   display: inline-block; /* Show loader */
 }
+
 .route-btn.loading  .route-btn-text{
     visibility: hidden;
 }
@@ -114,78 +115,6 @@ body {
     box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
-/* SETTINGS */
-
-.settings-button {
-    position: absolute;
-    top: 12px;
-    right: 60px;
-    z-index: 2000;
-    background: rgb(100 116 139 / 0.65);
-    border: none;
-    border-radius: 8px;
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: auto;
-    color: white
-}
-
-
-.settings-button:hover {
-    background: #475569;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.settings-button:active {
-    transform: translateY(0);
-}
-
-#delete-user-button { 
-    padding: 12px;
-    background: #eb2525;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 12px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-    white-space: nowrap;
-    padding-bottom: 10px;
-    position: relative;
-    width: 130px;
-    text-align: center;
-}
-
-#delete-user-button:hover {
-    background: #fd0000;
-    border-color: #cbd5e1;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-#delete-user-button-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#bottom-settings-container {
-    display: flex;
-    flex-direction: row;
-    align-items: start;
-    justify-content: space-evenly;
-}
 
 /* MAP CONTENT */
 
@@ -267,13 +196,14 @@ body {
 }
 
 .coord-input:focus {
+    border-color: #3b82f6; 
+    box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+                0 0 12px 4px rgba(59, 130, 246, 0.1);
     outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 0.2px rgba(37, 99, 235, 0.1);
 }
 
-.input-error {
-    border: 1px solid #fc4646;
+.coord-input.input-error {
+    border-color: #fc4646;
 }
 
 .coord-input.is-active {
@@ -387,67 +317,12 @@ body {
     border: 1px solid #e2e8f0;
 }
 
-.error-message {
-    color: #dc2626;
-    margin-top: 10px;
-    font-size: 13px;
-    padding: 10px 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 4px;
-    font-weight: 500;
-}
-
-#clear_route_button {
-    z-index: 1000;
-    right: 100px;
-    top: 1000px;
-}
-
-#crosshair {
-    left: 50%;
-    top: 50%;
-    position: absolute;
-    z-index: 1001;
-    width: 32px;
-    height: 32px;
-    transform: translate(-50%, -50%);
-}
-
 .ol-control {
     right: 8px;
     left: auto;
 }
 
-#legend_img {
-    position: absolute;
-    top: 80px;
-    right: 10px;
-    z-index: 1000;
-    max-width: 150px;
-    background: white;
-    padding: 8px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
 /* Saving and Loading Route Divs */
-
-#load-route {
-    position: fixed;
-    top: 10px;
-    right: 40px;
-    z-index: 1000;
-    background: rgb(255 255 255 / 0.65);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border: 1px solid #e2e8f0;
-    min-width: 230px;
-    max-width: 280px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
 
 #save-route-container {
     position: static;
@@ -556,177 +431,6 @@ body {
 }
 
 
-/* Select dropdown styling */
-select.coord-input {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 16px;
-    padding-right: 32px;
-}
-
-select.coord-input:focus {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg'%3e");
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-
-/* Settings Modal */
-.settings-modal {
-    display: none;
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-}
-
-.settings-modal.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.settings-modal-content {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
-    overflow-y: auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.settings-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    background: #f1f5f9;
-    border-radius: 12px 12px 0 0;
-}
-
-.settings-modal-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: #1e293b;
-    letter-spacing: -0.01em;
-}
-
-.settings-close-button {
-    background: none;
-    border: none;
-    font-size: 28px;
-    color: #64748b;
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.settings-close-button:hover {
-    background: #e2e8f0;
-    color: #1e293b;
-}
-
-.settings-modal-body {
-    padding: 24px;
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 16px 0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.setting-item:last-child {
-    border-bottom: none;
-}
-
-.setting-label {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.setting-label span:first-child {
-    font-weight: 500;
-    font-size: 14px;
-    color: #1e293b;
-}
-
-.setting-description {
-    font-size: 12px;
-    color: #64748b;
-}
-
-/* Toggle Switch */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-    margin-left: 16px;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgb(204 204 204 / 0.35);
-    transition: 0.3s;
-    border-radius: 24px;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.3s;
-    border-radius: 50%;
-}
-
-.toggle-switch input:checked + .toggle-slider {
-    background-color: #2563eb;
-}
-
-.toggle-switch input:checked + .toggle-slider:before {
-    transform: translateX(26px);
-}
-
-.toggle-switch input:focus + .toggle-slider {
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
-}
-
 #remove-point{
     position: absolute;
     display: none;
@@ -810,116 +514,6 @@ select.coord-input:focus {
 
 #point-delete-delete-button:hover {
     background-color: #dc2626;
-}
-
-#load-route-dropdown {
-    position: relative;
-    margin-bottom: 12px;
-}
-
-#selected-route-display {
-    user-select: none;
-    -webkit-user-select: none; /* Chrome/Safari */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;     /* IE/Edge */
-    cursor: pointer;
-}
-
-.load-route-selected {
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    background-color: #f8fafc;
-    cursor: pointer;
-    font-size: 13px;
-    color: #1e293b;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s ease;
-}
-
-.load-route-selected:hover {
-    border-color: #94a3b8;
-}
-
-.load-route-selected::after {
-    content: '▼';
-    font-size: 10px;
-    color: #64748b;
-    margin-left: 8px;
-}
-
-.load-route-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: rgb(255 255 255 / 0.9);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);;
-    border: 1px solid #cbd5e1;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    max-height: 150px;
-    overflow-y: auto;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    display: none; /* Hidden by default - controlled by JS 'open' class */
-}
-
-.load-route-list.open {
-    display: block; /* Shown when 'open' class is added by JS */
-}
-
-.load-route-item {
-    padding: 8px 12px;
-    font-size: 13px;
-    color: #1e293b;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.1s;
-}
-
-.load-route-item:hover {
-    background-color: #f1f5f9;
-}
-
-.load-route-item.selected {
-    background-color: #e2e8f0;
-    font-weight: 500;
-}
-
-.load-route-name {
-    flex-grow: 1;
-    user-select: none; /* Prevent text selection when clicking */
-}
-
-.load-route-delete {
-    color: #ef4444;
-    font-weight: 700;
-    cursor: pointer;
-    margin-left: 10px;
-    padding: 2px 5px;
-    border-radius: 4px;
-    line-height: 1; /* Keep 'X' vertically centered */
-}
-
-.load-route-delete:hover {
-    background-color: #fee2e2;
-    color: #dc2626;
-}
-
-.load-route-item.disabled {
-    color: #94a3b8;
-    cursor: default;
-    font-style: italic;
-}
-
-.load-route-item.disabled:hover {
-    background-color: white;
 }
 
 
@@ -1009,7 +603,7 @@ select.coord-input:focus {
 
 
 
-/* nav limits for smaller devices and provides responsiveness to tab resise*/
+/* nav limits for smaller devices and provides responsiveness to tab resise */
 @media screen and (max-height: 450px) {
   .sidenav {padding-top: 15px;}
   .sidenav a {font-size: 18px;}
@@ -1069,6 +663,13 @@ html.dark #save-route-toggle-button {
     color: #f3f4f6;
 }
 
+html.dark #save-route-toggle-button:hover + #save-route,
+html.dark #save-route-toggle-button:hover {
+    background: rgba(18, 25, 34, 0.75);
+    color: #f3f4f6;
+}
+
+
 html.dark .coords-header,
 html.dark .stats-header {
     background: rgb(55 65 81 / 0.75);
@@ -1109,6 +710,10 @@ html.dark .coord-input.is-active {
     box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
                 0 0 12px 4px rgba(59, 130, 246, 0.1);
     outline: none;
+}
+
+html.dark .coord-input.input-error {
+    border-color: #fc4646;
 }
 
 /* This overrides the white autofill background for dark mode */
