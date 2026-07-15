@@ -1,3 +1,7 @@
 app.crestr.co.uk {
     reverse_proxy web:5000
 }
+
+analytics.crestr.co.uk {
+    reverse_proxy crestr-hiking-app-umami-1:3000
+}
