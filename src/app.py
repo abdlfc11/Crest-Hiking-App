@@ -72,7 +72,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 session_cookie_secure = os.environ.get("FLASK_ENV") != "development"
 
 app.config.update(
-    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=session_cookie_secure,
     SESSION_COOKIE_HTTPONLY=True,    # Prevents JavaScript access (XSS mitigation)
     SESSION_COOKIE_SAMESITE='Lax',   # CSRF protection
     PERMANENT_SESSION_LIFETIME=3600  # Expires sessions after 1 hour
