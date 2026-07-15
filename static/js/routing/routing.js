@@ -2,7 +2,9 @@ import { manualRouteState,
   hasElevation,
   extractElevation,
   extractElevationProfile,
-  getElevationRange
+  getElevationRange,
+  cumbriaBoundary,
+  isPointInPolygon
 } from "../routes/routeState.js";
 
 export async function calculatePath(startPoint, endPoint) {
@@ -61,6 +63,13 @@ export async function addManualPoint(x, y) {
   const { userClicks, pathCoords, segmentCache } = manualRouteState;
   const currentClick = [x, y];
 
+  // The below code uses a more computationally expensive but much more accurate way of finding out if a point is in Cumbria
+  const lonLatCoords = ol.proj.toLonLat(currentClick);
+  const isInCumbria = isPointInPolygon(lonLatCoords, cumbriaBoundary);
+  if (!isInCumbria) {
+      return {"success": false, "message": "Please click on a point within Cumbria"};
+  }
+
   // this restores the redo stack
   manualRouteState.redoStack = [];
 
@@ -110,8 +119,7 @@ export async function addManualPoint(x, y) {
       const data = await getPathSegment(lastClickedPoint, finalClick);
 
       if (!data.success) {
-        console.warn("Could not find a path in that location");
-        return;
+        return {"success": false, "message": "Sorry, we not find a path to that location"};;
       }
 
       segment = data.coordinates;
@@ -125,8 +133,7 @@ export async function addManualPoint(x, y) {
     }
   }
   catch (error) {
-    console.warn("Could not find a path to that location", error);
-    return;
+    return {"success": false, "message": "Sorry, we not find a path to that location"};;
   }
 
   // this appends the segment to pathCoords (skips first point to prevent duplication)
@@ -138,4 +145,6 @@ export async function addManualPoint(x, y) {
   // this updates the UI
   const { updateManualRoute } = await import("../ui.js");
   updateManualRoute();
+
+  return {"success": true};
 }
