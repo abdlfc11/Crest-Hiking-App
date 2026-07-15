@@ -1,0 +1,7 @@
+services:
+  db:
+    ports: []
+  umami-db:
+    ports: []
+  pgadmin:
+    ports: []
