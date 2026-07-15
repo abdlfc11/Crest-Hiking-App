@@ -1,0 +1,3 @@
+app.crestr.co.uk {
+    reverse_proxy web:5000
+}

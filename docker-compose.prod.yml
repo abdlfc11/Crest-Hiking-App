@@ -5,3 +5,5 @@ services:
     ports: !override []
   pgadmin:
     ports: !override []
+  web:
+    ports: !override []
