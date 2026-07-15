@@ -10,7 +10,7 @@ alembic==1.13.2
 
 # Geospatial & Pathfinding
 pyproj==3.6.1
-networkx==3.3
+igraph==1.0.0  
 scipy==1.14.1          # needed for KDTree
 
 # fast api for the beta code auth feature
