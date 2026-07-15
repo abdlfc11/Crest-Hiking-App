@@ -69,7 +69,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 # Session and Security Settings
 
 # This keeps Secure cookies on in production, but disable them in local HTTP development so logins persist
-session_cookie_secure = os.environ.get("FLASK_ENV") != "development"
+session_cookie_secure = os.environ.get("FLASK_ENV", "Production") != "development"
 
 app.config.update(
     SESSION_COOKIE_SECURE=session_cookie_secure,

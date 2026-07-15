@@ -1,3 +1,7 @@
+# Main docker-compose.yml file
+# Holds all services, volumes etc
+# Used during both self-hosting and prod dev, with prod dev overwriting ports on docker-compose.prod.yml (this isn't added to the main docker-compose workflow so docker-compose up only uses this file)
+
 services:
 
   # POSTGRES DATABASE 
@@ -43,7 +47,7 @@ services:
       # Uncomment the lines below for local development debugging
       # - FLASK_DEBUG=1
       # - LOAD_GRAPH_ON_IMPORT=0    # 0 stops graph loading on import for fast hot-reloads
-      # - FLASK_ENV=development
+      # - FLASK_ENV=development     # this is depreciated, will likely switch to checking FLASK_DEBUG to determine if in prod or not
     ports:
       - "5000:5000" # Local access: http://localhost:5000
     env_file:
@@ -85,7 +89,7 @@ services:
     depends_on:
       umami-db:
         condition: service_healthy
-    # Healthcheck is commented out for now (see explanation below)
+    # Healthcheck is commented out for now --> for dev and self hosters it is not needed
     # healthcheck:
     #   test: ["CMD-SHELL", "curl -f http://localhost:3000/api/heartbeat || exit 1"]
     #   interval: 30s
