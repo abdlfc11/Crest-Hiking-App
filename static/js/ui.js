@@ -58,7 +58,8 @@ import {
   extractElevation,
   extractElevationProfile,
   getElevationRange,
-  calculateElevationGain
+  calculateElevationGain,
+  isPointInPolygon
 } from "./routes/routeState.js";
 import {
   initCursorManager,
@@ -214,6 +215,80 @@ function noRouteCreateFunction() {
 }
 
 //#region COORDINATE INPUT FUNCTIONS
+
+/**
+ * @param {string} startPoint
+ * @param {string} endPoint
+ * @returns {boolean} True if the parameters are empty and false if otherwise
+ */
+function isCoordInputEmpty(startPoint, endPoint) {
+  
+  if (endPoint === "" && startPoint === "") {
+    showCoordInputError(startCoordEntry, "Please enter coordinates");
+    showCoordInputError(endCoordEntry, "Please enter coordinates");
+    return true;
+  }
+
+  if (startPoint === "") {
+    showCoordInputError(startCoordEntry, "Please enter coordinates");
+    return true;
+  }
+
+  if (endPoint === "") {
+    showCoordInputError(endCoordEntry, "Please enter coordinates");
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * 
+ * @param {string} startPoint 
+ * @param {string} endPoint 
+ * @returns {boolean} True if the coordinates are correctly formatted and false if otherwise
+ */
+function validateInputCoords(startPoint, endPoint) {
+
+  if (isCoordInputEmpty(startPoint, endPoint)) {
+    return false;
+  }
+
+  // This splits the string via commas
+  const startParts = startPoint.split(",");
+  const endParts = endPoint.split(",");
+
+  // This ensures there are two coordinates
+  if (startParts.length < 2 || endParts.length < 2) {
+    showError("Invalid coordinate format. Please Use X, Y");
+    return false;
+  }
+
+  // This parses the full string into numbers 
+  const startX = parseInt(startParts[0].trim(), 10);
+  const startY = parseInt(startParts[1].trim(), 10);
+  const endX = parseInt(endParts[0].trim(), 10);
+  const endY = parseInt(endParts[1].trim(), 10);
+
+  const startLonLat = ol.proj.toLonLat([startX, startY]);
+  const endLonLat = ol.proj.toLonLat([endX, endY]);
+
+  if ( !isPointInPolygon(startLonLat)) {
+    showError("Please enter start coordinates within Cumbria.")
+    startCoordEntry.value = '';
+    showCoordInputError(startCoordEntry, "Please enter start coordinates within Cumbria.");
+    return false
+  }
+
+  if (!isPointInPolygon(endLonLat)) {
+    showError("Please enter end/destination coordinates within Cumbria.");
+    endCoordEntry.value = ''
+    showCoordInputError(endCoordEntry, "Please enter end/destination coordinates within Cumbria.");
+    return false;
+  }
+
+  return true;
+};
 
 function showCoordInputError(entry, message) {
   entry.placeholder = message;
@@ -850,23 +925,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
   }
 };
 
-function validateInputCoords(startPoint, endPoint) {
-  if (endPoint === "" && startPoint === "") {
-    showCoordInputError(startCoordEntry, "Please enter coordinates");
-    showCoordInputError(endCoordEntry, "Please enter coordinates");
-    return false;
-  }
-  if (startPoint === "") {
-    showCoordInputError(startCoordEntry, "Please enter coordinates");
-    return false;
-  }
-  if (endPoint === "") {
-    showCoordInputError(endCoordEntry, "Please enter coordinates");
-    return false;
-  }
-  return true;
-};
-
 function displayPath(data) {
   const map = getMap();
   const routeLayer = getRouteLayer();
@@ -1122,9 +1180,23 @@ function redoManualRoutePoint() {
   addManualPoint(restoredPoint[0], restoredPoint[1]);
 };
 
-function manualRouteClickHandler(event) {
+async function manualRouteClickHandler(event) {
   const coordinate = event.coordinate;
-  addManualPoint(coordinate[0], coordinate[1]);
+
+  if (!isRoughlyInCumbria(coordinate[0], coordinate[1])) {
+    showError("Please click on a point within Cumbria");
+    return;
+  };
+
+  const response = await addManualPoint(coordinate[0], coordinate[1]);
+
+  console.log(response)
+
+  if (!response.success) {
+    showError(response.message)
+    return;
+  }
+  return;
 };
 
 //#endregion

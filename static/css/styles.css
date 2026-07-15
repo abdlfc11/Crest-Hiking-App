@@ -38,7 +38,7 @@ body {
 }
 
 /* if the loading class is attached to the generate path button */
-.loading-button.loading  .loading-button-text{
+.loading-button.loading .loading-button-text{
     visibility: hidden;
 }
 
@@ -202,8 +202,8 @@ body {
     outline: none;
 }
 
-.input-error {
-    border: 1px solid #fc4646;
+.coord-input.input-error {
+    border-color: #fc4646;
 }
 
 .coord-input.is-active {
@@ -710,6 +710,10 @@ html.dark .coord-input.is-active {
     box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
                 0 0 12px 4px rgba(59, 130, 246, 0.1);
     outline: none;
+}
+
+html.dark .coord-input.input-error {
+    border-color: #fc4646;
 }
 
 /* This overrides the white autofill background for dark mode */

@@ -10,10 +10,14 @@ import gpxpy.gpx
 
 # Local Imports 
 from extensions import service
+from constants import MAX_X, MAX_Y, MIN_X, MIN_Y
 
 #endregion
 
 #region ROUTING HELPER FUNCTIONS
+
+def isRoughlyInCumbria(x: int | float, y: int | float) -> bool:
+    return x >= MIN_X and x <= MAX_X and y >= MIN_Y and y <= MAX_Y 
 
 def haversine(x1, y1, x2, y2):
 
