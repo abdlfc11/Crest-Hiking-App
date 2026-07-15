@@ -1183,11 +1183,6 @@ function redoManualRoutePoint() {
 async function manualRouteClickHandler(event) {
   const coordinate = event.coordinate;
 
-  if (!isRoughlyInCumbria(coordinate[0], coordinate[1])) {
-    showError("Please click on a point within Cumbria");
-    return;
-  };
-
   const response = await addManualPoint(coordinate[0], coordinate[1]);
 
   console.log(response)
