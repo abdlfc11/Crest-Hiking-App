@@ -7,3 +7,5 @@ services:
     ports: !override []
   web:
     ports: !override []
+  umami:
+    ports: !override []
