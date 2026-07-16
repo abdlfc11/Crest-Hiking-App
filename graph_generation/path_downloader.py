@@ -1,17 +1,18 @@
-import networkx as nx  # used to make a graph of nodes + edges
 import pickle as pickle  # for saving/loading the graph later on
 from pyrosm import OSM
 from shapely.geometry import LineString, MultiLineString
 import json # used to parse Pyrosm OSM data 
 from pyproj import Transformer
+import igraph as ig # this is the new high performance library to make the pathfinding graph introduced in v0.2.0 of the app, replaced NetworkX
 
 
 class PathDataProcessor:
-    def __init__(self, input_data_path="data/cumbria_full.osm.pbf", output_pickle_path="graph_generation/unpopulated_graph.pkl", target_epsg=27700):
+    def __init__(self, input_data_path="data/cumbria_full.osm.pbf", output_pickle_path="graph_generation/unpopulated_igraph.pkl", target_epsg=27700):
         self.input_data_path = input_data_path
         self.output_pickle_path = output_pickle_path
         self.target_epsg = target_epsg
         self.edge_count = 0
+        self.node_to_id = None # this will be used to store the coordinate to node id dict mapping
     
     def round_point(self, point):
         return(round(point[0], 2), round(point[1], 2))
@@ -32,124 +33,151 @@ class PathDataProcessor:
         return converted
     
     def transform_graph(self, graph, desired_epsg):
+        """
+        Function used to transform the graph from BNG coordinate projection [27700] to the desired EPSG, which as of July 2026 is Web Mercator [3857]
+        This also transforms the coordinate_to_node mapping dictionary
+        """
 
         transformer = Transformer.from_crs(self.target_epsg, desired_epsg, always_xy=True)
 
         # for lat / lon 2 dp will mean poor accuracy, for metres, 2 dp is fine
         decimals = 6 if desired_epsg == 4326 else 2
 
-        nodes = {}
-        for node in graph.nodes:
-            new_x, new_y = transformer.transform(node[0], node[1])
-            nodes[node] = (round(new_x, decimals), round(new_y, decimals))
+        # this dictionary will hold the updated coordinates to be used to map coordinates to nodes 
+        updated_coord_to_id = {}
 
-        # nx.relabel_nodes copies the data from the graph and updates the nodes to use the appropriate distances
-        transformed_graph = nx.relabel_nodes(graph, nodes)
-        print("Transformation is complete")
-        return transformed_graph
+        # this updates coordinates to the desired projection
+        for i in range(graph.vcount()): # for i in range number of vertices in the graph
+            old_x, old_y = graph.vs[i]["coordinate"] # this retrieves the coord attribute for node of ID i
+            new_x, new_y = transformer.transform(old_x, old_y) # this calculates the new coordinates based on the desired_epsg
 
-    def build_graph(self, geodataframe):
-        print("Building graph...")
-        graph = nx.DiGraph()
-        self.edge_count = 0
+            new_coordinate = (round(new_x, decimals), round(new_y, decimals)) # tuple format 
+
+            graph.vs[i]["coordinate"] = new_coordinate
+
+            updated_coord_to_id[new_coordinate] = i
+        
+        # this overrides the old coord to id mapping with new one
+        self.node_to_id = updated_coord_to_id
+        
+        print(f"Transformation of the graph into EPSG: {desired_epsg} from EPSG: {self.target_epsg} is complete !")
+        return graph
+
+
 
 
         
-        for index, row in geodataframe.iterrows():
-            geometry = row.geometry
+    def build_graph(self, geodataframe):
+        print("Building graph...")
 
+        node_set = set() # set of unique coordinate tuples ((x1, y1), (x2, y2) ... ) -> Prevents duplicate coordinate entries 
+
+        # The below data structures are in order, i.e first sac_scale belongs to first edge, so does first length etc etc 
+
+        edge_list = [] # List of coordinate pairs [ ((x1, y1), (x2, y2)) ... ]
+        lengths = [] # List of floats showing lengths
+        sac_scales = [] # List of strings showing the sac scale of an edge
+        trail_visibilities = [] # List of strings describing the visibility of an edge
+        surfaces = [] # List of surfaces showing the surface of an edge
+        
+
+        for _, row in geodataframe.iterrows(): # for row in paths (the geodataframe passed in)
+            
+            # this extracts the geometry of the row, and if there is none it skips the row
+            geometry = row.geometry 
             if geometry is None:
                 continue
-
+            
+            # this handles both LineStrings (one continious segment) and MultiLineStrings (multiple separate segments)
             if isinstance(geometry, LineString):
                 segments = [geometry]
-
             elif isinstance(geometry, MultiLineString):
                 segments = geometry.geoms
             
+            # this skips any other geometry data 
             else:
                 continue
             
-            raw_tags = row["tags"]
+            # this extracts the tag data of each row which hold the desired attributes 
+            raw_tags = row.get('tags')
 
             try:
                 tags_dict = json.loads(raw_tags) if raw_tags else {}
             except Exception:
                 tags_dict = {}
             
+            # this extracts desired tags  
             sac = tags_dict.get("sac_scale")
             tv = tags_dict.get("trail_visibility")
             surface = tags_dict.get("surface")
 
-            tags = {}
-            if sac:
-                tags["sac_scale"] = sac
-            if tv:
-                tags["trail_visibility"] = tv
-            if surface:
-                tags["surface"] = surface
-
-            for segment in segments:
+            for segment in segments: # for each line individual line segment 
+                
+                # this extracts the coordinates of the segment 
                 coordinates = list(segment.coords)
 
+                # this for loop adds the coordinates to the node_set and finds the distance
+                # within the loop all data structures are populated
                 for i in range(len(coordinates) - 1):
                     p1 = self.round_point(coordinates[i])
                     p2 = self.round_point(coordinates[i+1])
+
+                    node_set.add(p1)
+                    node_set.add(p2)
 
                     distance_x = p2[0] - p1[0]
                     distance_y = p2[1] - p1[1]
 
                     distance = ((distance_x*distance_x) + (distance_y*distance_y))**0.5
+
+                    # forward edge
+                    edge_list.append((p1, p2))
+                    lengths.append(distance)
+                    sac_scales.append(sac)
+                    trail_visibilities.append(tv)
+                    surfaces.append(surface)
+
+                    # reverse edge
+                    edge_list.append((p2, p1))
+                    lengths.append(distance)
+                    sac_scales.append(sac)
+                    trail_visibilities.append(tv)
+                    surfaces.append(surface)
                     
-                    graph.add_node(p1)
-                    graph.add_node(p2)
-                    
-                    
-                    if graph.has_edge(p1, p2):
-                        existing = graph[p1][p2]
+        # this builds the iGraph object          
+        node_list = list(node_set)
+        self.node_to_id = {node: index for index, node in enumerate(node_list)}
 
-                        # add distance
-                        existing["length"] += distance
+        graph = ig.Graph(directed=True)
+        graph.add_vertices(len(node_list))
 
-                        # merge tags (take worst)
-                        if "sac_scale" in tags:
-                            existing["sac_scale"] = max(existing.get("sac_scale", ""), tags["sac_scale"])
+        # this stores coordinates on vertices
+        graph.vs['coordinate'] = node_list
 
-                        if "surface" in tags:
-                            existing["surface"] = max(existing.get("surface", ""), tags["surface"])
+        # this converts edges to integer IDs
+        int_edge_list = [(self.node_to_id[p1], self.node_to_id[p2]) for p1, p2 in edge_list]
+        graph.add_edges(int_edge_list)
 
-                        if "trail_visibility" in tags:
-                            existing["trail_visibility"] = max(existing.get("trail_visibility", ""), tags["trail_visibility"])
+        # this adds the attributes to Edge IDs: 
+        #   - length            (required)
+        #   - sac_scale         (if present)  
+        #   - trail_visibility  (if present)
+        #   - surface           (if present)
+        graph.es['length'] = lengths
+        if any(sac_scales):
+            graph.es['sac_scale'] = sac_scales
+        if any(trail_visibilities):
+            graph.es['trail_visibility'] = trail_visibilities
+        if any(surfaces):
+            graph.es['surface'] = surfaces
 
-                    else:
-                        graph.add_edge(p1, p2, length=distance, **tags)
-                    
-                    if graph.has_edge(p2, p1):
-                        existing = graph[p2][p1]
-
-                        # add distance
-                        existing["length"] += distance
-
-                        # merge tags (take worst)
-                        if "sac_scale" in tags:
-                            existing["sac_scale"] = max(existing.get("sac_scale", ""), tags["sac_scale"])
-
-                        if "surface" in tags:
-                            existing["surface"] = max(existing.get("surface", ""), tags["surface"])
-
-                        if "trail_visibility" in tags:
-                            existing["trail_visibility"] = max(existing.get("trail_visibility", ""), tags["trail_visibility"])
-
-                    else:
-                        graph.add_edge(p2, p1, length=distance, **tags)
-
-        print(f"Graph built: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges")
+        print(f"Graph built: {graph.vcount()} nodes/vertices, {graph.ecount()} edges")
         return graph
 
     def save_graph(self, graph):
         with open(self.output_pickle_path, "wb") as file:
-            pickle.dump(graph, file)
-        print(f"Graph saved → {self.output_pickle_path.split('/')[-1]}")
+            pickle.dump((graph, self.node_to_id), file)
+        print(f"Graph saved as: {self.output_pickle_path.split('/')[-1]}")
 
     def run(self, output_epsg=3857):
         all_paths = self.load_paths()

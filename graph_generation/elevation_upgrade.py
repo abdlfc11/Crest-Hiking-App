@@ -1,7 +1,8 @@
 import sys
 import os
 
-# This prevents 'ModuleNotFoundError's (run via this command : 'python -m graph_generation.elevation_upgrade')
+# This prevents 'ModuleNotFoundError's
+# run file via this command : 'python -m graph_generation.elevation_upgrade'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
 from src.Pathfinding.Nodefinder import NodeFinder as n
@@ -12,6 +13,7 @@ import math
 node_finder = n() # this is the class containing projection conversion helpers
 avg_walking_speed_metres = None # used for Naismith rule
 
+# This dictionary sets multipliers 
 terrain_costs = {
     # sac_scale
     "demanding_mountain_hiking": 1.70,
@@ -37,43 +39,47 @@ terrain_costs = {
     "paved": 0.90,
 }
 
-with open("graph_generation/unpopulated_graph.pkl", "rb") as node_file:
-    print("loading graph")
-    node_graph = p.load(node_file)
+# This loads the graph 
+with open("graph_generation/unpopulated_igraph.pkl", "rb") as file:
+    print("Loading graph...")
+    graph, node_to_id = p.load(file)
 
-nodes = node_graph.nodes() # this is a live view of all the nodes in my graph
 
-web_mercator_node_coordinates = list(nodes) # this is list of all those nodes' coords so operations can be applied to them
-
-# the below function produces a node coord list of which the projection is WGS84 instead of Web Mercator
 def translate_coords(coords_tuple: tuple) -> list:
+    """
+    Produces a node coord list of which the projection is WGS84 instead of Web Mercator for elevation sampling 
+    """
     WGS84 = []
     for (x, y) in coords_tuple:
         lon, lat = node_finder.convert_web_mercator_to_wgs84(x, y)
         WGS84.append((lon, lat))
     return WGS84
 
-print("Translating nodes")
-WGS84_coords = translate_coords(web_mercator_node_coordinates) # making use of the function to generate WGS84 coords
-print("Nodes translated")
+# this gets all node coordinates (stored in ['coordinate'])
+web_mercator_node_coordinates = graph.vs['coordinate']
 
+print("Translating nodes to WGS84...")
+WGS84_coords = translate_coords(web_mercator_node_coordinates)
+print("Nodes translated.")
+
+# this samples elevation from the raster file 
 with r.open("Cumbria-Elevation-File.tif") as elevation_raster: # opens the .tif file containing elevation data
     print("opened elevation file")
-    print(elevation_raster.crs)
+    print(f"ELEVATION FILE ESPG: {elevation_raster.crs}")
     elev_samples = list(elevation_raster.sample(WGS84_coords)) # gains the elevation associated with each coordinate in the WGS84 coords
 
 nodata = elevation_raster.nodata
 
-for (coord, elev) in zip(web_mercator_node_coordinates, elev_samples): # for each coordinate and elevation value in the zipped Web Mercator coordinates and elevation values
+# this assigns elevation to each vertex 
+for i, elev in enumerate(elev_samples):
+    value = elev[0]
+    if value == nodata or value is None:
+        value = 0
+    graph.vs[i]['elev'] = float(value)
 
-    val = elev[0]
+print(f"Elevation added to all vertices\nTest: {graph.vs[100]['elev']}")
 
-    if val == nodata:
-        val = 0
-
-    node_graph.nodes[coord]['elev'] = float(val) # attaches the elevation in metres as an attribute to the node data item
-
-
+#region HELPER FUNCTIONS
 def naismith_helper(horizontal_distance_metres: float, elevation_difference_metres: float, slope_ratio: float) -> dict:
     """
     PURPOSE : this is a function used to calculate the weight of an edge using Naismith's rule
@@ -126,51 +132,72 @@ def get_terrain_factor(sac_scale: str, trail_visibility: str, surface: str) -> f
     
     return factor
 
+def get_edge_or_node_attribute(edge_or_node, attribute_name: str, default=None):
+    """
+    Function responsible for retrieving the attributes of iGraph edges / nodes
+    """
+    try:
+        return edge_or_node[attribute_name]
+    except Exception:
+        return default
+
+#endregion
 
 # ////// THIS IS WHERE THE ELEVATION ENRICHMENT BEGINS ////// 
 
 print("Edges starting to be modified")
-for (start_coord, end_coord, edge_data) in node_graph.edges(data=True): # for each starting coord, end coord and tags of the edge (the dict holding length)
-    stretched_distance = edge_data['length'] # tracks the raw stretched map distance from the dictionary
-    
-    # this calculates the center point latitude of the segment to find the inverse Web Mercator distortion scale factor
+
+for edge_index in range(graph.ecount()):
+    edge = graph.es[edge_index]
+    start_id = edge.source
+    end_id = edge.target
+
+    start_coord = graph.vs[start_id]['coordinate']
+    end_coord = graph.vs[end_id]['coordinate']
+
+    stretched_distance = edge['length'] # tracks the raw stretched map distance 
+
+    # This corrects for Web Mercator distortion using midpoint latitude
     _, mid_lat = node_finder.convert_web_mercator_to_wgs84(
         (start_coord[0] + end_coord[0]) / 2, 
         (start_coord[1] + end_coord[1]) / 2
     )
+
     scale_factor = 1.0 / math.cos(math.radians(mid_lat))
-    horizontal_distance_metres = stretched_distance / scale_factor # adds the corrected horizontal distance to the edge data structure
+    horizontal_distance_metres = stretched_distance / scale_factor
 
-    start_elevation = node_graph.nodes[start_coord]['elev'] # the elevation is added to the data struct holding the start coord
-    end_elevation = node_graph.nodes[end_coord]['elev'] # the elevation is added to the data struct holding the end coord
+    start_elev = graph.vs[start_id]['elev']
+    end_elev = graph.vs[end_id]['elev']
 
-    elevation_difference_metres = end_elevation - start_elevation 
-    slope_ratio = elevation_difference_metres / horizontal_distance_metres if horizontal_distance_metres > 0 else 0 # the slope ratio is calculated (will be used in a filter route feature)
+    elevation_difference = end_elev - start_elev
+    slope_ratio = elevation_difference / horizontal_distance_metres if horizontal_distance_metres > 0 else 0
 
-    costs = naismith_helper(horizontal_distance_metres, elevation_difference_metres, slope_ratio) # variable set as the return value of the Naismith rule helper
+    costs = naismith_helper(horizontal_distance_metres, elevation_difference, slope_ratio)
 
     terrain_factor = get_terrain_factor(
-        edge_data.get("sac_scale"),
-        edge_data.get("trail_visibility"),
-        edge_data.get("surface")
+        get_edge_or_node_attribute(edge, 'sac_scale'),
+        get_edge_or_node_attribute(edge, 'trail_visibility'),
+        get_edge_or_node_attribute(edge, 'surface')
     )
 
-    if elevation_difference_metres >= 0:
-        edge_data['cost'] = costs['ascent'] * terrain_factor
+    if elevation_difference >= 0:
+        edge["cost"] = costs["ascent"] * terrain_factor
     else:
-        edge_data['cost'] = costs['descent'] * terrain_factor
-        
-    edge_data['terrain_factor'] = round(terrain_factor, 2) # terrain factor multiplier is added to the edge data struct
-    edge_data['slope'] = slope_ratio # slope ratio is added to the edge data struct
+        edge["cost"] = costs["descent"] * terrain_factor
 
-print("Checking nodes")
+    edge["terrain_factor"] = round(terrain_factor, 2)
+    edge["slope"] = slope_ratio
 
-for i, (node, data) in enumerate(node_graph.nodes(data=True)):
-    print(node, data)
-    if i == 5:
-        break
+print("Edge enrichment completed.")
 
-# new graph is added to the directory 
-with open("graph_generation/elevation_populated_graph.pkl", "wb") as file: 
-    p.dump(node_graph, file) 
-print("Saved enriched graph successfully.")
+# This saves the graph 
+with open("graph_generation/elevation_populated_igraph.pkl", "wb") as file:
+    p.dump((graph, node_to_id), file)
+
+print("Saved enriched igraph successfully.")
+
+
+# This is a quick inspection for validation
+print("\nSample vertices:")
+for i in range(min(5, graph.vcount())):
+    print(graph.vs[i]["coordinate"], "elev =", get_edge_or_node_attribute(graph.vs[i], 'elev'))
