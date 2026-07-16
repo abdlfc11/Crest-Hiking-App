@@ -130,12 +130,20 @@ class PathDataProcessor:
 
                     distance = ((distance_x*distance_x) + (distance_y*distance_y))**0.5
 
+                    # forward edge
                     edge_list.append((p1, p2))
                     lengths.append(distance)
                     sac_scales.append(sac)
                     trail_visibilities.append(tv)
                     surfaces.append(surface)
 
+                    # reverse edge
+                    edge_list.append((p2, p1))
+                    lengths.append(distance)
+                    sac_scales.append(sac)
+                    trail_visibilities.append(tv)
+                    surfaces.append(surface)
+                    
         # this builds the iGraph object          
         node_list = list(node_set)
         self.node_to_id = {node: index for index, node in enumerate(node_list)}
