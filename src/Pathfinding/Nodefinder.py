@@ -5,7 +5,7 @@ import pickle as pkl
 import time
 
 # Third-Party Library Imports
-import networkx as nx
+import igraph as ig
 from pyproj import Transformer
 from scipy.spatial import KDTree
 
@@ -21,6 +21,7 @@ class NodeFinder:
         self.graph_path = graph_path
         self._graph = None
         self._kdtree = None
+        self.node_to_id = None  # This stores the loaded {coordinate: id} lookup dictionary
         self.max_distance = max_distance
         self.early_exit_distance = early_exit_distance
         
@@ -38,13 +39,20 @@ class NodeFinder:
                     f"Expected graph at: {path.abspath(self.graph_path)}\n\n"
                 )
 
+            # This unpacks both the igraph object and the coordinate lookup map
             with open(self.graph_path, "rb") as file:
-                self._graph = pkl.load(file)
+                self._graph, _loaded_node_to_id = pkl.load(file)
 
-            largest_cc_nodes = max(nx.weakly_connected_components(self._graph), key=len)
-            self._graph = self._graph.subgraph(largest_cc_nodes).copy()
+            # This finds the largest weakly connected component in the graph
+            components = self._graph.connected_components(mode="weak")
+            largest_cc_nodes = max(components, key=len)
+            self._graph = self._graph.subgraph(largest_cc_nodes)
 
-            nodes_coords = list(self._graph.nodes())
+            # Rebuild the coordinate lookup dictionary so its indices match the new subgraph vertex IDs
+            self.node_to_id = {node: index for index, node in enumerate(self._graph.vs['coordinate'])}
+
+            # This pulls coordinates directly from the vertices attribute
+            nodes_coords = self._graph.vs['coordinate']
             self._nodes_list = nodes_coords
             self._kdtree = KDTree(nodes_coords)
 
@@ -53,12 +61,12 @@ class NodeFinder:
             print(f"Graph initialised with {len(self._nodes_list)} reachable nodes.")
 
             if self._nodes_list:
-                sample_node = self._graph.nodes[self._nodes_list[0]]
-                if 'elev' not in sample_node:
+                # This check for elevation attributes safely on igraph vertices
+                if 'elev' not in self._graph.vs.attributes():
                     print("WARNING: Graph loaded successfully but nodes have no 'elev' attribute.")
         
         return self._graph
-    
+            
     def convert_bng_to_web_mercator(self, bng_x, bng_y):
         x, y = self._bng_to_web_mercator.transform(bng_x, bng_y)
         return x, y
@@ -83,7 +91,6 @@ class NodeFinder:
         lon, lat = self._web_mercator_to_wgs84.transform(x, y)
         return lon, lat  
 
-
     def euclidean_distance(self, node, target_x, target_y):
         return ((node[0] - target_x) ** 2 + (node[1] - target_y) ** 2) ** 0.5
     
@@ -101,20 +108,26 @@ class NodeFinder:
         start_time = time.time()
         full_graph = self.load_graph()
 
-        path, start_node, end_node = a_star(full_graph, (s_x, s_y), (e_x, e_y))
+        # This runs the a_star algorithm using vertex indices
+        path_ids, start_node_id, end_node_id = a_star(full_graph, (s_x, s_y), (e_x, e_y))
 
-        if not path:
+        if not path_ids:
             print("Pathfinding failed")
             return None, None, None, None
 
+        # This translates start/end IDs and path IDs back to (x, y) coordinates
+        # This keeps the output signature identical to what the application expects (output same as the previous NetworkX implementation)
+        path_coords = [full_graph.vs[node_id]['coordinate'] for node_id in path_ids]
+        start_node_coords = full_graph.vs[start_node_id]['coordinate']
+        end_node_coords = full_graph.vs[end_node_id]['coordinate']
+
         end_time = time.time()
-        
         time_taken = round(end_time - start_time, 3) * 1000 
         
-        return path, start_node, end_node, time_taken
+        return path_coords, start_node_coords, end_node_coords, time_taken
 
     def calculate_route_distance(self, path):
-        # Calculates total distance of the route in true meters
+        # This calculates total distance of the route in true meters
         total_distance_metres = 0
         if len(path) > 1:
             for i in range(1, len(path)):
@@ -125,26 +138,25 @@ class NodeFinder:
                     continue
 
                 # these calculations compensate for distortion caused by web mercator projection
-                
-                # this gets the raw web_merc distance
                 stretched_distance = ((x2 - x1)**2 + (y2 - y1)**2)**0.5
-                
-                # this finds the centre latitude of the segment to find out the distortion
                 _, mid_lat = self.convert_web_mercator_to_wgs84((x1 + x2) / 2, (y1 + y2) / 2)
-                
-                # this finds the scale factor, the equation is 1/ cos(latitude_radians)
                 scale_factor = 1.0 / m.cos(m.radians(mid_lat))
-                
-                # this divides the distance by the scale factor to get the real value
                 total_distance_metres += (stretched_distance / scale_factor)
                 
         return total_distance_metres
 
     def calculate_eta(self, path, graph):
-        total_seconds = sum(
-            graph[start_coordinate][end_coordinate]['cost'] for start_coordinate, end_coordinate in zip(path, path[1:])
-        )
-
+        # 'path' now contains coordinate tuples, this is mapped back to vertex IDs to extract edge cost values.
+        total_seconds = 0
+        for start_coord, end_coord in zip(path, path[1:]):
+            u = self.node_to_id[start_coord]
+            v = self.node_to_id[end_coord]
+            
+            # This retrieves the edge index connecting vertex u to v
+            edge_id = graph.get_eid(u, v, directed=True, error=False)
+            if edge_id != -1:
+                total_seconds += graph.es[edge_id]['cost']
+                
         return total_seconds
 
     def calculate_map_center_and_zoom(self, web_mercator_coordinates):
