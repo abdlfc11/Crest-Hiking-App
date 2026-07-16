@@ -26,7 +26,6 @@ from extensions import service, limiter, log_action, get_current_user
 from Routes.helpers import (
     check_elevation, 
     check_web_mercator, 
-    get_xy, 
     generate_geojson, 
     generate_gpx, 
     normalise_route,
@@ -51,22 +50,22 @@ def calculate_path():
         data = request.get_json()
         
         # this extracts and parses start + end point coordinates
-        start_coords = data.get("start_point", "")
-        end_coords = data.get("end_point", "")
+        start_array = data.get("start_point")
+        end_array = data.get("end_point")
 
         graph = service.load_graph()
         
         # Validation of coord format 
-        if not start_coords or not end_coords:
-            raise ValueError("Start and end coordinates are required")
+        if not isinstance(start_array, list) or not isinstance(end_array, list):
+            raise ValueError("Start and end coordinates are required as arrays")
 
-        if len(start_coords) < 2 or len(end_coords) < 2:
-            raise ValueError("Coordinates must be in format 'x, y'")
+        if len(start_array) < 2 or len(end_array) < 2:
+            raise ValueError("Coordinates must be in format [x, y]")
         
 
         # this extracts the raw numerical coordinates
-        start_coords_x, start_coords_y = get_xy(start_coords)
-        end_coords_x, end_coords_y = get_xy(end_coords)
+        start_coords_x, start_coords_y = start_array[0], start_array[1]
+        end_coords_x, end_coords_y = end_array[0], end_array[1]
 
         if not isRoughlyInCumbria(start_coords_x, start_coords_y) or not isRoughlyInCumbria(end_coords_x, end_coords_y):
             return jsonify({"success": False, "message": "Please enter coordinates within Cumbria. "})
@@ -89,22 +88,30 @@ def calculate_path():
             s_x, s_y = service.convert_wgs84_to_web_mercator(s_x, s_y)
         if abs(e_x) <= 180 and abs(e_y) <= 90:
             print("Detected Lat/Lon for end point. Converting to Web Mercator...")
-            e_x, e_y = service.convert_wgs84_to_web_mercator(e_x, e_y)
+            s_x, s_y = service.convert_wgs84_to_web_mercator(e_x, e_y)
         
-    except (KeyError, ValueError) as e:
-        with Session(engine) as db:
-            user = get_current_user()
-            if user:
-                available_routes = db.exec(
-                    select(Route)
-                    .where(Route.user_id == user.id)
-                ).all()
-            else:
-                available_routes = []
+    except (KeyError, ValueError, TypeError) as e:
+        # This is wrapped in a try/except fallback block so that if logging functions fail, the program doesn't crash 
+        try:
+            with Session(engine) as db:
+                user = get_current_user()
+                if user:
+                    db_routes = db.exec(
+                        select(Route)
+                        .where(Route.user_id == user.id)
+                    ).all()
 
-            short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+                    # This converts SQLModel objects to serialisable dictionaries
+                    available_routes = [r.model_dump() for r in db_routes]
+                else:
+                    available_routes = []
 
+                short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+                log_action('Calculating Path', False, short_traceback, None, 'INVALID_COORDS_AUTO_PATH_CREATION')
+        except Exception as logging_error:
+            short_traceback = "".join(traceback.format_exception_only(type(logging_error), logging_error)).strip()
             log_action('Calculating Path', False, short_traceback, None, 'INVALID_COORDS_AUTO_PATH_CREATION')
+            available_routes = []
 
         return jsonify({
             "success": False,
@@ -113,115 +120,142 @@ def calculate_path():
             "message": f"Invalid coordinates: {str(e)}"
         })
 
-    # Build the route using the Web Mercator coordinates
-    path, start_node, end_node, time_taken = service.build_route(s_x, s_y, e_x, e_y)
+    try:
+        # This builds the route using the Web Mercator coordinates
+        path, start_node, end_node, time_taken = service.build_route(s_x, s_y, e_x, e_y)
 
-    if not path:  
+        if not path:  
+            with Session(engine) as db:
+                user = get_current_user()
+                if user:
+                    db_routes = db.exec(
+                        select(Route)
+                        .where(Route.user_id == user.id)
+                    ).all()
+
+                    # This converts SQLModel objects to serialisable dictionaries
+                    available_routes = [r.model_dump() for r in db_routes]
+                else:
+                    available_routes = []
+                    
+
+                log_action('Calculating Path', False, 'Path not created', None, 'NO_PATH_FOUND')
+                
+                return jsonify({
+                    "success": False,
+                    "map_centre": DEFAULT_CENTRE,
+                    "available_routes": available_routes,
+                    "message": "No path could be created"
+                })
+
+        web_mercator_coordinates = [] 
+        
+        # this populates 'web_mercator_coordinates' in the format [ [x1, y1, elev1], ... ]
+        for node in path:  
+            x, y = node  
+            node_id = service.node_to_id[node]
+            elev = graph.vs[node_id]['elev'] if 'elev' in graph.vs.attributes() else None
+            if elev is not None:
+                web_mercator_coordinates.append([x, y, elev])
+            else:
+                web_mercator_coordinates.append([x, y])
+
+        elevation_gain = 0
+        elevation_change = 0
+        
+        # this calculates the elevation GAIN
+        for node1, node2 in zip(path, path[1:]):
+            node1_id = service.node_to_id[node1]
+            node2_id = service.node_to_id[node2]
+            elev1 = graph.vs[node1_id]['elev'] if 'elev' in graph.vs.attributes() else None
+            elev2 = graph.vs[node2_id]['elev'] if 'elev' in graph.vs.attributes() else None
+
+            if elev1 is not None and elev2 is not None:
+                elevation_gain += max(0, elev2 - elev1)
+
+        # this calculates the elevation CHANGE
+        start_node_id = service.node_to_id[start_node]
+        end_node_id = service.node_to_id[end_node]
+        
+        # This pulls values safely and guard float conversion to avoid NoneType int conversion crashes
+        start_elev_val = graph.vs[start_node_id]['elev'] if 'elev' in graph.vs.attributes() else None
+        end_elev_val = graph.vs[end_node_id]['elev'] if 'elev' in graph.vs.attributes() else None
+        
+        start_elevation = int(start_elev_val) if start_elev_val is not None else 0
+        end_elevation = int(end_elev_val) if end_elev_val is not None else 0
+
+        elevation_change = end_elevation - start_elevation
+        
+        start_coords = web_mercator_coordinates[0]
+        end_coords = web_mercator_coordinates[-1]
+        
+        # This calculates distance and eta statistics
+        total_distance = service.calculate_route_distance(path)
+        total_distance_km = total_distance / 1000
+        
+        # Calculates ETA 
+        # NOTE : this is in SECONDS
+        eta_seconds = service.calculate_eta(path, graph)
+
+        path_geojson = {
+            "type": "Feature",
+            "geometry": {"type": "LineString", "coordinates": web_mercator_coordinates},
+            "properties": {"color": "#2563eb"}
+        } 
+        
+        # This calculates optimal map centre and zoom
+        map_centre, map_zoom = service.calculate_map_center_and_zoom(web_mercator_coordinates)
+
+        route_stats = {
+            "start_elevation": start_elevation,
+            "end_elevation": end_elevation,
+            "elevation_change": elevation_change,
+            "elevation_gain": elevation_gain, 
+            "total_distance": round(total_distance_km, 2),
+            "eta_seconds": eta_seconds
+        }
+
         with Session(engine) as db:
-            user = get_current_user()
-            if user:
-                available_routes = db.exec(
+
+            log_action('Calculating Path', True, f"distance: {round(total_distance_km, 2)}km", time_taken, 'PATH_CREATED')
+
+        user = get_current_user()
+        if user:
+            with Session(engine) as db:
+                db_routes = db.exec(
                     select(Route)
                     .where(Route.user_id == user.id)
                 ).all()
-            else:
-                available_routes = []
-                
 
-            log_action('Calculating Path', False, 'Path not created', None, 'NO_PATH_FOUND')
-            
-            return jsonify({
-                "success": False,
-                "map_centre": DEFAULT_CENTRE,
-                "available_routes": available_routes,
-                "message": "No path could be created"
-            })
-
-    web_mercator_coordinates = [] 
-    
-    # Since the graph/path is already in Web Mercator, we no longer need to convert it!
-    for node in path:  
-        x, y = node  
-        elev = graph.nodes.get(node, {}).get('elev')
-        if elev is not None:
-            web_mercator_coordinates.append([x, y, elev])
+                # This converts SQLModel objects to serialisable dictionaries
+                available_routes = [r.model_dump() if hasattr(r, 'model_dump') else r.dict() for r in db_routes]
         else:
-            web_mercator_coordinates.append([x, y])
+            available_routes = []
+                
+        return jsonify({
+            "success": True,
+            "pathGeoJSON": path_geojson,
+            "map_centre": map_centre,
+            "map_zoom": map_zoom,
+            "route_stats": route_stats,
+            "coordinates": web_mercator_coordinates,
+            "startCoord": start_coords,
+            "endCoord": end_coords
+        })
 
-    elevation_gain = 0
-    elevation_change = 0
-    
-    # this calculates the elevation GAIN
-    for node1, node2 in zip(path, path[1:]):
-        elev1 = graph.nodes.get(node1, {}).get('elev')
-        elev2 = graph.nodes.get(node2, {}).get('elev')
+    except Exception as general_error:
+        # This catch-all Exception ensures that any unanticipated errors return a clean JSON payload with the error output
 
-        if elev1 is not None and elev2 is not None:
-            elevation_gain += max(0, elev2 - elev1)
+        short_traceback = "".join(traceback.format_exception_only(type(general_error), general_error)).strip()
+        log_action('Calculating Path', False, short_traceback, None, 'INVALID_COORDS_AUTO_PATH_CREATION')
 
-    # this calculates the elevation CHANGE
-    start_elevation = int(graph.nodes[start_node]['elev'])
-    end_elevation = int(graph.nodes[end_node]['elev'])
-
-    elevation_change = end_elevation - start_elevation
-    
-    start_coords = web_mercator_coordinates[0]
-    end_coords = web_mercator_coordinates[-1]
-    
-    # Calculates distance and eta statistics
-    total_distance = service.calculate_route_distance(path)
-    
-    # Since your network graph distance calculation is now in meters (or handled by your service),
-    # we convert it directly to kilometers here
-    total_distance_km = total_distance / 1000
-    
-    # Calculates ETA 
-    # NOTE : this is in SECONDS
-    eta_seconds = service.calculate_eta(path, graph)
-
-    path_geojson = {
-        "type": "Feature",
-        "geometry": {"type": "LineString", "coordinates": web_mercator_coordinates},
-        "properties": {"color": "#2563eb"}
-    } 
-    
-    # Calculates optimal map centre and zoom
-    map_centre, map_zoom = service.calculate_map_center_and_zoom(web_mercator_coordinates)
-
-    route_stats = {
-        "start_elevation": start_elevation,
-        "end_elevation": end_elevation,
-        "elevation_change": elevation_change,
-        "elevation_gain": elevation_gain, 
-        "total_distance": round(total_distance_km, 2),
-        "eta_seconds": eta_seconds
-    }
-
-    with Session(engine) as db:
-
-        log_action('Calculating Path', True, f"distance: {round(total_distance_km, 2)}km", time_taken, 'PATH_CREATED')
-
-    user = get_current_user()
-    if user:
-        with Session(engine) as db:
-            available_routes = db.exec(
-                select(Route)
-                .where(Route.user_id == user.id)
-            ).all()
-    else:
-        available_routes = []
-            
-    return jsonify({
-        "success": True,
-        "pathGeoJSON": path_geojson,
-        "map_centre": map_centre,
-        "map_zoom": map_zoom,
-        "route_stats": route_stats,
-        "coordinates": web_mercator_coordinates,
-        "startCoord": start_coords,
-        "endCoord": end_coords
-    })
-
+        return jsonify({
+            "success": False,
+            "map_centre": DEFAULT_CENTRE,
+            "available_routes": [],
+            "message": f"Pathfinder execution error: {str(general_error)}"
+        }), 500
+  
 # flask-route which is used to save a route that has been passed into the backend into the PostgreSQL database 
 @route_api_bp.route("/save_route", methods=["POST"])
 @limiter.limit("110 per minute")
