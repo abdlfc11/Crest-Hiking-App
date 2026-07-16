@@ -35,6 +35,7 @@ class PathDataProcessor:
     def transform_graph(self, graph, desired_epsg):
         """
         Function used to transform the graph from BNG coordinate projection [27700] to the desired EPSG, which as of July 2026 is Web Mercator [3857]
+        This also transforms the coordinate_to_node mapping dictionary
         """
 
         transformer = Transformer.from_crs(self.target_epsg, desired_epsg, always_xy=True)
@@ -42,11 +43,22 @@ class PathDataProcessor:
         # for lat / lon 2 dp will mean poor accuracy, for metres, 2 dp is fine
         decimals = 6 if desired_epsg == 4326 else 2
 
+        # this dictionary will hold the updated coordinates to be used to map coordinates to nodes 
+        updated_coord_to_id = {}
+
         # this updates coordinates to the desired projection
         for i in range(graph.vcount()): # for i in range number of vertices in the graph
             old_x, old_y = graph.vs[i]["coordinate"] # this retrieves the coord attribute for node of ID i
             new_x, new_y = transformer.transform(old_x, old_y) # this calculates the new coordinates based on the desired_epsg
-            graph.vs[i]["coordinate"] = (round(new_x, decimals), round(new_y, decimals))
+
+            new_coordinate = (round(new_x, decimals), round(new_y, decimals)) # tuple format 
+
+            graph.vs[i]["coordinate"] = new_coordinate
+
+            updated_coord_to_id[new_coordinate] = i
+        
+        # this overrides the old coord to id mapping with new one
+        self.node_to_id = updated_coord_to_id
         
         print(f"Transformation of the graph into EPSG: {desired_epsg} from EPSG: {self.target_epsg} is complete !")
         return graph
