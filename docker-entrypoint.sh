@@ -14,7 +14,7 @@ done
 echo "PostgreSQL is ready. Running the database migration..."
 alembic upgrade heads
 
-GRAPH_PATH="/app/graph_generation/elevation_populated_graph.pkl"
+GRAPH_PATH="/app/graph_generation/elevation_populated_igraph.pkl"
 
 if [ ! -f "$GRAPH_PATH" ]; then
     echo "Pathfinding graph ($GRAPH_PATH) is missing, downloading from github releases..."
