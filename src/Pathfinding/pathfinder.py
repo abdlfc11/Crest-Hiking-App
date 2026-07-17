@@ -22,11 +22,12 @@ def build_global_kdtree(graph):
         print("Warning, no nodes within graph")
 
 class AStarRouteFinder:
-    def __init__(self, graph=None, start_id=None, end_id=None, max_iterations=500000, min_slope=0.0):
+    def __init__(self, graph=None, start_id=None, end_id=None, valid_indices_set=None, max_iterations=500000, min_slope=0.0):
         # core algorithm parameters
         self.graph = graph
         self.start_id = start_id # integer node ID 
         self.end_id = end_id     # integer node ID
+        self.valid_indices_set = valid_indices_set # this stores the set of allowed nodes to traverse 
         self.max_iterations = max_iterations
         self.min_slope = min_slope 
         
@@ -67,6 +68,10 @@ class AStarRouteFinder:
         for edge_index in self.graph.incident(current, mode='out'):
             edge = self.graph.es[edge_index]
             adjacent_node = edge.target
+
+            # this skips neighbour nodes that aren't within the valid_indices_set (i.e they are not within the boundary box)
+            if self.valid_indices_set and adjacent_node not in self.valid_indices_set:
+                continue
             
             # this skips edges if they are flatter than the minimum requsted slope (will be used in future app versions which allow for users to choose hike difficulties)
             if abs(edge['slope']) < self.min_slope:
@@ -128,11 +133,14 @@ def snap_to_largest_component(graph, start_coord, end_coord):
 
 def a_star(graph, start_xy, end_xy, min_slope=0.0):
     if _global_kdtree is None:
-        build_global_kdtree(graph)  # fallback, but better to call once at startup
+        build_global_kdtree(graph)  # fallback, as the load_graph(graph) (see the Nodefinder class within src/Pathfinding/Nodefinder.py) method builds the KDTree
 
-    buffer = 5000  
+    # This finds the start and end IDs within the KDTree instantly 
+    _, global_start_id = _global_kdtree.query(start_xy)
+    _, global_end_id = _global_kdtree.query(end_xy)
 
     # This calculates the bbox (bounding box)
+    buffer = 2000  
     min_x = min(start_xy[0], end_xy[0]) - buffer
     max_x = max(start_xy[0], end_xy[0]) + buffer
     min_y = min(start_xy[1], end_xy[1]) - buffer
@@ -147,43 +155,27 @@ def a_star(graph, start_xy, end_xy, min_slope=0.0):
     candidate_indices = _global_kdtree.query_ball_point([centre_x, centre_y], radius)
 
     # This filters nodes further with the bounding box
-    valid_indices = []
+    valid_indices_set = set()
     for index in candidate_indices:
         x, y = _global_node_coords[index]
         if min_x <= x <= max_x and min_y <= y <= max_y:
-            valid_indices.append(index)
+            valid_indices_set.add(index)
     
-    if not valid_indices:
+    # This ensures that the start and end node IDs are in the set
+    valid_indices_set.add(global_start_id)
+    valid_indices_set.add(global_end_id)
+    
+    if not valid_indices_set:
         print("No nodes in search area")
         return None, None, None
 
-    # igraph's subgraph() re-sorts vertices ascending by their ORIGINAL id, regardless of the order they're passed in 
-    # Thus, valid_indices must be sorted here so that local subgraph id `i` reliably maps back to valid_indices[i].
-    valid_indices.sort()
+    pathfinder = AStarRouteFinder(
+        graph=graph,
+        start_id=global_start_id,
+        end_id=global_end_id,
+        valid_indices_set=valid_indices_set
+    )
 
-    # This generates a subgraph of only the candidate nodes
-    # igraph's subgraph extraction keeps original attributes (like 'coordinate' and 'elev')
-    # but updates node IDs locally within the subgraph --> this means that the node IDs must be mapped back to the original global igraph node IDs
-    search_graph = graph.subgraph(valid_indices)
+    global_path = pathfinder.find_path()
 
-    # This gets the coordinates of the subgraph nodes to rebuild a local spatial index
-    sub_coords = search_graph.vs['coordinate']
-    tree = KDTree(sub_coords)
-    
-    # This yields the local index IDs inside the subgraph
-    snapped_start_local = tree.query(start_xy)[1]
-    snapped_end_local = tree.query(end_xy)[1]
-
-    # This runs the A* Route Finder over the local subgraph
-    pathfinder = AStarRouteFinder(search_graph, snapped_start_local, snapped_end_local, min_slope=min_slope)
-    local_path = pathfinder.find_path()
-
-    if not local_path:
-        return None, None, None
-
-    # This maps the local subgraph node IDs back to global igraph node IDs so they align with the main dataset
-    global_path = [valid_indices[local_node_id] for local_node_id in local_path]
-    global_start = valid_indices[snapped_start_local]
-    global_end = valid_indices[snapped_end_local]
-
-    return global_path, global_start, global_end
+    return global_path, global_start_id, global_end_id
