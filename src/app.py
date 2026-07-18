@@ -92,7 +92,7 @@ def format_distance(distance_km):
             ).first()
 
             # if the user has not interacted with the settings before, distance_unit will be none, and so the distance is returned with the default distance units (km)
-            if distance_unit == "km":
+            if distance_unit == "km" or distance_unit is None:
                 return f"{round(distance_km, 2)} km"
             elif distance_unit == "miles":
                 return f"{round(distance_km * 0.621371, 2)} mi"
