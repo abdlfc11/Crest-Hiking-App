@@ -6,6 +6,7 @@ from sqlalchemy import Text, Column, func
 from datetime import timezone, datetime
 from typing import Optional, List
 from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy import UniqueConstraint
 
 
 # DB MODELS
@@ -35,7 +36,7 @@ class Route(SQLModel, table=True):
     __tablename__ = "route"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(max_length=100, unique=True, nullable=False)
+    name: str = Field(max_length=100, nullable=False)
     coordinates: str = Field(sa_column=Column(Text, nullable=False))
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     eta_seconds: int = Field(nullable=False)
@@ -46,6 +47,11 @@ class Route(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     user: Optional[User] = Relationship(back_populates="routes")
 
+    # table arguments
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="user_route_name"),
+    )
+
 # POINT TABLE
 class Point(SQLModel, table=True):
 
@@ -53,13 +59,18 @@ class Point(SQLModel, table=True):
     __tablename__ = "point"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(max_length=50, unique=True, nullable=False)
+    name: str = Field(max_length=50, nullable=False)
     coordinates: str = Field(max_length=1000, nullable=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # relationships
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     user: Optional[User] = Relationship(back_populates="points")
+
+    # table arguments
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="user_point_name"),
+    )
 
 # SETTINGS TABLE
 class Settings(SQLModel, table=True):
