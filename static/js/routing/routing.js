@@ -6,6 +6,7 @@ import { manualRouteState,
   cumbriaBoundary,
   isPointInPolygon
 } from "../routes/routeState.js";
+import { showError } from "../utils.js";
 
 export async function calculatePath(startPoint, endPoint) {
   const url = window.appConfig.apiCalculatePathUrl;
@@ -22,6 +23,7 @@ export async function calculatePath(startPoint, endPoint) {
   });
 
   if (!response.ok) {
+    showError("Sorry, there was an unexpected error when calculating your route, please try again later.")
     throw new Error(`HTTP error: ${response.status}`);
   }
 
@@ -30,6 +32,7 @@ export async function calculatePath(startPoint, endPoint) {
   if (data.success) {
     return data;
   }
+  showError("Sorry, there was an unexpected error when calculating your route, please try again later.")
   throw new Error(data.message || "Path creation failed");
 }
 
