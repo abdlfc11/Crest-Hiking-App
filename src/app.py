@@ -72,7 +72,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 session_cookie_secure = os.environ.get("FLASK_ENV", "Production") != "development"
 
 app.config.update(
-    SESSION_COOKIE_SECURE=session_cookie_secure,
+    SESSION_COOKIE_SECURE=False,
     SESSION_COOKIE_HTTPONLY=True,    # Prevents JavaScript access (XSS mitigation)
     SESSION_COOKIE_SAMESITE='Lax',   # CSRF protection
     PERMANENT_SESSION_LIFETIME=3600  # Expires sessions after 1 hour
@@ -91,6 +91,7 @@ def format_distance(distance_km):
                 .where(Settings.key == "distanceUnit")
             ).first()
 
+            # if the user has not interacted with the settings before, distance_unit will be none, and so the distance is returned with the default distance units (km)
             if distance_unit == "km":
                 return f"{round(distance_km, 2)} km"
             elif distance_unit == "miles":
