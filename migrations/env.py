@@ -24,6 +24,9 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+
+from src.models import User, Route, Point, Settings, BetaCode, ActionLog, Issues
+
 target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
