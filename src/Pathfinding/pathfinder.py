@@ -140,12 +140,19 @@ def a_star(graph, start_xy, end_xy, min_slope=0.0):
     _, global_end_id = _global_kdtree.query(end_xy)
 
     # This calculates the bbox (bounding box)
-    buffer = 2000  
-    min_x = min(start_xy[0], end_xy[0]) - buffer
+
+    buffer = 5000  # 5000 metres, increased from 2000m as 2000m sometimes meant that paths could not be found, especially across ridge walks 
+
+    # This takes the minimum value and subtract the buffer
+    # and takes the maximum value and adds the buffer
+    # for both the x and y coordinate of the start and end points to create a rectangle 
+    min_x = min(start_xy[0], end_xy[0]) - buffer 
     max_x = max(start_xy[0], end_xy[0]) + buffer
     min_y = min(start_xy[1], end_xy[1]) - buffer
     max_y = max(start_xy[1], end_xy[1]) + buffer
 
+    # this finds the coordinate for the centre of the rectangle, used to make a diagonal radius 
+    # a diagonal radius is used to ensure that ALL four corners of the rectangle are included within the circle queried by the KDTree.query_ball_point() method 
     centre_x = (start_xy[0] + end_xy[0]) / 2
     centre_y = (start_xy[1] + end_xy[1]) / 2
     bbox_half_diag = ((max_x - min_x)**2 + (max_y - min_y)**2)**0.5 / 2
@@ -154,7 +161,8 @@ def a_star(graph, start_xy, end_xy, min_slope=0.0):
     # This filters node indicies within the given circular area using the global KDTree 
     candidate_indices = _global_kdtree.query_ball_point([centre_x, centre_y], radius)
 
-    # This filters nodes further with the bounding box
+    # This filters nodes further with the bounding box by cutting nodes off that are outside of the rectangle
+    # after the KDTree queried for the circle (which has a larger surface area than the rectangle)
     valid_indices_set = set()
     for index in candidate_indices:
         x, y = _global_node_coords[index]
@@ -173,7 +181,8 @@ def a_star(graph, start_xy, end_xy, min_slope=0.0):
         graph=graph,
         start_id=global_start_id,
         end_id=global_end_id,
-        valid_indices_set=valid_indices_set
+        valid_indices_set=valid_indices_set,
+        min_slope=min_slope
     )
 
     global_path = pathfinder.find_path()
