@@ -70,7 +70,7 @@ import {
 import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
-import { createElevationProfile, initChartToggleListener, resetElevationChart, toggleElevationChart } from "./elevationChart.js";
+import { createElevationProfile, initChartToggleListener, resetElevationChart, setHoverPointFeature, toggleElevationChart } from "./elevationChart.js";
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
 import { createAutomaticRoutingTour, createImportRoutePanelTour, createManualRoutingTour, createSavedRouteDashboardTour, createSavingRoutesTour, createSettingsTour } from "./tours/tours.js";
 
@@ -933,6 +933,9 @@ function displayPath(data) {
   const source = routeLayer.getSource();
   source.clear();
 
+  // this clears the hovered point feature to prevent the preserving of stale OL point features
+  setHoverPointFeature(null);
+
   const feature = new ol.format.GeoJSON().readFeature(data.pathGeoJSON, {
     dataProjection: "EPSG:3857",
     featureProjection: "EPSG:3857",
@@ -1307,6 +1310,11 @@ function initPointDeleteHandlers() {
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
   document.documentElement.classList.toggle("dark", effective === "dark");
+  resetElevationChart();
+  if (getCurrentPathData()) {
+    createElevationProfile(getCurrentPathData());
+    initChartToggleListener();
+  };
 }
 
 // ##### HANDLING TOGGLING OF DISTANCE UNITS #####
