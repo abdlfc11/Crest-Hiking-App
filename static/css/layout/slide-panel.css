@@ -1,0 +1,121 @@
+/* 
+  SLIDE PANEL
+
+  Defines the panel used by #settings-panel, #import-route-panel and #saved-routes-dashboard
+  
+  Panel-specific things such as unqiue content stay in each page's own file (css/pages/a_page.css) 
+*/
+
+/* Wrapper */
+#settings-panel,
+#import-route-panel,
+#saved-routes-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+  font-family: var(--font-system);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 9999;
+  transition: all 0.35s ease-in-out;
+}
+
+/* Inner content — flex column so header/content/footer stack and footer
+   can stick to the bottom via margin-top:auto on the destructive row */
+#settings-panel .inner-content,
+.import-route-inner,
+#saved-routes-dashboard .inner-content {
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Frosted header bar */
+.settings-header,
+.import-route-header,
+#top-section {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+}
+
+/* Frosted footer bar */
+.settings-sticky-footer,
+.import-route-footer {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(229, 231, 235, 0.7);
+  padding: 1.1rem 4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  gap: 1rem;
+}
+
+/* Close button (the "X") */
+.settingCloseButton,
+.import-route-close-button,
+#saved-routes-dashboard .closebtn {
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  color: #4b5563;
+  text-decoration: none;
+  transition: transform 0.2s ease, color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 7px;
+  border-radius: 5px;
+}
+
+.settingCloseButton:hover,
+.import-route-close-button:hover,
+#saved-routes-dashboard .closebtn:hover {
+  color: #111827;
+  transform: scale(1.1);
+}
+
+/* DARK MODE */
+html.dark #settings-panel,
+html.dark #import-route-panel,
+html.dark #saved-routes-dashboard {
+  background: var(--glass-bg);
+}
+
+html.dark .settings-header,
+html.dark .import-route-header,
+html.dark #top-section {
+  background: rgba(31, 41, 55, 0.75);
+  border-bottom-color: #374151;
+}
+
+html.dark .settings-sticky-footer,
+html.dark .import-route-footer {
+  background: rgba(31, 41, 55, 0.75);
+  border-top-color: #374151;
+}
+
+html.dark .settingCloseButton,
+html.dark .import-route-close-button,
+html.dark #saved-routes-dashboard .closebtn {
+  color: #9ca3af;
+}
+
+html.dark .settingCloseButton:hover,
+html.dark .import-route-close-button:hover,
+html.dark #saved-routes-dashboard .closebtn:hover {
+  color: #f3f4f6;
+  background-color: rgba(255, 255, 255, 0.12);
+}

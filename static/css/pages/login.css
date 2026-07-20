@@ -1,3 +1,10 @@
+/* 
+    LOGIN PAGE
+    
+    Nearly identical structure to register.css and beta.css (#login_items / #register-items / #beta-items
+    are all the same card pattern), these are likely to be merged into one auth component in the future 
+*/
+
 #login-screen {
     width: 100vw;
     height: 100vh;
@@ -32,7 +39,7 @@
 
 #login_validation_label {
     position: absolute;
-    color: #ff4d4d; 
+    color: var(--error-accent);
     transition: opacity 0.5s ease-in-out;
     opacity: 1;
     font-size: 0.8rem;
@@ -43,10 +50,10 @@
     pointer-events: none;
 }
 
-#logout_button { 
+#logout_button {
     padding-bottom: 10px;
     position: relative;
-    width: 100px;;
+    width: 100px;
 }
 
 #logout_button_container {
@@ -108,8 +115,8 @@
     background-color: rgba(0, 0, 0, 0);
     outline-style: solid;
     outline-width: 0.1vh;
-    outline-color: rgba(37, 99, 235);
-    color: rgba(37, 99, 235);
+    outline-color: var(--blue);
+    color: var(--blue);
     width: 7.5rem;
 }
 

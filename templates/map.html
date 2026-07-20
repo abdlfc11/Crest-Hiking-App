@@ -14,26 +14,29 @@
 
     <!-- #region CSS FILES -->
 
-    <!-- Main CSS File -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <!-- Global CSS files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/reset.css') }}">
 
-    <!-- Saved Routes Dashboard CSS File -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/saved_routes.css') }}" />
+    <!-- Component CSS Files --> 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/toggle-switch.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/error-toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/loading-spinner.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/tooltip.css') }}">
 
-    <!-- Settings Panel CSS File -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings_panel.css') }}" />
+    <!-- Layout CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/nav-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/slide-panel.css') }}">
 
-    <!-- Route Stats Panel CSS File -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/statsPanel.css') }}" />
+    <!-- Page-Specific CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/map.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/stats-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/saved-routes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/settings-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/import-route.css') }}">
 
-    <!-- Import Route Panel CSS File-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/import-route.css') }}" />
-
-    <!-- Error PopUp CSS File -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/error-toast.css') }}" />
-
-    <!-- Tours (custom driver.js) CSS file -->
-     <link rel="stylesheet" href="{{ url_for('static', filename='css/tours.css') }}">
+    <!-- Tours.js CSS File-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/tours.css') }}">
 
     <!-- #endregion -->
 
@@ -197,7 +200,7 @@
     <div id="the-sidenav" class="sidenav">
         <div id="sidenav-upper-links">
             <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-            <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
+            <a onclick="openSavedRoutesDash()" id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
             <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
             <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
             <a id="report-issues-button" href="/report-an-issue" ><i data-lucide="bug"></i>Report Issues</a>

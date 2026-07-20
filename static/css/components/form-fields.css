@@ -1,0 +1,62 @@
+/*
+  SURFACE + FORM FIELDS
+
+  Used mainly in the Report An Issue page 
+
+  .surface is the frosted-card look used as a base for content cards 
+  .field-input/.field-textarea are the underlying text input styles for that design language. 
+
+*/
+
+.surface {
+  background: var(--surface-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-surface);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.field-input,
+.field-textarea {
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.85rem;
+  transition: box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    border 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.field-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: var(--placeholder);
+}
+
+.field-input:focus,
+.field-textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 4px 1px var(--blue-soft), 0 0 12px 4px var(--blue-ring);
+  outline: none;
+}

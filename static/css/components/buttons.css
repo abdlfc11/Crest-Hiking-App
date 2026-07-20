@@ -1,0 +1,107 @@
+/* 
+  BUTTONS
+
+  Extracted from report-issue.css (.btn/.btn-primary/.btn-ghost) + styles.css (auth-button), these were
+  generic, reusable button styles that happened to live in a page-specific file
+  
+  Now available to any page that links components.
+*/
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--blue-ring);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--blue);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--blue-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn-primary:disabled {
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-ghost {
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+  padding: 0.55rem 1rem 0.55rem 0.8rem;
+  border-radius: 999px;
+}
+
+.btn-ghost:hover {
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+}
+
+.btn-ghost svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-ghost:hover svg {
+  transform: translateX(-2px);
+}
+
+.auth-button {
+  padding: 12px;
+  background: #3c3c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(92, 93, 94, 0.2);
+  white-space: nowrap;
+}
+
+.auth-button:hover {
+  background: #2c2c2c;
+  box-shadow: 0 4px 8px rgba(55, 55, 56, 0.3);
+  transform: translateY(-1px);
+}
+
+.auth-button:active {
+  transform: translateY(1px);
+}

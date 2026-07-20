@@ -1,0 +1,39 @@
+/* 
+  ERROR TOAST
+
+  Defines toast messages which pop up for the user in the bottom right corner 
+
+*/
+
+#error-toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.error-toast {
+  background: var(--error-accent);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.error-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.error-toast.hide {
+  opacity: 0;
+  transform: translateY(20px);
+}

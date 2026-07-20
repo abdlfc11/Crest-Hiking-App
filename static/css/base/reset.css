@@ -1,0 +1,39 @@
+/* 
+  BASE / RESET
+
+  This defines global page-level rules that apply everywhere.
+*/
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: rgb(255, 255, 255);
+  font-family: var(--font-system);
+  overflow: hidden;
+}
+
+/* Overriding browser autofill colour */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+}
+
+html.dark input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #374151 inset !important;
+  -webkit-text-fill-color: #f3f4f6 !important;
+}
+
+/* Respect reduced-motion preference — was previously report-issue.css-only,
+   promoted here since it's a general accessibility rule that should apply
+   to any transition using these component classes on any page. */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .field-input,
+  .field-textarea {
+    transition: none;
+  }
+  body,
+  .surface {
+    transition: none;
+  }
+}
