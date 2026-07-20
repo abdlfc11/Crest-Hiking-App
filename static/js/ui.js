@@ -1310,6 +1310,11 @@ function initPointDeleteHandlers() {
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
   document.documentElement.classList.toggle("dark", effective === "dark");
+  resetElevationChart();
+  if (getCurrentPathData()) {
+    createElevationProfile(getCurrentPathData());
+    initChartToggleListener();
+  };
 }
 
 // ##### HANDLING TOGGLING OF DISTANCE UNITS #####
