@@ -1,3 +1,8 @@
+/* STATS PANEL 
+    
+    This defines the panel which appears when routes are loaded, generated or plotted
+*/
+
 #route-stats {
     position: absolute;
     bottom: 20px;

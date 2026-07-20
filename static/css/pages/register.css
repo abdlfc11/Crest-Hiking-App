@@ -1,3 +1,9 @@
+/*
+   REGISTER PAGE
+
+   Likely to be merged into one auth page css file with login.css
+*/
+
 #register-screen {
     width: 100vw;
     height: 100vh;
@@ -27,7 +33,7 @@
 
 #register-validation-label {
     position: absolute;
-    color: #ff4d4d; 
+    color: var(--error-accent);
     transition: opacity 0.5s ease-in-out;
     opacity: 1;
     font-size: 0.8rem;
@@ -45,12 +51,11 @@
     height: 3.2rem;
 }
 
-
 .login_field {
     display: flex;
     align-items: center;
     gap: 20px;
-    position: relative; 
+    position: relative;
 }
 
 .login_field input {
@@ -68,7 +73,7 @@
 .inner-entry-asterisk {
     pointer-events: none;
     position: absolute;
-    color: #ff4d4d;
+    color: var(--error-accent);
     left: 16.35rem;
     bottom: 2rem;
 }
@@ -89,7 +94,6 @@
     transform: translateY(-1.6rem);
     color: black;
 }
-
 
 #register_go_back_button_container {
     display: flex;
@@ -130,12 +134,12 @@
 }
 
 #password-requirements .valid {
-    color: #2ecc71; /* green */
+    color: #2ecc71;
     opacity: 1;
 }
 
 #password-requirements .invalid {
-    color: #ff4d4d; /* red */
+    color: var(--error-accent);
     opacity: 1;
 }
 
@@ -152,7 +156,7 @@
 }
 
 #register-privacy-notice a {
-    color: #2563eb;
+    color: var(--blue);
     text-decoration: none;
 }
 

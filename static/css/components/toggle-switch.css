@@ -1,0 +1,82 @@
+/* 
+  TOGGLE SWITCH (shared component)
+
+  Used by the settings and import route page 
+
+  Any new page that requires a toggle-switch should just have it's selector added here instead of duplicating code 
+*/
+
+.switch-toggle,
+.import-route-toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.switch-toggle input,
+.import-route-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider,
+.import-route-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  transition: 0.3s ease;
+  border-radius: 34px;
+}
+
+.switch-slider:before,
+.import-route-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.switch-toggle input:checked + .switch-slider,
+.import-route-toggle input:checked + .import-route-toggle-slider {
+  background-color: var(--blue);
+}
+
+.switch-toggle input:checked + .switch-slider:before,
+.import-route-toggle input:checked + .import-route-toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* Alternate (green) toggle style — used in settings panel only */
+.alt-toggle .switch-slider {
+  background-color: #9ca3af;
+}
+
+.alt-toggle input:checked + .switch-slider {
+  background-color: #059669;
+}
+
+/* DARK MODE */
+html.dark .import-route-toggle-slider {
+  background: #9ca3af;
+}
+
+html.dark .import-route-toggle input:checked + .import-route-toggle-slider {
+  background: var(--blue);
+}
+
+html.dark .import-route-toggle-slider:before {
+  background: #f9fafb;
+}

@@ -1,0 +1,46 @@
+/*
+  LOADING SPINNER
+
+  Attach the .loading class to a .loading-button or .route-btn to swap its text for the spinner.
+  Spinner markup/animation from https://cssloaders.github.io
+*/
+
+.loader {
+  position: absolute;
+  display: none;
+  width: 24px;
+  height: 24px;
+  border: 5px solid #fff;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  top: 23%;
+  left: 48%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-button.loading .loading-button-text {
+  visibility: hidden;
+}
+
+.loading-button.loading .loader {
+  display: inline-block;
+}
+
+.route-btn.loading .route-btn-text {
+  visibility: hidden;
+}
+
+.route-btn.loading .loader {
+  display: inline-block;
+}

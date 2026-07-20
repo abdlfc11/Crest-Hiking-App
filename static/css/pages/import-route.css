@@ -1,0 +1,140 @@
+/*
+  IMPORT ROUTE PANEL
+
+  Panel wrapper/header/footer/close button now shared via layout/slide-panel.css; 
+  
+  Toggle switch now shared via components/toggle-switch.css 
+  
+  Only import-specific content remains
+
+  Depends on: base/tokens.css layout/slide-panel.css and components/toggle-switch.css.
+*/
+
+.import-route-header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 4rem 2rem 4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.import-route-title {
+  margin: 0 .5rem 0 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.import-route-close-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* CONTENT */
+.import-route-content {
+  padding: 3rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* ITEM ROWS */
+.import-route-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2.5rem;
+  background: #ffffff;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 100px;
+}
+
+.import-route-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.import-route-item-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.import-route-item-description {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* FOOTER BUTTONS */
+.import-route-footer-button {
+  padding: 0.7rem 2.75rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s;
+}
+
+.import-route-footer-button.primary {
+  background: var(--blue);
+  color: white;
+}
+
+.import-route-footer-button.primary:hover {
+  background: #1e40af;
+}
+
+.import-route-footer-button.secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.import-route-footer-button.secondary:hover {
+  background: #e5e7eb;
+}
+
+/* DARK MODE */
+
+html.dark .import-route-title {
+  color: #f3f4f6;
+}
+
+html.dark .import-route-item {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+html.dark .import-route-item-title {
+  color: #f3f4f6;
+}
+
+html.dark .import-route-item-description {
+  color: #9ca3af;
+}
+
+html.dark .import-route-footer-button.primary {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+html.dark .import-route-footer-button.primary:hover {
+  background: #4b5563;
+}
+
+html.dark .import-route-footer-button.secondary {
+  background: #374151;
+  color: #d1d5db;
+}
+
+html.dark .import-route-footer-button.secondary:hover {
+  background: #4b5563;
+}

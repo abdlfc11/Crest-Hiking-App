@@ -1,0 +1,131 @@
+/* 
+  SLIDE-IN NAVIGATION MENU (sidenav)
+
+  This is the main app's hamburger/side nav 
+
+  Distinct from the report-issue.css #navbar (a top navbar used on marketing/utility pages).
+
+*/
+
+.sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  overflow-x: hidden;
+  padding-top: 60px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease-in-out;
+
+  /* glassmorphism effect */
+  background: rgba(255, 255, 255, 0.485);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.sidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  transition: 0.3s;
+  width: max-content;
+  cursor: pointer;
+}
+
+.sidenav a:not(.closebtn) {
+  padding: 10px 32px 10px 32px;
+  border-radius: 28px;
+  text-align: center;
+  margin-left: 1rem;
+}
+
+.sidenav a:hover {
+  color: #000000;
+  background-color: #d1d5db;
+}
+
+.sidenav a i {
+  justify-content: center;
+  align-items: center;
+  width: 1em;
+  height: 1em;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  font-size: 32px;
+  padding: 6px 10px;
+  width: auto;
+  margin: 0;
+  color: #818181;
+  line-height: 1;
+  transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.sidenav .closebtn:hover {
+  color: #000000;
+  transform: scale(1.05);
+}
+
+#sidenav-upper-links,
+#sidenav-lower-links {
+  width: 17rem;
+}
+
+#donate-button {
+  cursor: not-allowed;
+}
+
+/* Nav limits for smaller devices / short viewports */
+@media screen and (max-height: 450px) {
+  .sidenav {
+    padding-top: 15px;
+  }
+  .sidenav a {
+    font-size: 18px;
+  }
+}
+
+/* DARK MODE */
+html.dark .sidenav {
+  background: rgba(31, 41, 55, 0.485);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .sidenav a {
+  color: #9ca3af;
+}
+
+html.dark .sidenav a:hover:not(.closebtn) {
+  color: #f3f4f6;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+html.dark .closebtn {
+  color: #9ca3af;
+  padding: 6px 10px;
+  transition: color 0.2s ease, transform 0.1s ease, background-color 0.2s ease;
+}
+
+html.dark .closebtn:hover {
+  color: #f3f4f6;
+  background-color: rgba(255, 255, 255, 0.12);
+  transform: scale(1.05);
+}

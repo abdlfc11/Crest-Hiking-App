@@ -1,0 +1,42 @@
+/* 
+  THEME TOGGLE (sun/moon button)
+  
+  Extracted from report-issue.css
+*/
+
+#theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--muted);
+}
+
+#theme-toggle:hover {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+/* Default state: show moon, hide sun */
+#theme-toggle .icon-sun {
+  display: none;
+}
+
+#theme-toggle .icon-moon {
+  color: #1a2030;
+  display: block;
+}
+
+/* DARK MODE */
+html.dark #theme-toggle .icon-sun {
+  display: block;
+  color: #f59e0b;
+}
+
+html.dark #theme-toggle .icon-moon {
+  display: none;
+}

@@ -1,0 +1,82 @@
+/* 
+  TOP NAVBAR
+
+  Extracted from report-issue.css  
+  
+  Distinct from layout/nav-menu.css (the slide-in hamburger sidenav used on the map page)
+  
+  This is the sticky top bar used on utility pages like 'Report an Issue'.
+*/
+
+#navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  max-width: 98vw;
+  width: 900px;
+  margin: 1rem auto 1.4rem;
+  position: sticky;
+  top: 15px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.nav-sides {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#right-nav-side {
+  justify-content: flex-end;
+}
+
+#navbar-logo-container {
+  display: flex;
+  align-items: center;
+}
+
+#navbar-logo-image {
+  height: 3.2rem;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  #navbar {
+    position: static;
+    top: 0;
+    border-radius: 0;
+    padding: 0.65rem 1rem;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #navbar-logo-image {
+    height: 2.4rem;
+  }
+
+  .btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #navbar {
+    padding: 0.55rem 0.8rem;
+  }
+
+  #navbar-logo-image {
+    height: 2.2rem;
+  }
+}
+
+/* DARK MODE */
+html.dark #navbar-logo-image {
+  filter: brightness(0) invert(0.8);
+}
