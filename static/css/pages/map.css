@@ -1,0 +1,546 @@
+/*
+  MAP PAGE
+
+  The core route-planning screen: map container, mode toggle, coordinate
+  input panel, manual-mode controls, save-route panel, and the point
+  delete confirmation modal.
+  
+  Depends on: base/tokens.css, components/loading-spinner.css 
+  and pages/stats-panel.css (dark-mode rules below reference it since both
+  are always shown together on this page).
+*/
+
+/* Map container */
+#map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 1;
+  background: #f8f9fa;
+  overflow: hidden;
+}
+
+/* MODE TOGGLING */
+
+#mode-toggle {
+  position: absolute;
+  top: 5px;
+  left: 10px;
+  z-index: 900;
+  background: rgb(255 255 255 / 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  font-family: var(--font-sans);
+}
+
+.mode-toggle-container {
+  display: flex;
+  gap: 4px;
+}
+
+.mode-button {
+  padding: 8px 16px;
+  background: rgb(241 245 249 / 0.75);
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.mode-button:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.mode-button.active {
+  background: var(--blue);
+  color: white;
+  border-color: #1e40af;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+/* AUTOMATIC ROUTE GENERATION */
+
+#start-end {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  z-index: 1000;
+  background: rgb(255 255 255 / 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  min-width: 280px;
+  font-family: var(--font-sans);
+}
+
+.coords-header {
+  background: rgb(241 245 249 / 0.65);
+  padding: 12px 16px;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.coords-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.coords-content {
+  padding: 12px 16px;
+}
+
+.coord-row {
+  margin-bottom: 12px;
+}
+
+.coord-row:last-child {
+  margin-bottom: 0;
+}
+
+.coord-label {
+  display: block;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  margin-bottom: 4px;
+  pointer-events: none;
+}
+
+.coord-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.coord-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e1cbcb;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  color: #1e293b;
+  width: 180px;
+  transition: all 0.14s ease-in-out;
+}
+
+.coord-input:hover {
+  border-color: #94a3b8;
+}
+
+.coord-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+    0 0 12px 4px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.coord-input.input-error {
+  border-color: #fc4646;
+}
+
+.coord-input.is-active {
+  border-color: #5a76e7;
+}
+
+.coord-button {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.coord-button:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+.set-start-end-coord {
+  width: clamp(8rem, 8vw, 10rem);
+  font-size: clamp(0.8rem, 0.3vw, 2rem);
+}
+
+.set-start-end-coord:active {
+  transform: translateY(0);
+}
+
+.generate-button {
+  width: 100%;
+  padding: 12px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  white-space: nowrap;
+}
+
+.generate-button:hover {
+  background: #1e40af;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.generate-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+/* MANUAL ROUTE CREATION */
+
+#manual-mode-content {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  z-index: 1000;
+  background: rgb(255 255 255 / 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  min-width: 280px;
+  font-family: var(--font-sans);
+}
+
+.manual-instruction {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.ol-control {
+  right: 8px;
+  left: auto;
+}
+
+/* SAVE / LOAD ROUTE PANEL */
+
+#save-route-container {
+  position: static;
+}
+
+/* wrapper for both the toggle button and the panel underneath it */
+#save-route-button-container {
+  z-index: 1000;
+  position: absolute;
+  right: 9rem;
+  width: 15rem;
+  display: flex;
+  flex-direction: column;
+}
+
+#save-route-toggle-button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgb(255 255 255 / 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 0 0 8px 8px;
+  border: none;
+  color: #1f2937;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  gap: 6px;
+  transition: all 0.15s ease-in-out;
+}
+
+#save-route-toggle-button svg {
+  transition: transform 0.2s ease-in-out;
+}
+
+#save-route-toggle-button.opened svg {
+  transform: rotate(180deg);
+}
+
+#save-route-toggle-button.opened {
+  border-radius: 0;
+}
+
+/* panel sits below the button, inside the same container */
+#save-route {
+  overflow: hidden;
+  height: 0;
+  margin-right: 0.5rem;
+  background: rgb(255 255 255 / 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 0 0 8px 8px;
+  border: none;
+  border-top: none;
+  width: 15rem;
+  transition: all 0.15s ease-in-out;
+}
+
+#save-route-toggle-button:hover {
+  background: rgba(223, 221, 221, 0.65);
+}
+
+#save-route-toggle-button:hover + #save-route {
+  background: rgba(223, 221, 221, 0.65);
+}
+
+/* Generate Button positioning anchor */
+#generate-path-button {
+  position: relative;
+}
+
+/* Home Button */
+.home-button {
+  background: rgb(100 116 139 / 0.65);
+  color: white;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.home-button i {
+  width: 20px;
+  height: 20px;
+}
+
+.home-button:hover {
+  background: #475569;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.home-button:active {
+  transform: translateY(0);
+}
+
+#remove-point {
+  position: absolute;
+  display: none;
+}
+
+/* CONFIRMATION MODAL (point delete) */
+
+.confirmation-modal {
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  font-family: var(--font-sans);
+}
+
+.confirmation-modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.confirmation-modal-header h2 {
+  margin-top: 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+}
+
+.confirmation-modal-body {
+  padding: 10px 0 20px 0;
+  color: #475569;
+}
+
+#point-name-display {
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.confirmation-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.confirmation-buttons button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: none;
+}
+
+.confirmation-buttons button:focus {
+  outline: none;
+}
+
+#point-delete-exit-button {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+#point-delete-exit-button:hover {
+  background-color: #cbd5e1;
+}
+
+#point-delete-delete-button {
+  background-color: #ef4444;
+  color: white;
+}
+
+#point-delete-delete-button:hover {
+  background-color: #dc2626;
+}
+
+/* DARK MODE */
+/* Only the actual map tiles / #map are excluded from theming */
+
+html.dark #start-end,
+html.dark #manual-mode-content,
+html.dark #route-stats,
+html.dark #mode-toggle,
+html.dark #remove-point {
+  background: rgb(31 41 55 / 0.75);
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+html.dark #save-route,
+html.dark #save-route-toggle-button {
+  background: rgb(31 41 55 / 0.75);
+  color: #f3f4f6;
+}
+
+html.dark #save-route-toggle-button:hover + #save-route,
+html.dark #save-route-toggle-button:hover {
+  background: rgba(18, 25, 34, 0.75);
+  color: #f3f4f6;
+}
+
+html.dark .coords-header,
+html.dark .stats-header {
+  background: rgb(55 65 81 / 0.75);
+  border-bottom-color: #4b5563;
+}
+
+html.dark .coords-title,
+html.dark .stats-title {
+  color: #f3f4f6;
+}
+
+html.dark .coord-label,
+html.dark .stat-label,
+html.dark .manual-instruction {
+  color: #9ca3af;
+}
+
+html.dark .manual-instruction {
+  background-color: #1e293b;
+  border-color: #1e293b;
+}
+
+html.dark .coord-input {
+  background: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+html.dark .coord-input:focus,
+html.dark .coord-input.is-active {
+  border-color: #3b82f6;
+  box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
+    0 0 12px 4px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+html.dark .coord-input.input-error {
+  border-color: #fc4646;
+}
+
+html.dark .coord-input::placeholder {
+  color: #6b7280;
+}
+
+html.dark .coord-button {
+  background: #4b5563;
+  color: #f3f4f6;
+  border-color: #6b7280;
+}
+
+html.dark .coord-button:hover {
+  background: #6b7280;
+  border-color: #9ca3af;
+}
+
+html.dark .generate-button {
+  background: var(--blue);
+  color: #ffffff;
+}
+
+html.dark .mode-button {
+  background: #374151;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+html.dark .mode-button.active {
+  background: var(--blue);
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+html.dark .mode-button:hover {
+  background: #4b5563;
+}
+
+html.dark .error-message {
+  color: #f87171;
+}

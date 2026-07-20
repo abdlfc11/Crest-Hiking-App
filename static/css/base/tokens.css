@@ -1,0 +1,86 @@
+/* 
+  DESIGN TOKENS
+
+  Single source of truth for colors, radii, shadows and fonts.
+
+  Previously this was split (and partly duplicated) between report-issue.css and error.css 
+  
+  Everything else in the codebase hardcoded these same values as raw hex, that's the main thing this file fixes
+  Change a value here and it updates everywhere.
+*/
+
+:root {
+  /* Brand blue (primary action color across the whole app) */
+  --blue: #2563eb;
+  --blue-dark: #1d4ed8;      /* report-issue.css hover shade */
+  --blue-dark-alt: #1e40af;  /* styles.css / route-card hover shade — kept distinct
+                                 on purpose, see MIGRATION.md "near-duplicate colors" */
+  --blue-soft: rgba(37, 99, 235, 0.08);
+  --blue-ring: rgba(37, 99, 235, 0.28);
+
+  /* Status colors */
+  --error: #dc2626;
+  --ok: #16a34a;
+  --error-accent: #ff4d4d;   /* the brighter red used on auth pages / toasts / error pages —
+                                 a different shade from --error, kept separate deliberately */
+
+  /* Surfaces */
+  --bg: #ffffff;
+  --surface-bg: rgba(255, 255, 255, 0.92);
+  --field-bg: #ffffff;
+  --glass-bg: rgba(249, 250, 251, 0.4);   /* the frosted slide-panel background */
+
+  /* Text */
+  --ink: #1f2937;
+  --ink-strong: #111827;
+  --muted: #64748b;
+  --muted-alt: #4b5563;
+  --placeholder: #94a3b8;
+
+  /* Borders */
+  --border: #e2e8f0;
+  --border-alt: #e5e7eb;
+
+  --btn-disabled-bg: #93b4f2;
+  --btn-disabled-text: #ffffff;
+
+  /* Layout and shapes */
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 9999px;
+
+  --shadow-surface: 0 10px 35px rgba(15, 23, 42, 0.06);
+  --shadow-lift: 0 4px 12px rgba(37, 99, 235, 0.28);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-system: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+/* DARK MODE */
+html.dark {
+  --bg: #0f172a;
+  --surface-bg: rgba(30, 41, 59, 0.8);
+  --field-bg: #1e293b;
+  --glass-bg: rgba(17, 24, 39, 0.85);
+  --ink: #f8fafc;
+  --ink-strong: #f3f4f6;
+  --muted: #94a3b8;
+  --muted-alt: #9ca3af;
+  --placeholder: #64748b;
+  --border: #334155;
+  --border-alt: #374151;
+
+  --blue: #3b82f6;
+  --blue-dark: #60a5fa;
+  --blue-soft: rgba(59, 130, 246, 0.15);
+  --blue-ring: rgba(59, 130, 246, 0.4);
+
+  --btn-disabled-bg: #1e293b;
+  --btn-disabled-text: #64748b;
+
+  --shadow-surface: 0 10px 35px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
