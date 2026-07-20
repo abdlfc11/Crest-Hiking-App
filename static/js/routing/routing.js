@@ -81,9 +81,9 @@ export async function addManualPoint(x, y) {
     pathCoords.push(currentClick);
     const { updateManualRoute } = await import("../ui.js");
     updateManualRoute();
-    return;
+    return {"success": true};
   }
-
+ 
   const lastClickedPoint = pathCoords[pathCoords.length - 1];
   const start = userClicks[0];
   let finalClick = currentClick;
