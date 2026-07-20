@@ -29,7 +29,7 @@ export function roundCoords (coordArray, decimals) {
 }
 
 // function to set the styling for points that are added in manual routing mode
-export function createManualPointStyle(label, colour, radius=7.5) {
+export function createManualPointStyle(label, colour, radius=7.5, strokeBorderColor="#FFFFFF") {
   return new ol.style.Style({
     image : new ol.style.Circle({
       radius : radius,
@@ -37,7 +37,7 @@ export function createManualPointStyle(label, colour, radius=7.5) {
         color : colour
       }),
       stroke : new ol.style.Stroke({
-        color : "white",
+        color : strokeBorderColor,
         width : 3
       })
     }),
@@ -48,7 +48,7 @@ export function createManualPointStyle(label, colour, radius=7.5) {
         color : "black"
       }),
       stroke : new ol.style.Stroke({
-        color : "white",
+        color : strokeBorderColor,
         width : 3
       }),
       offsetY : -15

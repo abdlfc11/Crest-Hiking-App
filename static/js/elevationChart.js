@@ -1,11 +1,67 @@
 import { getDistance } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/sphere.js';
 import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
-import { normaliseCoordLength } from './routes/routeState.js';
+import { normaliseCoordLength, getCurrentPathData } from './routes/routeState.js';
+import { getRouteLayer } from './map.js';
 import { getTheme, getDistanceUnit } from './settingsState.js';
+import { createManualPointStyle } from './utils.js';
 
 let elevationChart = null;
 let currentCoordinates = null;
 const toggleElevationChartButton = document.getElementById('toggle-elevation-chart');
+
+// Feature which is created on the map corresponding to the point being hovered over on the elevation chart
+let hoverPointFeature = null;
+
+/**
+ * Used to set the value of the hoverPointFeature
+ * 
+ * @param {any} value 
+ * @returns {void}
+ */
+export function setHoverPointFeature(value) {
+    hoverPointFeature = value;
+}
+
+/**
+ * Updates or creates a temporary marker feature on the route map layer at the specified position.
+ * Strips out extra dimensions (like elevation data) to pass clean 2D coordinates to OpenLayers.
+ * 
+ * @param {Array<number>} coordinate  An array containing map location coordinates, formatted as `[x, y]` or `[x, y, elevation]`
+ * @returns {void}
+ */
+function updateMapHoverPoint(coordinate) {
+  const routeLayer = getRouteLayer();
+  if (!routeLayer) return;
+  const source = routeLayer.getSource();
+
+  const coord = [coordinate[0], coordinate[1]];
+
+  if (!hoverPointFeature) {
+    hoverPointFeature = new ol.Feature({
+      geometry: new ol.geom.Point(coord)
+    });
+
+    hoverPointFeature.setStyle(createManualPointStyle("", "#FFFFFF", 7.5, "#0a45e7"));
+    source.addFeature(hoverPointFeature);
+  } else {
+    hoverPointFeature.getGeometry().setCoordinates(coord);
+  }
+}
+
+/**
+ * Removes the temporary hover marker feature from the route map layer and clears its internal memory reference.
+ * Operates safely if the layer source or the feature reference do not exist.
+ * 
+ * @returns {void}
+ */
+function clearMapHoverPoint() {
+  const routeLayer = getRouteLayer();
+  if (!routeLayer || !hoverPointFeature) return;
+  
+  const source = routeLayer.getSource();
+  source.removeFeature(hoverPointFeature);
+  hoverPointFeature = null; // Reset reference
+};
 
 export function resetElevationChart() {
 
@@ -101,11 +157,36 @@ export function createElevationProfile(coordinates) {
     const grid = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
     const border = isDark ? "#2563eb" : "#1d4ed8";
     const fill = isDark ? "rgba(37,99,235,0.25)" : "rgba(37,99,235,0.15)";
+    const white = '#FFFFFF'
+
+    const verticalLineStrokeColor = isDark ? "#93c5fdd9" : "#1d4ed8e6"; // light blue for dark mode and stronger blue for light mode
 
     // distance unit strings
     const distanceLabel = distanceUnit === "km" ? "Distance (km)" : "Distance (miles)";
     const distanceExtension = distanceUnit === "km" ? " km" : " miles";
 
+
+    // Vertical Line plugin to allow a vertical line to be shown upon the hovering over of the elevation chart
+    const verticalLinePlugin = {
+        id: 'verticalLine',
+        beforeDatasetsDraw: (chart) => {
+            const { ctx, tooltip, chartArea } = chart;
+            if (!tooltip || !tooltip._active || tooltip._active.length === 0) return;
+
+            const activePoint = tooltip._active[0];
+            const x = activePoint.element.x;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, chartArea.top);
+            ctx.lineTo(x, chartArea.bottom);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = verticalLineStrokeColor;
+            ctx.setLineDash([3, 2]); 
+            ctx.stroke();
+            ctx.restore();
+        }
+    };
 
 
     // this destroys the old chart if there is a new one present
@@ -141,14 +222,32 @@ export function createElevationProfile(coordinates) {
                     borderWidth: 1,
                     tension: 0.3,
                     fill: true,
-                    pointRadius: 4,
-                    pointHoverRadius: 5
+                    pointRadius: 0,
+                    pointHoverRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                    axis: 'x'
+                },
+                onHover: (event, activeElements) => {
+                    if (activeElements && activeElements.length > 0 && currentCoordinates) {
+                        const hoveredIndex = activeElements[0].index;
+                        const matchingCoordinate = currentCoordinates[hoveredIndex];
+                        
+                        if (matchingCoordinate) {
+                            updateMapHoverPoint(matchingCoordinate);
+                        }
+                    } else {
+                        clearMapHoverPoint();
+                    }
+                },
                 plugins: {
+                    verticalLine: {},
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
@@ -188,7 +287,13 @@ export function createElevationProfile(coordinates) {
                         grid: { color: grid }
                     }
                 }
-            }
+            },
+            plugins: [verticalLinePlugin]
+        });
+
+        // This clears the point when the user stops hovering over the chart 
+        ctx.addEventListener('mouseleave', () => {
+            clearMapHoverPoint();
         });
     }
 }
