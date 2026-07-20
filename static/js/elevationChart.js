@@ -157,9 +157,10 @@ export function createElevationProfile(coordinates) {
     const grid = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
     const border = isDark ? "#2563eb" : "#1d4ed8";
     const fill = isDark ? "rgba(37,99,235,0.25)" : "rgba(37,99,235,0.15)";
+    
     const white = '#FFFFFF'
 
-    const verticalLineStrokeColor = isDark ? "#93c5fdd9" : "#1d4ed8e6"; // light blue for dark mode and stronger blue for light mode
+    const verticalLineStrokeColor = isDark ? white : "#1d4ed8e6"; // white for dark mode and strong blue for light mode
 
     // distance unit strings
     const distanceLabel = distanceUnit === "km" ? "Distance (km)" : "Distance (miles)";
