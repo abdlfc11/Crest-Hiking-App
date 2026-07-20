@@ -1188,15 +1188,15 @@ async function manualRouteClickHandler(event) {
 
   const response = await addManualPoint(coordinate[0], coordinate[1]);
 
-  console.log(response)
+  // This checks success status
+  if (!response || !response.success) {
 
-  if (!response.success) {
-    showError(response.message)
+    // Fallback message present if response.message is undefined
+    const errorMessage = response?.message || "Failed to add manual point.";
+    showError(errorMessage);
     return;
   }
-  return;
-};
-
+}
 //#endregion
 
 //#region SAVE ROUTE PANEL
