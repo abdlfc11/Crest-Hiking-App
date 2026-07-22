@@ -22,17 +22,17 @@ export async function calculatePath(startPoint, endPoint) {
     }),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    showError("Sorry, there was an unexpected error when calculating your route, please try again later.")
+    showError(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
     throw new Error(`HTTP error: ${response.status}`);
   }
-
-  const data = await response.json();
 
   if (data.success) {
     return data;
   }
-  showError("Sorry, there was an unexpected error when calculating your route, please try again later.")
+  showError(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
   throw new Error(data.message || "Path creation failed");
 }
 

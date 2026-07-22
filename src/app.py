@@ -196,12 +196,20 @@ def register_page():
 @limiter.exempt
 def map_view():
 
-    # gets list of available routes for the load dropdown
+    # gets user details, if there is no user then available routes and saved points are set to be empty 
     user = get_current_user()
+
     if user is None:
         available_routes = []
         saved_points = []
-        return redirect(url_for("login_page"))
+        return render_template("map.html",
+                                map_centre = DEFAULT_CENTRE,
+                                map_zoom = 10.5,
+                                current_path = session.get('current_path', None),
+                                available_routes=available_routes,
+                                saved_points=saved_points,
+                                logged_in = "false"
+        )
     
     with Session(engine) as db:
         try: 
@@ -234,7 +242,8 @@ def map_view():
                                 current_path = session.get('current_path', None),
                                 available_routes=available_routes,
                                 saved_points=web_mercator_points,
-                                logged_in = (user is not None))
+                                logged_in = "true"
+                            )
         except Exception as e:
 
             short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
