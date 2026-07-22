@@ -47,6 +47,12 @@ export function initSettings() {
   syncCheckboxWithCurrentSettings();
   syncThemeRadiosWithCurrentSettings();
   applyTheme(getTheme());
+
+  const isLoggedIn = window.appConfig.loggedIn
+
+  if (!isLoggedIn) {
+    return;
+  }
  
   // 2. Background sync with server (user is authenticated on /map)
   loadAppSettingsFromServer()
@@ -205,7 +211,7 @@ function initAccountManagementButtons() {
   // Final confirmation calls the delete endpoint from flask backend
   if (confirmBtn) {
     confirmBtn.addEventListener("click", () => {
-      deleteAccount(true); // skip the browser confirm, we already did the nice UI version
+      deleteAccount(true);
     });
   }
 }

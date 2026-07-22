@@ -127,8 +127,7 @@ function handleSaveRoute(e) {
         homeButtonFunction();
         updateSaveRouteContainer();
       } else {
-        showError("There was an error saving your route. Please try again later.")
-        console.error(data.message)
+        showError( data.message || "There was an error saving your route. Please try again later.")
         return false;
       }
     })

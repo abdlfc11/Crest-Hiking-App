@@ -404,6 +404,10 @@ export function closeNav() {
 }
 
 function openSavedRoutesDash() {
+
+  // This prevents non-logged in and registered users from opening the save route panel
+  if (!window.appConfig.loggedIn) return;
+
   savedRoutesDashContent.style.width = "100vw";
 
   if (!localStorage.getItem('seenSavedRouteDashTour')) {
@@ -440,6 +444,10 @@ export function closeSettings() {
 };
 
 function openImportRoute() {
+
+  // This prevents non-logged in and registered users from opening the save route panel
+  if (!window.appConfig.loggedIn) return;
+
   importRoutePanel.style.width = "100vw";
 
   if (!localStorage.getItem('seenImportRouteTour')) {
@@ -504,7 +512,7 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showError("There was an error on our end. Please try again later.");
+        showError(data || "There was an error on our end. Please try again later.");
         return false;
       }
 
