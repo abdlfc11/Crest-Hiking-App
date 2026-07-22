@@ -208,7 +208,7 @@ def map_view():
                                 current_path = session.get('current_path', None),
                                 available_routes=available_routes,
                                 saved_points=saved_points,
-                                logged_in = "false" if user is None else "true"
+                                logged_in = "false"
         )
     
     with Session(engine) as db:
@@ -242,7 +242,8 @@ def map_view():
                                 current_path = session.get('current_path', None),
                                 available_routes=available_routes,
                                 saved_points=web_mercator_points,
-                                logged_in = (user is not None))
+                                logged_in = "true"
+                            )
         except Exception as e:
 
             short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
