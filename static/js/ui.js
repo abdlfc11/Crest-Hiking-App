@@ -502,6 +502,7 @@ async function handleRouteImport() {
 
       if (file.size === 0) {
         showError("The selected file is empty.")
+        return false;
       }
 
       if (!file) {
