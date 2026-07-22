@@ -1,0 +1,250 @@
+/*
+    AUTH PAGES (login + register)
+
+    Merged from login.css and register.css, these were nearly identical
+    card patterns (#login_items / #register-items) and are now unified
+    into shared classes so both pages share one stylesheet.
+
+    HTML ids are left untouched (auth.js relies on them for element
+    lookups); only classes were added/renamed to hook
+    into the shared rules below.
+
+    Colours are pulled from tokens.css (--field-bg, --border, --ink, etc.)
+    instead of hardcoded hex values, so these pages follow html.dark the
+    same way other pages already do.
+    
+    Depends on: tokens.css.
+*/
+
+/*  Screen wrapper  */
+
+.auth-screen {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+}
+
+/* override of body, overflow-y is prevented on the main map screen but is required in the auth (particularly register) page/s */
+body:has(.auth-screen) {
+    overflow-y: auto;
+}
+
+/*  Card  */
+
+.auth-card {
+    padding: 2rem 2rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: var(--field-bg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-surface);
+    border-radius: 8px;
+    position: relative;
+    transition: border-color 0.2s ease, box-shadow 0.3s ease;
+}
+
+.auth-card i {
+    color: var(--placeholder);
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+
+.auth-card i.auth-icon-active {
+    color: var(--ink-strong);
+}
+
+.auth-card button {
+    height: 3.2rem;
+}
+
+/* Validation label */
+
+.auth-validation-label {
+    position: absolute;
+    color: var(--error-accent);
+    transition: opacity 0.5s ease-in-out;
+    opacity: 1;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    width: 350px;
+    pointer-events: none;
+}
+
+/* Field row (input + floating label) */
+
+.login_field {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+}
+
+.auth-field-input {
+    width: 15rem;
+    height: 2.3rem;
+    padding: 5px 8px;
+    padding-left: 10px;
+    border-radius: 7px;
+    font-size: 1rem;
+    background-color: var(--field-bg);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.auth-field-input:hover {
+    border: 1px solid var(--muted-alt);
+}
+
+
+.inner-entry-label {
+    pointer-events: none;
+    position: absolute;
+    left: 10px;
+    background-color: var(--field-bg);
+    padding: 0 0.25rem;
+    transition: transform 0.2s ease-in-out, font-size 0.2s ease-in-out;
+    color: var(--muted);
+}
+
+.auth-field-input:focus + .inner-entry-label,
+.auth-field-input:not(:placeholder-shown) + .inner-entry-label {
+    font-size: .75rem;
+    transform: translateY(-1.6rem);
+    color: var(--ink-strong);
+}
+
+.inner-entry-asterisk {
+    pointer-events: none;
+    position: absolute;
+    color: var(--error-accent);
+    left: 16.35rem;
+    bottom: 2rem;
+}
+
+/*  Primary submit button (Login / Register)  */
+
+.auth-button {
+  padding: 12px;
+  background: var(--btn-bg);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(92, 93, 94, 0.2);
+  white-space: nowrap;
+  align-self: center;
+  justify-self: center;
+  width: 15rem;
+  height: 3.2rem; 
+}
+
+.auth-button:hover {
+  box-shadow: 0 4px 8px rgba(55, 55, 56, 0.3);
+  transform: translateY(-1px);
+}
+
+.auth-button:active {
+  transform: translateY(1px);
+}
+
+
+/*  "Don't have an account? in login.html / Already have one? in register.html" switch area  */
+
+.auth-switch-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+}
+
+.auth-switch-label {
+    color: var(--ink-strong);
+    pointer-events: none;
+    user-select: none;
+}
+
+.auth-switch-button {
+    background-color: var(--bg);
+    color: var(--secondary-ink);
+    border: 1px solid var(--secondary-border);
+    width: 15rem;
+    height: 3.2rem;
+    transition: border-color 0.3s ease, color 0.3s ease, transform 0.15s ease;
+}
+
+.auth-switch-button:hover {
+    transform: translateY(-2px);
+}
+
+.auth-switch-button:active {
+    transform: translateY(2px);
+}
+
+/*  Register-only: password requirements checklist  */
+
+#password-requirements {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--muted-alt);
+}
+
+#password-requirements ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 0.25rem;
+}
+
+#password-requirements .req {
+    margin-bottom: 4px;
+    transition: color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6;
+}
+
+#password-requirements .valid {
+    color: #2ecc71;
+    opacity: 1;
+}
+
+#password-requirements .invalid {
+    color: var(--error-accent);
+    opacity: 1;
+}
+
+/*  Register-only: privacy policy notice  */
+
+#register-privacy-notice {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+    width: 17rem;
+    align-self: center;
+    line-height: 1.4;
+    padding: 0px;
+}
+
+#register-privacy-notice a {
+    color: var(--blue);
+    text-decoration: none;
+}
+
+#register-privacy-notice a:hover {
+    text-decoration: underline;
+}

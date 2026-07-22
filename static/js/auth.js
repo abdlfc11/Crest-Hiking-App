@@ -190,7 +190,7 @@ function register() {
     .then((data) => {
       if (data.success) {
         clearRegisterEntries()
-        window.location.href = '/'
+        window.location.href = 'https://crestr.co.uk'
         userFeedback(loginValidationLabel, data.message, true)
       } else {
         userFeedback(registerValidationLabel, data.message, false)
@@ -281,15 +281,14 @@ export function logout() {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        window.location.href = "/";
+        window.location.href = "https://crestr.co.uk";
         settingsModal.classList.remove("active");
-        userFeedback(loginValidationLabel, data.message, true);
       }
     });
 }
 
 // ###########
-// LOGIN AND LOGOUT
+// DELETING ACCOUNT
 // ###########
 
 export function deleteAccount(skipConfirm = false) {
@@ -313,7 +312,7 @@ export function deleteAccount(skipConfirm = false) {
   .then((response) => response.json())
   .then((data) => {
     if (data.success) {
-      window.location.href = '/'
+      window.location.href = 'https://crestr.co.uk'
       userFeedback(loginValidationLabel, data.message, true)
     }
   })
@@ -322,32 +321,60 @@ export function deleteAccount(skipConfirm = false) {
   });
 }
 
-export async function validateBetaCode(event) {
-  event.preventDefault();
+// ###########
+// DARK MODE
+// ###########
 
-  const betaCode = betaCodeEntry.value;
-
-  const response = await fetch('/validate-beta-code', {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ beta_code: betaCode })
-  });
-
-  const data = await response.json()
-
-  if (data.success) {
-    window.location.href = "/register";
-    return;
-  }
-
-
-  if (!data.success) {
-    userFeedback(betaValidationLabel, data.message, false);
-    return;
-  }
+// Helper to apply the '.dark' class to the document
+function setDarkMode(isDark){
+    if (isDark) {
+        document.documentElement.classList.add("dark");
+    } else {
+        document.documentElement.classList.remove("dark");
+    }
 };
+
+function onThemeToggleClick() {
+    const isCurrentlyDark = document.documentElement.classList.contains("dark");
+    const newThemeState = !isCurrentlyDark;
+    
+    setDarkMode(newThemeState);
+    
+    localStorage.setItem("user-theme", newThemeState ? "dark" : "light");
+}
+
+function initDarkMode() {
+    const themeToggle = document.getElementById("theme-toggle");
+    const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    // This determines the initial state 
+    const savedTheme = localStorage.getItem("user-theme");
+    
+    if (savedTheme) {
+        // This ensure that if a user has explicitly chosen a setting before, use it
+        setDarkMode(savedTheme === "dark");
+    } else {
+        // Otherwise, it'll fall back to the OS system preference
+        setDarkMode(darkModeQuery.matches);
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener("click", onThemeToggleClick);
+    }
+
+    // This runs if the user hasn't overridden preferences
+    darkModeQuery.addEventListener("change", (e) => {
+        if (!localStorage.getItem("user-theme")) {
+            setDarkMode(e.matches);
+        }
+    });
+}
+
+// ###########
+// INIT
+// ###########
+
+initDarkMode();
 
 // Add event listeners to all password visibility toggle icons
 icons.forEach((icon) => {
@@ -360,7 +387,7 @@ icons.forEach((icon) => {
     const isPassword = passwordInput.type === "password";
     passwordInput.type = isPassword ? "text" : "password";
 
-    event.currentTarget.style.color = isPassword ? "rgb(86, 87, 89)" : "lightgray";
+    event.currentTarget.classList.toggle("auth-icon-active", isPassword);
   });
 });
 

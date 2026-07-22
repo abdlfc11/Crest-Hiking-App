@@ -2,40 +2,85 @@
 <html>
 <head>
     <title>Register</title>
+
+    <!-- Global CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base/tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base/reset.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/register.css') }}">
+
+    <!-- Page Specific CSS (auth.css)-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth.css') }}">
+
+    <!-- Component / Layout CSS-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/theme-toggle.css') }}">
+
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Favicon-->
     <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
 </head>
 <body>
-    <div id="register-screen">
-        <div id="register-items">
+
+    <!-- Navbar component -->
+    <nav id="navbar" class="surface">
+        <div id="left-nav-side" class="nav-sides">
+            <div id="navbar-logo-container">
+                <a href="https://crestr.co.uk" aria-label="Link to go to main landing page">
+                    <img src="https://images.crestr.co.uk/Crest-Logo.png" id="navbar-logo-image" alt="Crest logo">
+                </a>
+            </div>
+        </div>
+
+        <div id="right-nav-side" class="nav-sides">
+            <button id="theme-toggle" class="btn btn-ghost" aria-label="Toggle dark mode">
+
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                </svg>
+
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                </svg>
+            </button>
+
+            <a href="javascript:history.back()" id="back-button" class="btn btn-ghost" aria-label="Link to go back to previous page">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+                Back
+            </a>
+        </div>
+    </nav>
+
+    <div id="register-screen" class="auth-screen">
+        <div id="register-items" class="auth-card">
             <div class="login_field">
-                <label id="register-validation-label"></label>
+                <label id="register-validation-label" class="auth-validation-label"></label>
             </div>
 
             <div class="login_field">
-                <input type="text" id="register-preferred-name-entry" placeholder=" ">
+                <input class="auth-field-input" type="text" id="register-preferred-name-entry" placeholder=" ">
                 <label class="inner-entry-label" for="register-preferred-name-entry">Preferred Name</label>
             </div>
 
             <div class="login_field">
-                <input type="text" id="register-username-entry" placeholder=" ">
+                <input class="auth-field-input" type="text" id="register-username-entry" placeholder=" ">
                 <label class="inner-entry-label" for="register-username-entry">Username</label>
                 <label class="inner-entry-asterisk" for="register-username-entry">*</label>
             </div>
 
             <div class="login_field">
-                <input type="password" id="register-password-entry1" placeholder=" ">
+                <input class="auth-field-input" type="password" id="register-password-entry1" placeholder=" ">
                 <label class="inner-entry-label" for="register-password-entry1">Password</label>
                 <label class="inner-entry-asterisk" for="register-password-entry1">*</label>
                 <i class="fa-solid fa-eye"></i>
             </div>
 
             <div class="login_field">
-                <input type="password" id="register-password-entry2" placeholder=" ">
+                <input class="auth-field-input" type="password" id="register-password-entry2" placeholder=" ">
                 <label class="inner-entry-label" for="register-password-entry2">Confirm Password</label>
                 <label class="inner-entry-asterisk" for="register-password-entry2">*</label>
                 <i class="fa-solid fa-eye"></i>
@@ -51,7 +96,7 @@
                 </ul>
             </div>
 
-            <button id="register-button" class="auth-button">Register</button>
+            <button id="register-button" class="auth-button auth-primary-button">Register</button>
 
             <p id="register-privacy-notice">
                 By registering, you agree to our
@@ -59,9 +104,9 @@
             </p>
         </div>
 
-        <div id="register_go_back_button_container">
-            <label for="register-switch-to-login-button">Already have an account?</label>
-            <button id="register-switch-to-login-button" class="auth-button">Login</button>
+        <div id="register_go_back_button_container" class="auth-switch-container">
+            <label for="register-switch-to-login-button" class="auth-switch-label">Already have an account?</label>
+            <button id="register-switch-to-login-button" class="auth-button auth-switch-button">Login</button>
         </div>
     </div>
 </body>
