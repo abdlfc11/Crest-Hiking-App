@@ -500,11 +500,6 @@ async function handleRouteImport() {
       
       const file = importRouteFileInput.files[0];
 
-      if (!file) {
-        showError("Please select a file to import.");
-        return false;
-      }
-
       if (!validateFileInput()) {
         return false;
       }
@@ -608,6 +603,12 @@ function validateFileInput() {
     if (file.size > 5 * 1024 * 1024) {
         showError("File size is too large. Please select a file smaller than 5MB.");
         return false;
+    }
+
+    // this checks if the file is empty or not
+    if (file.size === 0) {
+      showError("The selected file is empty.")
+      return false;
     }
 
     return true;
