@@ -500,6 +500,10 @@ async function handleRouteImport() {
       
       const file = importRouteFileInput.files[0];
 
+      if (file.size === 0) {
+        showError("The selected file is empty.")
+      }
+
       if (!file) {
         showError("Please select a file to import.");
         return false;
