@@ -22,7 +22,7 @@
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  z-index: 9999;
+  z-index: 3000;
   transition: all 0.35s ease-in-out;
 }
 
