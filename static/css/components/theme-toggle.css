@@ -34,7 +34,7 @@
 /* DARK MODE */
 html.dark #theme-toggle .icon-sun {
   display: block;
-  color: #f59e0b;
+  color: #FFFFFF;
 }
 
 html.dark #theme-toggle .icon-moon {

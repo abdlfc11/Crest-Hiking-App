@@ -8,7 +8,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: rgb(255, 255, 255);
+  background-color: var(--bg);
   font-family: var(--font-system);
   overflow: hidden;
 }

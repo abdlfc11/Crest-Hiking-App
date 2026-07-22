@@ -32,6 +32,7 @@
 
   /* Text */
   --ink: #1f2937;
+  --secondary-inl: #f8fafc;
   --ink-strong: #111827;
   --muted: #64748b;
   --muted-alt: #4b5563;
@@ -40,7 +41,10 @@
   /* Borders */
   --border: #e2e8f0;
   --border-alt: #e5e7eb;
+  --secondary-border: #111827;
 
+  --btn-bg: #3c3c3c;
+  --secondary-btn-bg: #FFFFFF;
   --btn-disabled-bg: #93b4f2;
   --btn-disabled-text: #ffffff;
 
@@ -64,20 +68,26 @@ html.dark {
   --bg: #0f172a;
   --surface-bg: rgba(30, 41, 59, 0.8);
   --field-bg: #1e293b;
+  --secondary-field-bg: #2c3038;
   --glass-bg: rgba(17, 24, 39, 0.85);
   --ink: #f8fafc;
+  --secondary-ink: #ffffff;
   --ink-strong: #f3f4f6;
   --muted: #94a3b8;
   --muted-alt: #9ca3af;
   --placeholder: #64748b;
+
   --border: #334155;
   --border-alt: #374151;
+  --secondary-border: #FFFFFF;
 
   --blue: #3b82f6;
   --blue-dark: #60a5fa;
   --blue-soft: rgba(59, 130, 246, 0.15);
   --blue-ring: rgba(59, 130, 246, 0.4);
 
+  --btn-bg: #3c3c3c;
+  --secondary-btn-bg: #FFFFFF;
   --btn-disabled-bg: #1e293b;
   --btn-disabled-text: #64748b;
 
