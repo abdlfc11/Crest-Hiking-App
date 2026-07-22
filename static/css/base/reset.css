@@ -23,8 +23,23 @@ html.dark input:-webkit-autofill {
   -webkit-text-fill-color: #f3f4f6 !important;
 }
 
-/* Respect reduced-motion preference — was previously report-issue.css-only,
-   promoted here since it's a general accessibility rule that should apply
+/* This class is used on both links and buttons, signalling that the action cannot be performed
+  pointer-events is intentionally not set to none as hover interaction is required to register the tooltip
+  which adds further info to the user */
+.inactive {
+  cursor: not-allowed !important;
+  opacity: .8 !important;
+}
+
+.inactive[data-tooltip]::after,
+.inactive[data-tooltip]::before {
+  opacity: 1 !important;
+}
+
+
+
+/* This respects reduced-motion preference 
+  Implemented as a general accessibility rule that applies
    to any transition using these component classes on any page. */
 @media (prefers-reduced-motion: reduce) {
   .btn,
