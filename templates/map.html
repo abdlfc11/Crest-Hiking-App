@@ -49,7 +49,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
     
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
     <!-- Umami Analytics -->
     <!-- SELF HOSTERS: Change values in you .env file -->
@@ -200,8 +200,15 @@
     <div id="the-sidenav" class="sidenav">
         <div id="sidenav-upper-links">
             <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-            <a onclick="openSavedRoutesDash()" id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
-            <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
+
+            <!-- JINJA used to determine if the saved route dashboard and import route panel is accessible to users depending on if they are logged in -->
+            {% if not session.get("preferred_name") %}
+                <a class="inactive" aria-disabled="true" data-tooltip="Please Login to save routes." id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
+                <a class="inactive" aria-disabled="true" data-tooltip="Please Login to import routes." id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
+            {% else %}
+                <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
+                <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
+            {% endif %}
             <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
             <a id="report-issues-button" href="/report-an-issue" ><i data-lucide="bug"></i>Report Issues</a>
         </div>
@@ -216,67 +223,81 @@
     <div id="saved-routes-dashboard">
         <div class="inner-content">
             
-            <header id="dashboard-header" class="saved-route-header">
-                <div id="top-section">
-                    <h1>Hi {{ session.get("preferred_name") }}, these are your saved routes</h1>
-                    
-                    <div id="go-back-button-container">
-                        <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
-                    </div>  
-                </div>
-            </header>
+                {% if not session.get("preferred_name") %}
+                    <header id="dashboard-header" class="saved-route-header">
+                        <div id="top-section">
+                            <h1>Please Login to save routes</h1>
+                            <div id="go-back-button-container">
+                                <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
+                            </div>  
 
-            <div id="all-routes-container">
-                {% if available_routes %}
-                    {% for route in available_routes %}
-                    <div class="route-card" data-route-name="{{ route.name }}">
-                        <div class="route-card-header">
-                            <h3 class="route-card-name">{{ route.name }}</h3>
-                            <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%Y") }}</span>
                         </div>
-                        <div class="route-card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Distance:</span>
-                                <span class="stat-value" data-distance-km="{{ route.distance_km }}">{{ route.distance_km | format_distance }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">ETA:</span>
-                                <span class="stat-value">{{ route.eta_seconds | format_eta }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Elevation Gain:</span>
-                                <span class="stat-value">{{ route.elevation_change | format_elevation }}</span>
-                            </div>
-                        </div>
-                        <div class="route-card-actions">
-                            <button type="button" class="route-btn route-btn-delete">Delete</button>
-                            <button type="button" class="route-btn route-btn-download-gpx">
-                                <span class="route-btn-text">GPX</span>
-                                <span class="loader"></span>
-                            </button>
-                            <button type="button" class="route-btn route-btn-download-geojson">
-                                <span class="route-btn-text">GeoJSON</span>
-                                <span class="loader"></span>
-                            </button>
-                            <button type="button" class="route-btn route-btn-load">Load</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                
+                    </header>
                 {% else %}
-                    <div id="no-routes-wrapper" class="no-routes-wrapper">
-                        <div class="no-routes-card">
-                            <h2 class="no-routes-title">No routes saved yet</h2>
-                            <p class="no-routes-description">
-                                You haven’t created any routes. Start planning your next adventure below.
-                            </p>
-                            <button id="no-route-create-button" class="no-routes-create-btn generate-button">
-                                Create a route
-                            </button>
-                        </div>
+
+                <header id="dashboard-header" class="saved-route-header">
+                    <div id="top-section">
+                        <h1>Hi {{ session.get("preferred_name") }}, these are your saved routes</h1>
+
+                        <div id="go-back-button-container">
+                            <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
+                        </div>  
+
                     </div>
-                {% endif %}
-            </div>
+                </header>
+
+                <div id="all-routes-container">
+                    {% if available_routes %}
+                        {% for route in available_routes %}
+                        <div class="route-card" data-route-name="{{ route.name }}">
+                            <div class="route-card-header">
+                                <h3 class="route-card-name">{{ route.name }}</h3>
+                                <span class="route-card-date">Saved on {{ route.created_at | strftime("%d/%m/%Y") }}</span>
+                            </div>
+                            <div class="route-card-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Distance:</span>
+                                    <span class="stat-value" data-distance-km="{{ route.distance_km }}">{{ route.distance_km | format_distance }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">ETA:</span>
+                                    <span class="stat-value">{{ route.eta_seconds | format_eta }}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Elevation Gain:</span>
+                                    <span class="stat-value">{{ route.elevation_change | format_elevation }}</span>
+                                </div>
+                            </div>
+                            <div class="route-card-actions">
+                                <button type="button" class="route-btn route-btn-delete">Delete</button>
+                                <button type="button" class="route-btn route-btn-download-gpx">
+                                    <span class="route-btn-text">GPX</span>
+                                    <span class="loader"></span>
+                                </button>
+                                <button type="button" class="route-btn route-btn-download-geojson">
+                                    <span class="route-btn-text">GeoJSON</span>
+                                    <span class="loader"></span>
+                                </button>
+                                <button type="button" class="route-btn route-btn-load">Load</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    
+                    {% else %}
+                        <div id="no-routes-wrapper" class="no-routes-wrapper">
+                            <div class="no-routes-card">
+                                <h2 class="no-routes-title">No routes saved yet</h2>
+                                <p class="no-routes-description">
+                                    You haven’t created any routes. Start planning your next adventure below.
+                                </p>
+                                <button id="no-route-create-button" class="no-routes-create-btn generate-button">
+                                    Create a route
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
 
         </div>
     </div>
@@ -286,8 +307,9 @@
         <div class="inner-content">
             <header class="settings-header">
                 <div class="settings-header-container">
-                    <h1>Welcome,</h1>
-                    <h1 style="margin-left: .75rem;" >{{ session.get("preferred_name") }}</h1>
+
+                    <h1>Settings</h1>
+                    
                     <div id="settings-close-button-container">
                         <a class="settingCloseButton" id="settings-close-button">&times;</a>
                     </div>
@@ -333,11 +355,24 @@
                  <!-- Delete Account -->
                  <div class="settings-item settings-item-destructive" id="delete-account-container">
                     <div class="delete-normal-state">
+
                         <div class="settings-text">
                             <span class="settings-title">Delete Account</span>
                             <span class="settings-description">Permanently remove your account and all data</span>
                         </div>
-                        <button type="button" class="delete-account-btn" id="settings-delete-account-button">Delete</button>
+                        
+                        <button
+                            {% if not session.get('preferred_name') %} 
+                                disabled 
+                                class="delete-account-btn inactive"
+                                data-tooltip="You must Login to perform this action."
+                            {% else %} 
+                                class="delete-account-btn"
+                            {% endif %}
+                            type="button"
+                            id="settings-delete-account-button"
+                        >Delete</button>
+                        
                     </div>
 
                     <div class="delete-confirm-state" style="display: none; width: 100%;">
@@ -355,7 +390,18 @@
 
             <!-- ##### FOOTER (inc. logout button) ##### -->
             <div class="settings-sticky-footer">
-                <button id="settings-logout-button" class="logout-button">Log out</button>
+
+                <button
+                id="settings-logout-button"
+                {% if not session.get('preferred_name') %} 
+                    disabled 
+                    class="logout-button inactive"
+                    data-tooltip="You must Login to perform this action."
+                {% else %} 
+                    class="logout-button"
+                {% endif %}
+                >Log out</button>
+
             </div>
         </div>
     </div>
@@ -484,6 +530,7 @@
     <!-- ##### AppConfig to access API Enpoint URLS ##### -->
     <script>
         window.appConfig = {
+            loggedIn: {{ logged_in }},
             mapInitialCenter: {{ map_centre | tojson }},
             mapInitialZoom: {{ map_zoom | default(10) }},
             initialCurrentPath: {% if current_path %}{{ current_path | tojson }}{% else %}null{% endif %},

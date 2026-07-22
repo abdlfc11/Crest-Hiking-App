@@ -90,6 +90,7 @@ def login():
 def logout():
     username = session.get("username", "user")
     session.pop('username', None)
+    session.clear()
     return jsonify({"success": True, "message": f"Sucessfully logged out of {username}"})
     
 @auth_api_bp.route("/registering", methods=["POST"])

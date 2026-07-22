@@ -1,5 +1,6 @@
 import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
+import { showError } from "../utils.js";
 
 let savedPointsLayer = null;
 
@@ -50,13 +51,20 @@ function getSavedPoints() {
 }
 
 export function loadAndDisplaySavedPoints() {
-    clearOldSavedPointsLayer();
 
-    getSavedPoints()
-        .then(convertPointsToFeatures)
-        .then(createSavedPointsLayer)
-        .then(addLayerToMap)
-        .catch(err => console.error("Error:", err))
+  // This is to ensure that no errors are thrown when a user is not logged in
+  const isLoggedIn = window.appConfig.loggedIn
+  if (!isLoggedIn) {
+    return;
+  }
+
+  clearOldSavedPointsLayer();
+
+  getSavedPoints()
+      .then(convertPointsToFeatures)
+      .then(createSavedPointsLayer)
+      .then(addLayerToMap)
+      .catch(err => console.error("Error:", err))
 }
 
 export function saveNewPoint(coordinate, name) {
@@ -80,16 +88,16 @@ export function saveNewPoint(coordinate, name) {
             errorData.message ||
               `Server responded with status ${response.status}`,
           );
-        });
+        })
       }
       return response.json();
     })
     .then((data) => {
       if (data.success) {
-        alert(`Saved ${data.message}`);
         return loadAndDisplaySavedPoints();
       }
-      alert(`Error saving point: ${data.message}`);
+      showError(data.message || "There was an error on our end, please try again later.");
+      return;
     })
     .catch((error) => {
       alert(`Could not save point: ${error.message}`);

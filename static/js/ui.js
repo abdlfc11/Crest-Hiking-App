@@ -404,6 +404,10 @@ export function closeNav() {
 }
 
 function openSavedRoutesDash() {
+
+  // This prevents non-logged in and registered users from opening the save route panel
+  if (!window.appConfig.loggedIn) return;
+
   savedRoutesDashContent.style.width = "100vw";
 
   if (!localStorage.getItem('seenSavedRouteDashTour')) {
@@ -440,6 +444,10 @@ export function closeSettings() {
 };
 
 function openImportRoute() {
+
+  // This prevents non-logged in and registered users from opening the save route panel
+  if (!window.appConfig.loggedIn) return;
+
   importRoutePanel.style.width = "100vw";
 
   if (!localStorage.getItem('seenImportRouteTour')) {
@@ -492,11 +500,6 @@ async function handleRouteImport() {
       
       const file = importRouteFileInput.files[0];
 
-      if (!file) {
-        showError("Please select a file to import.");
-        return false;
-      }
-
       if (!validateFileInput()) {
         return false;
       }
@@ -504,7 +507,7 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showError("There was an error on our end. Please try again later.");
+        showError(data || "There was an error on our end. Please try again later.");
         return false;
       }
 
@@ -600,6 +603,12 @@ function validateFileInput() {
     if (file.size > 5 * 1024 * 1024) {
         showError("File size is too large. Please select a file smaller than 5MB.");
         return false;
+    }
+
+    // this checks if the file is empty or not
+    if (file.size === 0) {
+      showError("The selected file is empty.")
+      return false;
     }
 
     return true;

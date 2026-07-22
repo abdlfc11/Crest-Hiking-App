@@ -9,12 +9,11 @@ from flask import (
     Blueprint,
     jsonify,
     request,
-    url_for,
 )
 
 # Local Modules
 from Report_Issue.helpers import log_issue
-from extensions import get_current_user, log_action, limiter
+from extensions import log_action, limiter
 
 
 #endregion
@@ -36,10 +35,6 @@ def report_issue_api():
         data = request.get_json()
         title = data.get("title")
         description = data.get("description")
-        user = get_current_user()
-
-        if not user:
-            return url_for("auth_api.login"), 401
 
         if not title or not description:
             return jsonify({"success": False, "message": "Title and description are required"}), 400
