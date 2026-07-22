@@ -9,7 +9,7 @@ const submitButton = document.getElementById("submit-button");
 
 // DARK MODE 
 
-// Helper to apply the class to the document
+// Helper to apply the '.dark' class to the document
 function setDarkMode(isDark){
     if (isDark) {
         document.documentElement.classList.add("dark");
