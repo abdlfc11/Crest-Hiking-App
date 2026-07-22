@@ -296,8 +296,8 @@ export function createElevationProfile(coordinates) {
         ctx.addEventListener('mouseleave', () => {
             clearMapHoverPoint();
         });
-    }
-}
+    };
+};
 
 export function toggleElevationChart() {
     const container = document.getElementById('elevation-chart-container');
@@ -309,17 +309,15 @@ export function toggleElevationChart() {
     if (isActive) {
         if (currentCoordinates && currentCoordinates.length >= 2) {
             createElevationProfile(currentCoordinates);
-        } else {
-            console.log("Chart container visible, waiting for route coords");
-        }
-    }
-}
+        };
+    };
+};
 
 export function initChartToggleListener() {
     const toggleButton = document.getElementById('toggle-elevation-chart');
     if (toggleButton) {
         toggleButton.onclick = toggleElevationChart;
     }
-}
+};
 
 
