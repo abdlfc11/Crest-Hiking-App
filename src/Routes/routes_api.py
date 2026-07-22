@@ -17,6 +17,7 @@ from flask import (
     request,
     send_file,
 )
+from flask_limiter.errors import RateLimitExceeded
 
 # Local Modules
 from db import engine
@@ -41,6 +42,36 @@ from Routes.helpers import (
 route_api_bp = Blueprint("route_api", __name__)
 
 #endregion
+
+@route_api_bp.errorhandler(RateLimitExceeded)
+def handle_rate_limit_exceeded(e):
+    """
+    Function to handle if too many requests have been made, this shows an error to the end-user providing them information
+    instead of just failing if they try to generate too many routes (or any other action that is rate limited)
+    """
+    try:
+        with Session(engine) as db:
+            user = get_current_user()
+            if user:
+                db_routes = db.exec(
+                    select(Route).where(Route.user_id == user.id)
+                ).all()
+                available_routes = [r.model_dump() for r in db_routes]
+            else:
+                available_routes = []
+                
+            log_action('MISC', False, 'Rate limit exceeded', None, 'RATE_LIMIT_HIT')
+    except Exception as logging_error:
+        short_traceback = "".join(traceback.format_exception_only(type(logging_error), logging_error)).strip()
+        log_action('MISC', False, short_traceback, None, 'RATE_LIMIT_HIT')
+        available_routes = []
+
+    return jsonify({
+        "success": False,
+        "map_centre": DEFAULT_CENTRE, # This keeps the front-end Map safe from crashing
+        "available_routes": available_routes, # So does this
+        "message": "Too many requests. Please slow down."
+    }), 429
 
 # route which forms a path from the set of points the back-end receives as coordinates and returns it to the front-end
 @route_api_bp.route("/calculate_path", methods=["POST"])
@@ -267,6 +298,9 @@ def save_route():
                 return jsonify({"success": False, "message": "Invalid request"}), 400
 
             user = get_current_user()
+
+            if not user: 
+                return jsonify({"success": False, "message": "Please log in to save routes. "})
 
             route_name = data.get("route_name")
             coordinates = data.get("coordinates")
@@ -513,6 +547,9 @@ def import_route():
             success (bool)
             coords (list of [lat, lon, ele?])
     """
+
+    if not get_current_user():
+        return jsonify({"success": False, "message": "Please log in to import files. "})
 
     # this retrieves the uploaded file from the request
     uploaded_file = request.files.get("route_file")

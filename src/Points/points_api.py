@@ -27,6 +27,10 @@ point_api_bp = Blueprint("point_api", __name__)
 @point_api_bp.route("/save_point", methods=["POST"])
 @limiter.limit("10 per minute")
 def save_point():
+
+    if not get_current_user():
+        return jsonify({"success": False, "message": "Please Login to save points."})
+
     # data received from front-end is broken down into web mercator coords that can be converted into bng
     data = request.get_json()
     point_name = data.get('point_name', '').strip()
@@ -81,6 +85,8 @@ def get_saved_points():
                 select(Point)
                 .where(Point.user_id == user.id)
             ).all()
+    else:
+        return jsonify({"success": False, "message": "User not logged in, no saved points to load"})
     
     if not points:
         return jsonify({"success": False, "message": "No points found" ,"points": []})

@@ -85,6 +85,12 @@ export async function loadAppSettingsFromServer() {
     return getAppSettings();
   }
 
+  // This is to ensure that no errors are thrown when a user is not logged in
+  const isLoggedIn = window.appConfig.loggedIn
+  if (!isLoggedIn) {
+    return getAppSettings();
+  }
+
   try {
     const res = await fetch(url, { method: "GET", credentials: "same-origin" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -114,6 +120,13 @@ export async function loadAppSettingsFromServer() {
  * @returns {Promise<{ success: boolean, message?: string }>}
  */
 export async function saveAppSettingsToServer(settingsDict) {
+
+  // This is to ensure that no errors are thrown when a user is not logged in
+  const isLoggedIn = window.appConfig.loggedIn
+  if (!isLoggedIn) {
+    return;
+  }
+
   const url = window.appConfig && window.appConfig.apiSaveSettings;
   if (!url) throw new Error("apiSaveSettings not present in window.appConfig");
 
