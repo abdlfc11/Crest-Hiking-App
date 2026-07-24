@@ -2,12 +2,14 @@
   MAP PAGE
 
   The core route-planning screen: map container, mode toggle, coordinate
-  input panel, manual-mode controls, save-route panel, and the point
-  delete confirmation modal.
+  input panel, manual-mode controls, and save-route panel. The point
+  delete confirmation dialog itself is styled by components/modal.css;
+  only its page-specific content styling (the highlighted point name)
+  lives here.
   
-  Depends on: base/tokens.css, components/loading-spinner.css 
-  and pages/stats-panel.css (dark-mode rules below reference it since both
-  are always shown together on this page).
+  Depends on: base/tokens.css, components/loading-spinner.css,
+  components/modal.css, and pages/stats-panel.css (dark-mode rules below
+  reference it since both are always shown together on this page).
 */
 
 /* Map container */
@@ -360,84 +362,12 @@
   display: none;
 }
 
-/* CONFIRMATION MODAL (point delete) */
-
-.confirmation-modal {
-  position: fixed;
-  z-index: 2000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.5);
-  font-family: var(--font-sans);
-}
-
-.confirmation-modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  text-align: center;
-}
-
-.confirmation-modal-header h2 {
-  margin-top: 0;
-  color: #1e293b;
-  font-size: 1.25rem;
-}
-
-.confirmation-modal-body {
-  padding: 10px 0 20px 0;
-  color: #475569;
-}
+/* DELETE POINT MODAL (page-specific content styling only;
+   overlay/card/button styling lives in components/modal.css) */
 
 #point-name-display {
   font-weight: 700;
   color: #ef4444;
-}
-
-.confirmation-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-}
-
-.confirmation-buttons button {
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  border: none;
-}
-
-.confirmation-buttons button:focus {
-  outline: none;
-}
-
-#point-delete-exit-button {
-  background-color: #e2e8f0;
-  color: #475569;
-}
-
-#point-delete-exit-button:hover {
-  background-color: #cbd5e1;
-}
-
-#point-delete-delete-button {
-  background-color: #ef4444;
-  color: white;
-}
-
-#point-delete-delete-button:hover {
-  background-color: #dc2626;
 }
 
 /* DARK MODE */
