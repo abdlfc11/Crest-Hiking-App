@@ -106,6 +106,8 @@
   background-color: #dc2626;
 }
 
+/* This is meant for regular actions
+   such as transitioning to a different page */
 .modal-btn-normal {
     background-color: var(--blue);
     color: white;
