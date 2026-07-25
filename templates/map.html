@@ -23,6 +23,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/error-toast.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/loading-spinner.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/tooltip.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons.css') }}">
 
     <!-- Layout CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/nav-menu.css') }}">
@@ -173,20 +175,38 @@
             <button id="remove-point-button">remove</button>
         </div>
 
+        <!-- ##### LOGIN MODAL ##### -->
+        <dialog id="login-dialog" class="modal-overlay">
+            <div class="modal-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Login</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p>An account is required to perform this action.</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="login-dialog-exit" class="modal-btn modal-btn-secondary">Close</button>
+                        <button id="login-dialog-login" class="modal-btn modal-btn-normal">Login</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
         <!-- ##### DELETE POINT MODAL ##### -->
-        <dialog id="delete-point-confirmation-dialog" class="confirmation-modal">
-            <div class="wrapper">
-                <div class="confirmation-modal-content">
-                    <div class="confirmation-modal-header">
+        <dialog id="delete-point-confirmation-dialog" class="modal-overlay">
+            <div class="modal-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header">
                         <h2>Delete Point</h2>
                     </div>
-                    <div class="confirmation-modal-body">
+                    <div class="modal-body">
                         <p>Are you sure you want to remove this point:</p>
                         <p><span id="point-name-display"></span>?</p>
                     </div>
-                    <div class="confirmation-buttons">
-                        <button type="button" id="point-delete-exit-button">Exit</button>
-                        <button id="point-delete-delete-button">Delete Point</button>
+                    <div class="modal-actions">
+                        <button type="button" id="point-delete-exit-button" class="modal-btn modal-btn-secondary">Exit</button>
+                        <button id="point-delete-delete-button" class="modal-btn modal-btn-danger">Delete Point</button>
                     </div>
                 </div>
             </div>
@@ -198,22 +218,20 @@
 
     <!-- ##### SIDE NAV BAR ##### -->
     <div id="the-sidenav" class="sidenav">
-        <div id="sidenav-upper-links">
-            <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-
-            <!-- JINJA used to determine if the saved route dashboard and import route panel is accessible to users depending on if they are logged in -->
-            {% if not session.get("preferred_name") %}
-                <a class="inactive" aria-disabled="true" data-tooltip="Please Login to save routes." id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
-                <a class="inactive" aria-disabled="true" data-tooltip="Please Login to import routes." id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
-            {% else %}
+        <div class="sidenav-inner">
+            <div id="sidenav-upper-links">
+                <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
                 <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
                 <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
+                <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
+                <a id="report-issues-button" href="/report-an-issue"><i data-lucide="bug"></i>Report Issues</a>
+                <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
+            </div>
+            {% if not session.get("preferred_name") %}
+                <div id="sidenav-login-button-container">
+                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill">Login</button>
+                </div>
             {% endif %}
-            <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
-            <a id="report-issues-button" href="/report-an-issue" ><i data-lucide="bug"></i>Report Issues</a>
-        </div>
-        <div id="sidenav-lower-links">
-            <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
         </div>
     </div>
 
@@ -353,54 +371,51 @@
                  </div>
  
                  <!-- Delete Account -->
-                 <div class="settings-item settings-item-destructive" id="delete-account-container">
-                    <div class="delete-normal-state">
 
-                        <div class="settings-text">
-                            <span class="settings-title">Delete Account</span>
-                            <span class="settings-description">Permanently remove your account and all data</span>
-                        </div>
-                        
-                        <button
-                            {% if not session.get('preferred_name') %} 
-                                disabled 
-                                class="delete-account-btn inactive"
-                                data-tooltip="You must Login to perform this action."
-                            {% else %} 
+                 {% if not session.get('preferred_name') %} 
+
+                {% else %} 
+                    <div class="settings-item settings-item-destructive" id="delete-account-container">
+                        <div class="delete-normal-state">
+
+                            <div class="settings-text">
+                                <span class="settings-title">Delete Account</span>
+                                <span class="settings-description">Permanently remove your account and all data</span>
+                            </div>
+                            
+                            <button
                                 class="delete-account-btn"
-                            {% endif %}
-                            type="button"
-                            id="settings-delete-account-button"
-                        >Delete</button>
-                        
-                    </div>
+                                type="button"
+                                id="settings-delete-account-button"
+                            >Delete</button>
+                            
+                        </div>
 
-                    <div class="delete-confirm-state" style="display: none; width: 100%;">
-                        <div class="settings-text">
-                            <span class="settings-title" style="color: #b91c1c;">Delete account?</span>
-                            <span class="settings-description">This cannot be undone.</span>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                            <button type="button" class="cancel-delete-btn" id="delete-cancel-button">Cancel</button>
-                            <button type="button" class="confirm-delete-btn" id="delete-confirm-button">Delete forever</button>
+                        <div class="delete-confirm-state" style="display: none; width: 100%;">
+                            <div class="settings-text">
+                                <span class="settings-title" style="color: #b91c1c;">Delete account?</span>
+                                <span class="settings-description">This cannot be undone.</span>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                                <button type="button" class="cancel-delete-btn" id="delete-cancel-button">Cancel</button>
+                                <button type="button" class="confirm-delete-btn" id="delete-confirm-button">Delete forever</button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
             </section>
 
             <!-- ##### FOOTER (inc. logout button) ##### -->
             <div class="settings-sticky-footer">
 
-                <button
-                id="settings-logout-button"
                 {% if not session.get('preferred_name') %} 
-                    disabled 
-                    class="logout-button inactive"
-                    data-tooltip="You must Login to perform this action."
+
                 {% else %} 
-                    class="logout-button"
+                    <button
+                    id="settings-logout-button"
+                    class="btn-pill"
+                    >Log out</button>
                 {% endif %}
-                >Log out</button>
 
             </div>
         </div>

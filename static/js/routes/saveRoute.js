@@ -10,7 +10,7 @@ import { getCurrentMode,
   setCurrentPathData, 
   normaliseCoordLength
  } from "./routeState.js";
-import { defaultCentre, homeButtonFunction, updateSaveRouteContainer } from "../ui.js";
+import { defaultCentre, homeButtonFunction, updateSaveRouteContainer, showLoginModal } from "../ui.js";
 import { getMap } from "../map.js";
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
 import { createRouteCard, formatDistance, formatElevation, formatETA, removeDOMElement, showError } from "../utils.js";
@@ -33,6 +33,11 @@ export function initSaveRoute() {
 
 function handleSaveRoute(e) {
   e.preventDefault();
+
+  if (!window.appConfig.loggedIn) {
+    showLoginModal(true, 'save routes');
+    return;
+  }
 
   let elevDisplayValue; 
   let routeName = "";

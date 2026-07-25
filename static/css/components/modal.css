@@ -1,0 +1,118 @@
+/*
+  MODAL COMPONENT
+
+  Generic confirmation-style modal: full-screen overlay, a centred content
+  card, and header / body / actions regions with two button variants
+  (secondary + danger). Intended to be reused by any page that needs to
+  confirm a destructive or important action (e.g. deleting a point,
+  deleting a route, deleting an account).
+
+  Usage:
+    <dialog class="modal-overlay">
+      <div class="modal-wrapper">
+        <div class="modal-content">
+          <div class="modal-header"><h2>Title</h2></div>
+          <div class="modal-body">...</div>
+          <div class="modal-actions">
+            <button class="modal-btn modal-btn-secondary">Cancel</button>
+            <button class="modal-btn modal-btn-danger">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+*/
+
+.modal-overlay {
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  font-family: var(--font-sans);
+}
+
+.modal-content {
+  background-color: var(--bg);
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  width: 80%;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-header h2 {
+  margin-top: 0;
+  color: var(--ink-strong);
+  font-size: 1.25rem;
+}
+
+.modal-body {
+  padding: 10px 0 20px 0;
+  color: var(--ink);
+}
+
+/* MODAL BUTTON */ 
+
+/* modal button container */
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* modal button itself */
+.modal-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: none;
+}
+
+.modal-btn:focus {
+  outline: none;
+}
+
+/* specific modal button styles 
+   this is a secondary button style
+   meant for regular low-risk actions
+   such as exiting */
+.modal-btn-secondary {
+  background-color: var(--secondary-bg);
+  color: var(--ink);
+}
+
+.modal-btn-secondary:hover {
+  background-color: var(--secondary-bg-hover);
+}
+
+/* this is meant for high-risk
+   risk actions such as account
+   or route deletion */
+.modal-btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.modal-btn-danger:hover {
+  background-color: #dc2626;
+}
+
+/* This is meant for regular actions
+   such as transitioning to a different page */
+.modal-btn-normal {
+    background-color: var(--blue);
+    color: white;
+}
+
+.modal-btn-normal:hover {
+    background-color: var(--blue-dark);
+}

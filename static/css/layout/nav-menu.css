@@ -15,23 +15,27 @@
   top: 0;
   left: 0;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease-in-out;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* inner wrapper holds all content at a fixed width */
+.sidenav-inner {
+  width: 17rem; 
+  height: 100%;
   padding-top: 60px;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease-in-out;
-
-  /* glassmorphism effect */
-  background: rgba(255, 255, 255, 0.485);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-right: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 .sidenav a {
   padding: 8px 8px 8px 32px;
   text-decoration: none;
-  font-size: 25px;
+  font-size: 1.6rem;
   color: #818181;
   margin-bottom: 1.5rem;
   display: flex;
@@ -81,9 +85,19 @@
   transform: scale(1.05);
 }
 
-#sidenav-upper-links,
-#sidenav-lower-links {
-  width: 17rem;
+#sidenav-login-button-container {
+  margin-top: auto;
+  padding-bottom: 1.5rem;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#sidenav-login-button {
+  font-size: 1.1rem;
+  
 }
 
 #donate-button {
@@ -101,13 +115,6 @@
 }
 
 /* DARK MODE */
-html.dark .sidenav {
-  background: rgba(31, 41, 55, 0.485);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
 
 html.dark .sidenav a {
   color: #9ca3af;

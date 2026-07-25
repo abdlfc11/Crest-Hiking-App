@@ -1,6 +1,6 @@
 import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
-import { showError } from "../utils.js";
+import { showLoginModal } from "../ui.js";
 
 let savedPointsLayer = null;
 
@@ -68,6 +68,13 @@ export function loadAndDisplaySavedPoints() {
 }
 
 export function saveNewPoint(coordinate, name) {
+
+  const isLoggedIn = window.appConfig.loggedIn
+  if (!isLoggedIn) {
+    showLoginModal(true);
+    return;
+  }
+
   const url = window.appConfig.apiSavePointUrl;
   const x = coordinate[0];
   const y = coordinate[1];

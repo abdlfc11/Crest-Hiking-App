@@ -13,7 +13,8 @@ import {
   formatETA,
   removeDOMElement,
   createStatsPanel,
-  formatElevation
+  formatElevation,
+  isLonLat
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -128,7 +129,13 @@ const deletePointConfirmationDialog = document.getElementById("delete-point-conf
 const pointDeleteModalNameDisplay = document.getElementById("point-name-display");
 const pointDeleteDeleteButton = document.getElementById("point-delete-delete-button");
 const pointDeleteExitButton = document.getElementById("point-delete-exit-button");
-const dialogWrapper = deletePointConfirmationDialog?.querySelector(".wrapper");
+const pointDeleteDialogWrapper = deletePointConfirmationDialog?.querySelector(".wrapper");
+
+// login modal
+const loginModal = document.getElementById('login-dialog');
+const loginModalLoginButton = document.getElementById('login-dialog-login');
+const loginModalExitButton = document.getElementById('login-dialog-exit');
+const loginModalContent = loginModal.querySelector('.modal-content');
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -214,6 +221,51 @@ function noRouteCreateFunction() {
   closeSavedRoutesDash()
 }
 
+//#region LOGIN MODAL
+
+/**
+ * Toggles the login modal display and sets the action context
+ * @param {boolean} show true if you want to show the modal, false if you want to hide the modal
+ * @param {string} [actionName='perform this action'] the specific action that is being performed when showing the modal e.g save routes 
+ * @returns {void}
+ */
+export function showLoginModal(show, actionName = 'perform this action') {
+  const dialog = document.getElementById('login-dialog');
+  const messageElement = dialog.querySelector('.modal-body p');
+
+  if (show) {
+
+    // This updates the message dynamically
+    messageElement.textContent = `An account is required to ${actionName}.`;
+    dialog.showModal();
+  } 
+  else {
+    dialog.close();
+  }
+};
+
+/**
+ * Function used to transition to the login page from the login modal
+ * @returns {void}
+ */
+function loginModalLogin() {
+  showLoginModal(false);
+  window.location.href = 'https://app.crestr.co.uk/login-page';
+  return;
+};
+
+/**
+ * Function used to catch clicks outside of the modal in order to close the modal upon these clicks 
+ * @returns {void}
+ */
+function dismissLoginModal(e) {
+  if (loginModalContent && !loginModalContent.contains(e.target)) {
+      showLoginModal(false);
+    }
+};
+
+//#endregion
+
 //#region COORDINATE INPUT FUNCTIONS
 
 /**
@@ -265,13 +317,26 @@ function validateInputCoords(startPoint, endPoint) {
   }
 
   // This parses the full string into numbers 
-  const startX = parseInt(startParts[0].trim(), 10);
-  const startY = parseInt(startParts[1].trim(), 10);
-  const endX = parseInt(endParts[0].trim(), 10);
-  const endY = parseInt(endParts[1].trim(), 10);
+  const startX = parseFloat(startParts[0].trim());
+  const startY = parseFloat(startParts[1].trim());
+  const endX = parseFloat(endParts[0].trim());
+  const endY = parseFloat(endParts[1].trim());
 
-  const startLonLat = ol.proj.toLonLat([startX, startY]);
-  const endLonLat = ol.proj.toLonLat([endX, endY]);
+  let startLonLat
+  let endLonLat
+
+  // conditional logic to ensure that if values are already in lon lat they are not incorrectly passed into ol.proj.toLonLat()
+  if (isLonLat([startX, startY]) && isLonLat([endX, endY])) {
+    startLonLat = [startX, startY];
+    endLonLat = [endX, endY];
+    
+    console.log('LonLat detected ')
+    console.log(startLonLat)
+  }
+  else {
+    startLonLat = ol.proj.toLonLat([startX, startY]);
+    endLonLat = ol.proj.toLonLat([endX, endY]);
+  }
 
   if ( !isPointInPolygon(startLonLat)) {
     showError("Please enter start coordinates within Cumbria.")
@@ -406,7 +471,10 @@ export function closeNav() {
 function openSavedRoutesDash() {
 
   // This prevents non-logged in and registered users from opening the save route panel
-  if (!window.appConfig.loggedIn) return;
+  if (!window.appConfig.loggedIn) {
+    showLoginModal(true, "save routes");
+    return;
+  };
 
   savedRoutesDashContent.style.width = "100vw";
 
@@ -446,7 +514,10 @@ export function closeSettings() {
 function openImportRoute() {
 
   // This prevents non-logged in and registered users from opening the save route panel
-  if (!window.appConfig.loggedIn) return;
+  if (!window.appConfig.loggedIn) {
+    showLoginModal(true, "import routes");
+    return;
+  };
 
   importRoutePanel.style.width = "100vw";
 
@@ -1264,7 +1335,7 @@ function initPointDeleteHandlers() {
   if (!deletePointConfirmationDialog) return;
 
   deletePointConfirmationDialog.addEventListener("click", (e) => {
-    if (dialogWrapper && !dialogWrapper.contains(e.target)) {
+    if (pointDeleteDialogWrapper && !pointDeleteDialogWrapper.contains(e.target)) {
       deletePointConfirmationDialog.close();
     }
   });
@@ -1484,6 +1555,11 @@ export function initUi() {
 
   // These event listeners are for keyboard shortcuts.
   addClickListener(document, handleKeyboardShortcuts, "keydown");
+
+  // These event listeners are for the login modal
+  addClickListener(loginModalExitButton, () => showLoginModal(false), 'click');
+  addClickListener(loginModalLoginButton, loginModalLogin, 'click');
+  addClickListener(loginModal, dismissLoginModal, 'click');
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);
