@@ -37,7 +37,7 @@ body {
   min-width: 0;
   font-size: clamp(1.5rem, 2.2vw, 2.2rem);
   font-weight: 700;
-  color: #111827;
+  color: var(--ink-strong);
   white-space: nowrap;
   overflow: visible;
 }
@@ -86,7 +86,8 @@ body {
 /* Route Cards (inc. internal metrics) */
 .route-card {
   border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.771);
+  background-color: var(--surface-bg);
+  border: 1px solid var(--card-border);
   padding: 1.25rem;
   width: 24.5rem;
   max-height: 17rem;
@@ -98,7 +99,7 @@ body {
 }
 
 .route-card:hover {
-  box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
 
@@ -110,6 +111,7 @@ body {
   margin: 0 0 0.25rem 0;
   font-size: 1.2rem;
   font-weight: 700;
+  color: var(--ink-strong);
 }
 
 .route-card-date {
@@ -132,7 +134,15 @@ body {
 }
 
 .stat-label {
-  color: rgb(123, 123, 123);
+  color: var(--ink);
+}
+
+.stat-value {
+  color: var(--ink);
+}
+
+.route-card-date {
+  color: var(--ink);
 }
 
 
@@ -194,14 +204,12 @@ body {
 }
 
 .no-routes-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 2.8rem 2.4rem;
   max-width: 420px;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--card-border);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
@@ -231,14 +239,6 @@ html.dark #saved-routes-dashboard .inner-content {
   background: transparent;
 }
 
-html.dark #dashboard-header h1,
-html.dark #saved-routes-dashboard .route-card-name,
-html.dark #saved-routes-dashboard .stat-label,
-html.dark #saved-routes-dashboard .stat-value,
-html.dark #saved-routes-dashboard .route-card-date {
-  color: #f3f4f6;
-}
-
 html.dark #saved-routes-dashboard .route-card {
   background-color: #374151;
   border-color: #4b5563;
@@ -247,11 +247,6 @@ html.dark #saved-routes-dashboard .route-card {
 html.dark #saved-routes-dashboard .route-btn {
   background-color: #4b5563;
   color: #f3f4f6;
-}
-
-html.dark .no-routes-card {
-  background: rgba(31, 41, 55, 0.55);
-  border-color: rgba(255, 255, 255, 0.15);
 }
 
 html.dark .no-routes-title,
