@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/loading-spinner.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/tooltip.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons.css') }}">
 
     <!-- Layout CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/nav-menu.css') }}">
@@ -217,15 +218,20 @@
 
     <!-- ##### SIDE NAV BAR ##### -->
     <div id="the-sidenav" class="sidenav">
-        <div id="sidenav-upper-links">
-            <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-            <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
-            <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
-            <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
-            <a id="report-issues-button" href="/report-an-issue" ><i data-lucide="bug"></i>Report Issues</a>
-        </div>
-        <div id="sidenav-lower-links">
-            <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
+        <div class="sidenav-inner">
+            <div id="sidenav-upper-links">
+                <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
+                <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
+                <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
+                <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
+                <a id="report-issues-button" href="/report-an-issue"><i data-lucide="bug"></i>Report Issues</a>
+                <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
+            </div>
+            {% if not session.get("preferred_name") %}
+                <div id="sidenav-login-button-container">
+                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill">Login</button>
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -407,7 +413,7 @@
                 {% else %} 
                     <button
                     id="settings-logout-button"
-                    class="logout-button"
+                    class="btn-pill"
                     >Log out</button>
                 {% endif %}
 
