@@ -28,6 +28,58 @@ export function roundCoords (coordArray, decimals) {
     return [roundedX, roundedY];
 }
 
+
+/**
+ * Validates whether the input is a valid WGS84 (lat / lon) coordinate 
+ * 
+ * @param {LatLonObject | [number, number] | null | undefined} coord - The coordinate data to validate NOTE it is in lon lat format 
+ * @returns {boolean} True if the input represents a valid latitude and longitude, false otherwise.
+ * 
+ * @example
+ * isValidCoordinate({ lon: -0.1, lat: 51.5 }); // returns true
+ * isValidCoordinate([-0.1, 51.5]);             // returns true
+ * isValidCoordinate({ lon: -0.1, lat: 95 });   // returns false (latitude out of bounds)
+ */
+export function isLonLat(coordinate) {
+
+  // local variables to store extracted coordinate values
+  let lat;
+  let lon;
+
+  // stores if coordinate is array or not 
+  const isCoordinateArray = Array.isArray(coordinate)
+
+  // this ensures it handles dictionaries (objects)
+  if (coordinate && typeof coordinate === 'object' && !isCoordinateArray) {
+    lat = coordinate.lat ?? coordinate.latitude 
+    lon = coordinate.lon ?? coordinate.lng ?? coordinate.longitude
+  }
+
+  // this ensures it handles arrays 
+  else if (isCoordinateArray && coordinate.length >= 2) {
+    lon = coordinate[0];
+    lat = coordinate[1]
+  }
+
+  // returns false for any other format 
+  else {
+    console.warn('isLonLat(coord) : Pass dictionary/object or array into function "isLonLat". ');
+    return false;
+  };
+
+  // this ensures that both lat and lon variables are numbers and can be used in the conditional checks to ensure they are valid WGS84 coordinates 
+  if (!typeof lat === 'number' || !Number.isFinite(lat)) {
+    console.warn('isLonLat(coord) : variable lat is either not a number or is infinite')
+  }; 
+
+  if (!typeof lon === 'number' || !Number.isFinite(lon)) {
+    console.warn('isLonLat(coord) : variable lon is either not a number or is infinite')
+  }; 
+
+  // this returns true if lat is between -90 and 90 and if lon is between -180 and 180, and returns false otherwise
+  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
+
 // function to set the styling for points that are added in manual routing mode
 export function createManualPointStyle(label, colour, radius=7.5, strokeBorderColor="#FFFFFF") {
   return new ol.style.Style({

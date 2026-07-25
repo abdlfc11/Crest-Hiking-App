@@ -16,7 +16,11 @@ from constants import MAX_X, MAX_Y, MIN_X, MIN_Y
 
 #region ROUTING HELPER FUNCTIONS
 
-def isRoughlyInCumbria(x: int | float, y: int | float) -> bool:
+def isRoughlyInCumbria(x: float, y: float) -> bool:
+
+    if (-180 <= x <= 180) and (-90 <= y <= 90):
+        x, y = service.convert_wgs84_to_web_mercator(x, y)
+
     return x >= MIN_X and x <= MAX_X and y >= MIN_Y and y <= MAX_Y 
 
 def haversine(x1, y1, x2, y2):

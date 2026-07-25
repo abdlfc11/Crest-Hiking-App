@@ -88,7 +88,7 @@ def calculate_path():
         
         # Validation of coord format 
         if not isinstance(start_array, list) or not isinstance(end_array, list):
-            raise ValueError("Start and end coordinates are required as arrays")
+            raise TypeError("Start and end coordinates are required as arrays")
 
         if len(start_array) < 2 or len(end_array) < 2:
             raise ValueError("Coordinates must be in format [x, y]")
@@ -119,7 +119,7 @@ def calculate_path():
             s_x, s_y = service.convert_wgs84_to_web_mercator(s_x, s_y)
         if abs(e_x) <= 180 and abs(e_y) <= 90:
             print("Detected Lat/Lon for end point. Converting to Web Mercator...")
-            s_x, s_y = service.convert_wgs84_to_web_mercator(e_x, e_y)
+            e_x, e_y = service.convert_wgs84_to_web_mercator(e_x, e_y)
         
     except (KeyError, ValueError, TypeError) as e:
         # This is wrapped in a try/except fallback block so that if logging functions fail, the program doesn't crash 
@@ -284,7 +284,7 @@ def calculate_path():
             "success": False,
             "map_centre": DEFAULT_CENTRE,
             "available_routes": [],
-            "message": f"Pathfinder execution error: {str(general_error)}"
+            "message": "Pathfinder execution error: {str(general_error)}"
         }), 500
   
 # flask-route which is used to save a route that has been passed into the backend into the PostgreSQL database 
