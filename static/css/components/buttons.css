@@ -7,6 +7,9 @@
   Now available to any page that links components.
 */
 
+/* BTN */
+
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -33,6 +36,8 @@
   outline-offset: 2px;
 }
 
+/* BTN PRIMARY */
+
 .btn-primary {
   color: #fff;
   background: var(--blue);
@@ -57,6 +62,8 @@
   box-shadow: none;
 }
 
+/* BTN GHOST */
+
 .btn-ghost {
   color: var(--muted);
   background: transparent;
@@ -79,4 +86,30 @@
 
 .btn-ghost:hover svg {
   transform: translateX(-2px);
+}
+
+/* BTN PILL */
+
+.btn-pill {
+  background: var(--btn-bg);
+  color: var(--secondary-ink);
+  border: none;
+  border-radius: 9999px;
+  padding: 0.7rem 2.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  letter-spacing: -0.01em;
+}
+
+.btn-pill:hover {
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn-pill:active {
+  transform: translateY(0);
 }
