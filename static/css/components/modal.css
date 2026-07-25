@@ -86,12 +86,12 @@
    meant for regular low-risk actions
    such as exiting */
 .modal-btn-secondary {
-  background-color: #e2e8f0;
-  color: #475569;
+  background-color: var(--secondary-bg);
+  color: var(--ink);
 }
 
 .modal-btn-secondary:hover {
-  background-color: #cbd5e1;
+  background-color: var(--secondary-bg-hover);
 }
 
 /* this is meant for high-risk
