@@ -29,10 +29,12 @@
   --surface-bg: rgba(255, 255, 255, 0.92);
   --field-bg: #ffffff;
   --glass-bg: rgba(249, 250, 251, 0.4);   /* the frosted slide-panel background */
+  --secondary-bg: #e2e8f0;
+  --secondary-bg-hover: #cbd5e1;
 
   /* Text */
   --ink: #1f2937;
-  --secondary-inl: #f8fafc;
+  --secondary-ink: #ffffff;
   --ink-strong: #111827;
   --muted: #64748b;
   --muted-alt: #4b5563;
@@ -44,9 +46,14 @@
   --secondary-border: #111827;
 
   --btn-bg: #3c3c3c;
+  --btn-bg-hover: #454545;
   --secondary-btn-bg: #FFFFFF;
   --btn-disabled-bg: #93b4f2;
   --btn-disabled-text: #ffffff;
+
+  /* Solid card surface (opaque alternative to the frosted --glass-bg) */
+  --card-bg: #ffffff;
+  --card-border: #b9b8b8;
 
   /* Layout and shapes */
   --radius-lg: 20px;
@@ -65,11 +72,14 @@
 
 /* DARK MODE */
 html.dark {
-  --bg: #0f172a;
-  --surface-bg: rgba(30, 41, 59, 0.8);
-  --field-bg: #1e293b;
+  --bg: #212224;
+  --surface-bg: rgba(35, 36, 38, 0.8);
+  --field-bg: #1c1c1e;
   --secondary-field-bg: #2c3038;
   --glass-bg: rgba(17, 24, 39, 0.85);
+  --secondary-bg: rgb(69, 68, 68);
+  --secondary-bg-hover: rgb(87, 87, 87);
+
   --ink: #f8fafc;
   --secondary-ink: #ffffff;
   --ink-strong: #f3f4f6;
@@ -77,7 +87,7 @@ html.dark {
   --muted-alt: #9ca3af;
   --placeholder: #64748b;
 
-  --border: #334155;
+  --border: #1f2327;
   --border-alt: #374151;
   --secondary-border: #FFFFFF;
 
@@ -86,10 +96,14 @@ html.dark {
   --blue-soft: rgba(59, 130, 246, 0.15);
   --blue-ring: rgba(59, 130, 246, 0.4);
 
-  --btn-bg: #3c3c3c;
+  --btn-bg: #374151;
+  --btn-bg-hover: #4b5563;
   --secondary-btn-bg: #FFFFFF;
   --btn-disabled-bg: #1e293b;
   --btn-disabled-text: #64748b;
+
+  --card-bg: #1e2024;
+  --card-border: #374151;
 
   --shadow-surface: 0 10px 35px rgba(0, 0, 0, 0.3);
   --shadow-lift: 0 4px 12px rgba(59, 130, 246, 0.2);
