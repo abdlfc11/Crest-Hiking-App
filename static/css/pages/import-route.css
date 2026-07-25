@@ -23,7 +23,7 @@
   margin: 0 .5rem 0 0;
   font-size: 2.2rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--ink-strong);
 }
 
 .import-route-close-container {
@@ -51,8 +51,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2.5rem;
-  background: #ffffff;
-  border: 1px solid rgba(229, 231, 235, 0.8);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 100px;
 }
 
@@ -65,12 +65,12 @@
 .import-route-item-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ink-strong);
 }
 
 .import-route-item-description {
   font-size: 0.875rem;
-  color: #4b5563;
+  color: var(--muted-alt);
 }
 
 /* FOOTER BUTTONS */
@@ -90,7 +90,7 @@
 }
 
 .import-route-footer-button.primary:hover {
-  background: #1e40af;
+  background: var(--blue-dark-alt);
 }
 
 .import-route-footer-button.secondary {
@@ -103,23 +103,6 @@
 }
 
 /* DARK MODE */
-
-html.dark .import-route-title {
-  color: #f3f4f6;
-}
-
-html.dark .import-route-item {
-  background: #1f2937;
-  border-color: #374151;
-}
-
-html.dark .import-route-item-title {
-  color: #f3f4f6;
-}
-
-html.dark .import-route-item-description {
-  color: #9ca3af;
-}
 
 html.dark .import-route-footer-button.primary {
   background: #374151;

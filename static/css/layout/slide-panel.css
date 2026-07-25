@@ -19,9 +19,7 @@
   overflow-y: auto;
   box-sizing: border-box;
   font-family: var(--font-system);
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--bg);
   z-index: 3000;
   transition: all 0.35s ease-in-out;
 }
@@ -38,23 +36,19 @@
   flex-direction: column;
 }
 
-/* Frosted header bar */
+/* Header bar */
 .settings-header,
 .import-route-header,
 #top-section {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-alt);
 }
 
-/* Frosted footer bar */
+/* Solid footer bar */
 .settings-sticky-footer,
 .import-route-footer {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(229, 231, 235, 0.7);
+  background: var(--card-bg);
+  border-top: 1px solid var(--card-border);
   padding: 1.1rem 4rem;
   display: flex;
   justify-content: center;
@@ -71,7 +65,7 @@
   font-size: 32px;
   line-height: 1;
   cursor: pointer;
-  color: #4b5563;
+  color: var(--muted-alt);
   text-decoration: none;
   transition: transform 0.2s ease, color 0.2s ease;
   display: inline-flex;
@@ -83,39 +77,6 @@
 .settingCloseButton:hover,
 .import-route-close-button:hover,
 #saved-routes-dashboard .closebtn:hover {
-  color: #111827;
+  color: var(--ink-strong);
   transform: scale(1.1);
-}
-
-/* DARK MODE */
-html.dark #settings-panel,
-html.dark #import-route-panel,
-html.dark #saved-routes-dashboard {
-  background: var(--glass-bg);
-}
-
-html.dark .settings-header,
-html.dark .import-route-header,
-html.dark #top-section {
-  background: rgba(31, 41, 55, 0.75);
-  border-bottom-color: #374151;
-}
-
-html.dark .settings-sticky-footer,
-html.dark .import-route-footer {
-  background: rgba(31, 41, 55, 0.75);
-  border-top-color: #374151;
-}
-
-html.dark .settingCloseButton,
-html.dark .import-route-close-button,
-html.dark #saved-routes-dashboard .closebtn {
-  color: #9ca3af;
-}
-
-html.dark .settingCloseButton:hover,
-html.dark .import-route-close-button:hover,
-html.dark #saved-routes-dashboard .closebtn:hover {
-  color: #f3f4f6;
-  background-color: rgba(255, 255, 255, 0.12);
 }

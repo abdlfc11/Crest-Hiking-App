@@ -11,9 +11,9 @@
 */
 
 .settings-header-container {
-  max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 4rem 2rem 4rem;
+  border-bottom: 1px solid var(--card-border);
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
@@ -26,7 +26,7 @@
   margin: 0;
   font-size: 2.2rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--ink-strong);
   letter-spacing: -0.025em;
   line-height: 1.2;
 }
@@ -57,8 +57,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 2.5rem;
-  background-color: #ffffff;
-  border: 1px solid rgba(229, 231, 235, 0.8);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 100px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
 }
@@ -72,36 +72,12 @@
 .settings-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ink-strong);
 }
 
 .settings-description {
   font-size: 0.875rem;
-  color: #4b5563;
-}
-
-.logout-button {
-  background: #111827;
-  color: #ffffff;
-  border: none;
-  border-radius: 9999px;
-  padding: 0.7rem 2.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  letter-spacing: -0.01em;
-}
-
-.logout-button:hover {
-  background: #1f2937;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.logout-button:active {
-  transform: translateY(0);
+  color: var(--muted-alt);
 }
 
 /* DELETE ACCOUNT ROW */
@@ -180,12 +156,12 @@
 /* INPUT TYPES */
 
 .settings-input {
-  background: #ffffff;
-  border: 1px solid rgba(229, 231, 235, 0.9);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 9999px;
   padding: 0.55rem 1.1rem;
   font-size: 0.95rem;
-  color: #111827;
+  color: var(--ink-strong);
   width: fit-content;
   max-width: 100%;
   box-sizing: border-box;
@@ -200,12 +176,12 @@
 }
 
 .settings-select {
-  background: #ffffff;
-  border: 1px solid rgba(229, 231, 235, 0.9);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 9999px;
   padding: 0.55rem 1.1rem;
   font-size: 0.95rem;
-  color: #111827;
+  color: var(--ink-strong);
   min-width: 120px;
   max-width: 100%;
   cursor: pointer;
@@ -229,7 +205,7 @@
 /* Radio Pills */
 .settings-radio-pills {
   display: inline-flex;
-  background: #f3f4f6;
+  background: var(--bg);
   border-radius: 9999px;
   padding: 3px;
   gap: 2px;
@@ -262,6 +238,7 @@
 }
 
 .radio-pill input:checked + span {
+  border: 1px solid var(--card-border);
   background: #ffffff;
   color: #111827;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -338,29 +315,6 @@
 
 /* DARK MODE */
 
-html.dark .settings-header h1 {
-  color: #f3f4f6;
-}
-
-html.dark .settings-input {
-  background: #1f2937;
-  border-color: #374151;
-  color: white;
-}
-
-html.dark .settings-item {
-  background: #1f2937;
-  border-color: #374151;
-}
-
-html.dark .settings-title {
-  color: #f3f4f6;
-}
-
-html.dark .settings-description {
-  color: #9ca3af;
-}
-
 html.dark .settings-radio-pills {
   background: #374151;
 }
@@ -397,13 +351,4 @@ html.dark .cancel-delete-btn {
 
 html.dark .confirm-delete-btn {
   background: #b91c1c;
-}
-
-html.dark .logout-button {
-  background: #374151;
-  color: #f3f4f6;
-}
-
-html.dark .logout-button:hover {
-  background: #4b5563;
 }
