@@ -13,7 +13,8 @@ import {
   formatETA,
   removeDOMElement,
   createStatsPanel,
-  formatElevation
+  formatElevation,
+  isLonLat
 } from "./utils.js";
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 import {
@@ -316,13 +317,26 @@ function validateInputCoords(startPoint, endPoint) {
   }
 
   // This parses the full string into numbers 
-  const startX = parseInt(startParts[0].trim(), 10);
-  const startY = parseInt(startParts[1].trim(), 10);
-  const endX = parseInt(endParts[0].trim(), 10);
-  const endY = parseInt(endParts[1].trim(), 10);
+  const startX = parseFloat(startParts[0].trim());
+  const startY = parseFloat(startParts[1].trim());
+  const endX = parseFloat(endParts[0].trim());
+  const endY = parseFloat(endParts[1].trim());
 
-  const startLonLat = ol.proj.toLonLat([startX, startY]);
-  const endLonLat = ol.proj.toLonLat([endX, endY]);
+  let startLonLat
+  let endLonLat
+
+  // conditional logic to ensure that if values are already in lon lat they are not incorrectly passed into ol.proj.toLonLat()
+  if (isLonLat([startX, startY]) && isLonLat([endX, endY])) {
+    startLonLat = [startX, startY];
+    endLonLat = [endX, endY];
+    
+    console.log('LonLat detected ')
+    console.log(startLonLat)
+  }
+  else {
+    startLonLat = ol.proj.toLonLat([startX, startY]);
+    endLonLat = ol.proj.toLonLat([endX, endY]);
+  }
 
   if ( !isPointInPolygon(startLonLat)) {
     showError("Please enter start coordinates within Cumbria.")
