@@ -85,7 +85,7 @@
   transform: scale(1.05);
 }
 
-#sidenav-login-button-container {
+#sidenav-login-logout-button-container {
   margin-top: auto;
   padding-bottom: 1.5rem;
   flex-shrink: 0;
@@ -95,9 +95,8 @@
   flex-direction: column;
 }
 
-#sidenav-login-button {
+.sidenav-login-logout-button {
   font-size: 1.1rem;
-  
 }
 
 #donate-button {

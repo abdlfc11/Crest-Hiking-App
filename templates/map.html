@@ -407,16 +407,7 @@
 
             <!-- ##### FOOTER (inc. logout button) ##### -->
             <div class="settings-sticky-footer">
-
-                {% if user is none or not user.preferred_name %} 
-
-                {% else %} 
-                    <button
-                    id="settings-logout-button"
-                    class="btn-pill"
-                    >Log out</button>
-                {% endif %}
-
+                <!-- Used to have logout button but this was moved to the sidenav -->
             </div>
         </div>
     </div>
@@ -453,7 +444,7 @@
                             <span>File</span>
                         </label>
 
-                        <label id="url-route-input-pill" class="radio-pill disabled" data-tooltip="URL import is currently disabled. Please use the file upload option.">
+                        <label id="url-route-input-pill" class="radio-pill disabled" data-tooltip="We're currently building URL Import, please use the File Import feature to add your files.">
                             <input id="url-route-input-type" type="radio" name="import-route-method" value="url" disabled>
                             <span>URL</span>
                         </label>
