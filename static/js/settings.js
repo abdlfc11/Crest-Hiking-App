@@ -17,7 +17,7 @@ import {
   getTheme,
 } from "./settingsState.js";
 import { formatDistance } from "./utils.js";
-import { logout, deleteAccount } from "./auth.js";
+import { logout, deleteAccount } from "./auth/auth.js";
 import { applyTheme } from "./ui.js";
 import { hasActiveRouteStatsPanel } from "./routes/routeState.js";
 import { updateSavedRouteCards } from "./routes/savedRoutesDashboard.js";

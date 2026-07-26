@@ -13,6 +13,7 @@ load_dotenv(dotenv_path)
 
 class Config:
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY')
+    JWT_SECRET = os.getenv('JWT_SECRET')
     LOCATIONIQ_API_KEY = os.getenv('LOCATIONIQ_API_KEY')
     DATABASE_URI = os.getenv('DATABASE_URI')
     LOCAL_DATABASE_URI = os.getenv('LOCAL_DATABASE_URI')

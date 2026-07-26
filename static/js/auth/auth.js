@@ -1,4 +1,18 @@
-// Get references to DOM elements
+//#region IMPORTS
+
+import { 
+  validatePassword,
+  validateRegisterInput,
+  userFeedback, 
+  saveToken, 
+  getToken, 
+  clearToken, 
+  authHeaders
+} from "./helpers.js";
+
+//#endregion
+
+//#region VAR / CONST DECLARATIONS
 
 // Login elements
 const loginValidationLabel = document.getElementById("login_validation_label");
@@ -37,82 +51,7 @@ const icons = document.querySelectorAll(".fa-eye");
 // deleting elements
 const deleteAccountButton = document.getElementById("delete-user-button");
 
-// beta code
-const betaCodeEntry = document.getElementById('beta-code-entry');
-const betaValidationLabel = document.getElementById('beta-validation-label');
-const betaButton = document.getElementById('beta-button');
-
-// ###########
-// ADDING EVENT LISTENERS 
-// ###########
-
-// NOTE: conditional checks are necessary to prevent errors on pages where these buttons don't exist
-
-if (logoutButton) {
-  logoutButton.addEventListener("click", logout);
-}
-
-if (loginButton) {
-  loginButton.addEventListener("click", login);
-}
-
-if (switchToRegisterButton) {
-  switchToRegisterButton.addEventListener("click", switchToRegistering);
-}
-
-if (switchToLoginButton) {
-  switchToLoginButton.addEventListener('click', switchToLoginFromRegister)
-}
-
-if (registerButton) {
-  registerButton.addEventListener('click', register)
-}
-
-if (deleteAccountButton) {
-  deleteAccountButton.addEventListener('click', deleteAccount)
-}
-
-if (betaButton) {
-  betaButton.addEventListener('click', validateBetaCode)
-}
-
-if (registerPasswordEntry1) {
-  registerPasswordEntry1.addEventListener("input", validatePassword);
-}
-
-if (registerPasswordEntry2) {
-  registerPasswordEntry2.addEventListener("input", validatePassword);
-}
-
-if (window.location.pathname === "/login-page" || window.location.pathname === "/register") {
-  if (window.location.pathname === "/login-page") {
-    document.addEventListener("keypress", (event) => {
-      if (event.key === 'Enter') {
-        login()
-      }
-    });
-  }
-  else {
-    document.addEventListener("keypress", (event) => {
-      if (event.key === 'Enter') {
-        register()
-      }
-    });
-  }
-};
-
-// ###########
-// HELPER FUNCTIONS
-// ###########
-
-function userFeedback(label, message, isSuccess) {
-  label.textContent = message;
-  label.style.color = isSuccess ? "#0f7a52" : "#ff4d4d";
-  label.style.opacity = "1";
-  setTimeout(() => {
-          label.style.opacity = "0";
-  }, 3000);
-}
+//#endregion
 
 // ###########
 // REGISTERING
@@ -125,25 +64,6 @@ function switchToLoginFromRegister() {
 
 export function switchToRegistering() {
   window.location.href = "/register";
-}
-
-export function validatePassword() {
-    const p1 = registerPasswordEntry1.value;
-    const p2 = registerPasswordEntry2.value;
-
-    // these are the requirements 
-    const lengthValid = p1.length >= 11;
-    const numberValid = /\d/.test(p1);
-    const thereIsSpecialCharacter = specialCharacters.some((word) =>
-      p1.includes(word),
-    );
-    const matchValid = p1 === p2 && p1.length > 0;
-
-    updateRequirement(reqLength, lengthValid);
-    updateRequirement(reqNumber, numberValid);
-    updateRequirement(reqSpecial, thereIsSpecialCharacter);
-    updateRequirement(reqMatch, matchValid);
-
 }
 
 function updateRequirement(element, condition) {
@@ -209,33 +129,6 @@ function clearRegisterEntries() {
   registerPasswordEntry2.value = "";
 }
 
-// validation
-/**
- * 
- * @param {string} username 
- * @param {string} p1 
- * @param {string} p2 
- * @returns 
- */
-function validateRegisterInput(username, p1, p2) {
-  const thereIsSpecialCharacter = specialCharacters.some((word) =>
-    p1.includes(word),
-  );
-
-  if (username === "" || p1 === "" || p2 === "") {
-    return "All entries must be filled";
-  } else if (username.length <= 7) {
-    return "Username must be 8 or more characters";
-  } else if (p1 !== p2) {
-    return "Passwords must be the same";
-  } else if (p1.length <= 11) {
-    return "Passwords must have at least 12 characters";
-  } else if (!thereIsSpecialCharacter) {
-    return "Passwords must contain at least one special character";
-  }
-  return true;
-}
-
 // ###########
 // LOGIN AND LOGOUT
 // ###########
@@ -257,6 +150,7 @@ export function login() {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
+        saveToken(data.access_token)
         loginUsernameEntry.value = "";
         loginPasswordEntry.value = "";
         window.location.href = "/map"
@@ -281,6 +175,7 @@ export function logout() {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
+        clearToken();
         window.location.href = "https://crestr.co.uk";
         settingsModal.classList.remove("active");
       }
@@ -312,6 +207,7 @@ export function deleteAccount(skipConfirm = false) {
   .then((response) => response.json())
   .then((data) => {
     if (data.success) {
+      clearToken();
       window.location.href = 'https://crestr.co.uk'
       userFeedback(loginValidationLabel, data.message, true)
     }
@@ -391,4 +287,57 @@ icons.forEach((icon) => {
   });
 });
 
+// ###########
+// ADDING EVENT LISTENERS 
+// ###########
 
+// NOTE: conditional checks are necessary to prevent errors on pages where these buttons don't exist
+
+if (logoutButton) {
+  logoutButton.addEventListener("click", logout);
+}
+
+if (loginButton) {
+  loginButton.addEventListener("click", login);
+}
+
+if (switchToRegisterButton) {
+  switchToRegisterButton.addEventListener("click", switchToRegistering);
+}
+
+if (switchToLoginButton) {
+  switchToLoginButton.addEventListener('click', switchToLoginFromRegister)
+}
+
+if (registerButton) {
+  registerButton.addEventListener('click', register)
+}
+
+if (deleteAccountButton) {
+  deleteAccountButton.addEventListener('click', deleteAccount)
+}
+
+if (registerPasswordEntry1) {
+  registerPasswordEntry1.addEventListener("input", () => validatePassword(registerPasswordEntry1.value, registerPasswordEntry2.value));
+}
+
+if (registerPasswordEntry2) {
+  registerPasswordEntry2.addEventListener("input", () => validatePassword(registerPasswordEntry1.value, registerPasswordEntry2.value));
+}
+
+if (window.location.pathname === "/login-page" || window.location.pathname === "/register") {
+  if (window.location.pathname === "/login-page") {
+    document.addEventListener("keypress", (event) => {
+      if (event.key === 'Enter') {
+        login()
+      }
+    });
+  }
+  else {
+    document.addEventListener("keypress", (event) => {
+      if (event.key === 'Enter') {
+        register()
+      }
+    });
+  }
+};
