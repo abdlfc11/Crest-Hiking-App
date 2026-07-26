@@ -16,7 +16,9 @@ import {
   formatElevation,
   isLonLat
 } from "./utils.js";
+
 import { calculatePath, addManualPoint } from "./routing/routing.js";
+
 import {
   getMap,
   onMapClick,
@@ -25,19 +27,23 @@ import {
   getPathColour,
   setRouteLayer,
 } from "./map.js";
+
 import {
   loadAndDisplaySavedPoints,
   getSavedPointsLayer,
   saveNewPoint,
 } from "./saved_points/index.js";
+
 import {
   getSavedPointStyle,
   getSelectedPointStyle,
 } from "./saved_points/style.js";
+
 import {
   initSaveRoute,
   loadRoute,
 } from "./routes/index.js";
+
 import {
   getCurrentMode,
   setCurrentMode,
@@ -62,18 +68,34 @@ import {
   calculateElevationGain,
   isPointInPolygon
 } from "./routes/routeState.js";
+
 import {
   initCursorManager,
   updateCursor,
   setCursor,
   forceApplyCursor,
 } from "./cursorManager.js";
+
 import { setOnDistanceUnitChange } from "./settings.js";
+
 import { getTheme } from "./settingsState.js";
+
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
+
 import { createElevationProfile, initChartToggleListener, resetElevationChart, setHoverPointFeature, toggleElevationChart } from "./elevationChart.js";
+
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
-import { createAutomaticRoutingTour, createImportRoutePanelTour, createManualRoutingTour, createSavedRouteDashboardTour, createSavingRoutesTour, createSettingsTour } from "./tours/tours.js";
+
+import { 
+  createAutomaticRoutingTour,
+  createImportRoutePanelTour,
+  createManualRoutingTour,
+  createSavedRouteDashboardTour,
+  createSavingRoutesTour,
+  createSettingsTour
+} from "./tours/tours.js";
+
+import { logout } from "./auth.js";
 
 //#endregion
 
@@ -112,6 +134,8 @@ const startCoordEntry = document.getElementById("start-point-entry");
 const endCoordEntry = document.getElementById("end-point-entry");
 
 const navBar = document.getElementById("the-sidenav");
+const loginNavBarButton = document.getElementById('sidenav-login-button');
+const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
 // automatic mode + manual mode contents i.e mode-specific panels
 const autoModeContent = document.getElementById("auto-mode-content");
@@ -1523,6 +1547,9 @@ export function initUi() {
   addClickListener(importRouteOpenButton, openImportRoute, "click");
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(importRouteCancelButton, cancelRouteImport, "click");
+  addClickListener(loginNavBarButton, () => window.location.href = "https://app.crestr.co.uk/login-page", 'click')
+  addClickListener(logoutNavBarButton, logout, 'click')
+
 
   // These event listeners are for route import.
   addClickListener(importRouteFileInput, validateFileInput, "change");
