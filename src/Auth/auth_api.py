@@ -17,7 +17,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 # Local Modules
 from db import engine
 from models import BetaCode, Point, Route, User
-from extensions import limiter, log_action, get_current_user
+from extensions import limiter, log_action, get_current_user, create_access_token
 
 #endregion
 
@@ -28,28 +28,6 @@ auth_api_bp = Blueprint("auth_api", __name__)
 #endregion
 
 #region FLASK ROUTES
-
-@auth_api_bp.route("/validate-beta-code", methods=['POST'])
-def validate_beta_code():
-    data = request.get_json()
-    code = data.get("beta_code", "").strip()
-
-    if not code:
-        return jsonify({"success": False, "message": "Beta code not received"})
-    
-    with Session(engine) as db:
-        db_code = db.exec(
-            select(BetaCode)
-            .where(BetaCode.code == code)
-        ).first()
-
-        if not db_code:
-            return jsonify({"success": False, "message": "Could not find beta code"})
-    
-    session["beta_code"] = code
-    session.permanent = True
-
-    return jsonify({"success": True, "message": "Beta Code validation was successful"})
         
 @auth_api_bp.route("/login", methods=["POST"])
 @limiter.limit("10 per minute")
@@ -74,8 +52,11 @@ def login():
             print(session["username"])
             print(session["preferred_name"])
             session.permanent = True  # Make session respect PERMANENT_SESSION_LIFETIME
-            return jsonify({"success": True, "message": "Successfully logged in"})
-        if user is None or not check_password_hash(user.password_hashed, password):
+
+            token = create_access_token(username) # this creates the JWT 
+
+            return jsonify({"success": True, "message": "Successfully logged in", "access_token": token})
+        else:
             return jsonify({"success": False, "message": "Username and/or Password are incorrect"})
     except Exception as e:
 

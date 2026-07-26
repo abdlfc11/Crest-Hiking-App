@@ -1,6 +1,7 @@
 import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
 import { showLoginModal } from "../ui.js";
+import { authHeaders } from "../auth/helpers.js";
 
 let savedPointsLayer = null;
 
@@ -46,7 +47,9 @@ function getSavedPoints() {
     
     const url = window.appConfig.apiGetSavedPointsUrl
 
-    return fetch(url)
+    return fetch(url, {
+      headers: authHeaders()
+    })
         .then(r => r.json());
 }
 

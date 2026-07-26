@@ -107,7 +107,7 @@ export function getPathColour() {
 
 async function initApp() {
   initMap();
-  await import("./auth.js");
+  await import("./auth/auth.js");
   const { initSettings } = await import("./settings.js");
   initSettings();
   const { initUi } = await import("./ui.js");
