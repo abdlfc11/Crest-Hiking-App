@@ -1,7 +1,12 @@
 localhost {
-    handle /points/get-saved-points* {
+    handle /points/* {
         reverse_proxy web-fastapi:5001
     }
+
+    handle /api/report-issue {
+        reverse_proxy web-fastapi:5001
+    }
+
     handle {
         reverse_proxy web:5000
     }

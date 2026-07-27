@@ -104,27 +104,40 @@ async function handleSubmission() {
             },
             body: JSON.stringify({ title: title, description: description })
         });
-        
-        if (!response.ok) {
-            showError("There was an unexpected error whilst submitting the issue report.");
-            return;
+
+        // 1. Log response metadata
+        console.log("HTTP Status:", response.status, response.statusText);
+        console.log("Content-Type:", response.headers.get("content-type"));
+
+        // 2. Grab raw text FIRST instead of directly calling response.json()
+        const rawText = await response.text();
+        console.log("Raw Response Text:", rawText);
+
+        // 3. Attempt JSON parse safely
+        let data;
+        try {
+            data = JSON.parse(rawText);
+            console.log("Parsed JSON successfully:", data);
+        } catch (jsonErr) {
+            console.error("Failed to parse JSON. Server returned non-JSON body:", rawText);
+            throw new Error(`Server returned invalid JSON (Status ${response.status}). Check network tab.`);
         }
 
-        const data = await response.json()
-
-        if (!data.success) {
-            showError("There was an unexpected error whilst submitting the issue report.");
-            return;
+        if (!response.ok || !data.success) {
+            console.log(data, response);
+            throw new Error("There was an unexpected error whilst submitting the issue report.");
         }
 
-        showError("Thank You ! The issue was successfully reported", '#53b74c')
+        showError("Thank You ! The issue was successfully reported", '#53b74c');
 
         titleInput.value = '';
         textarea.value = '';
 
     } catch (error) {
-        showError("There was an unexpected error whilst submitting the issue report.");
-    } finally {
+        console.log("Error caught:", error);
+        showError(error.message || "There was an unexpected error whilst submitting the issue report.");
+    }
+    finally {
         // This re-enables the submit button
         submitButton.disabled = false;
     }
