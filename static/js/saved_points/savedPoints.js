@@ -2,7 +2,7 @@ import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
 import { showLoginModal, showDeletePointModal } from "../ui.js";
 import { authHeaders } from "../auth/helpers.js";
-import { showError } from "../utils.js";
+import { showError } from "../utils/ui-utils.js";
 
 let savedPointsLayer = null;
 

@@ -3,7 +3,7 @@ import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
 import { normaliseCoordLength, getCurrentPathData } from './routes/routeState.js';
 import { getRouteLayer } from './map.js';
 import { getTheme, getDistanceUnit } from './settingsState.js';
-import { createManualPointStyle } from './utils.js';
+import { createManualPointStyle } from './utils/style-utils.js';
 
 let elevationChart = null;
 let currentCoordinates = null;

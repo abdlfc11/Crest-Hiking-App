@@ -2,21 +2,32 @@
 
 import {
   roundCoords,
-  createManualPointStyle,
-  formatDistance,
-  calculateTotalDistance,
   calculateEta,
+  calculateTotalDistance,
+  isLonLat
+} from "./utils/routing-utils.js";
+
+import {
+  createManualPointStyle,
+  getRouteStrokeStyle
+} from "./utils/style-utils.js";
+
+import {
+  formatDistance,
+  formatETA,
+  formatElevation
+} from "./utils/format-utils.js";
+
+import {
   moveMapToPosition,
-  getRouteStrokeStyle,
   showError,
   addClickListener,
-  formatETA,
   removeDOMElement,
-  createStatsPanel,
-  formatElevation,
-  isLonLat
-} from "./utils.js";
+  createStatsPanel
+} from "./utils/ui-utils.js";
+
 import { calculatePath, addManualPoint } from "./routing/routing.js";
+
 import {
   getMap,
   onMapClick,
@@ -25,20 +36,24 @@ import {
   getPathColour,
   setRouteLayer,
 } from "./map.js";
+
 import {
   loadAndDisplaySavedPoints,
   getSavedPointsLayer,
   saveNewPoint,
   deleteSavedPoint
 } from "./saved_points/index.js";
+
 import {
   getSavedPointStyle,
   getSelectedPointStyle,
 } from "./saved_points/style.js";
+
 import {
   initSaveRoute,
   loadRoute,
 } from "./routes/index.js";
+
 import {
   getCurrentMode,
   setCurrentMode,
@@ -63,17 +78,23 @@ import {
   calculateElevationGain,
   isPointInPolygon
 } from "./routes/routeState.js";
+
 import {
   initCursorManager,
   updateCursor,
   setCursor,
   forceApplyCursor,
 } from "./cursorManager.js";
+
 import { setOnDistanceUnitChange } from "./settings.js";
 import { getTheme } from "./settingsState.js";
+
 import { displayLoadedRouteOnMap, displayLoadedRouteStats } from "./routes/loadRoute.js";
+
 import { createElevationProfile, initChartToggleListener, resetElevationChart, setHoverPointFeature, toggleElevationChart } from "./elevationChart.js";
+
 import { displayImportedRouteCard, processImportedRouteFile } from "./importRoute.js";
+
 import { createAutomaticRoutingTour, createImportRoutePanelTour, createManualRoutingTour, createSavedRouteDashboardTour, createSavingRoutesTour, createSettingsTour } from "./tours/tours.js";
 
 //#endregion
