@@ -60,7 +60,14 @@ def get_current_user_jwt(authorisation: str | None = Header(default=None, alias=
 
     # this returns an error if no token is found 
     if not authorisation:
-        raise HTTPException(status_code=401, detail="Missing Token")
+        raise HTTPException(
+            status_code=401,
+            detail= {
+                "success": False,
+                "message": "Please login to save points",
+                "error_message": "Missing Token"
+            }
+        )
 
     # this returns an error if the structure of the token is invalid
     if not authorisation.startswith("Bearer "):

@@ -18,8 +18,10 @@ fastapi==0.115.0
 uvicorn[standard]==0.30.6
 python-multipart==0.0.9
 
-# Auth
+# Auth / Rate Limiting
 PyJWT==2.13.0
+fastapi-limiter==0.2.0
+pyrate-limiter==4.4.0
 
 # Utils
 python-dotenv==1.0.1
