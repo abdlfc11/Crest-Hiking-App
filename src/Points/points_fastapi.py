@@ -15,7 +15,7 @@ from sqlmodel import Session, select
 from db import engine
 from extensions import get_current_user_jwt, log_action
 from models import Point, User
-from .schemas import PointSchema
+from .points_schemas import PointSchema
 
 #endregion
 
