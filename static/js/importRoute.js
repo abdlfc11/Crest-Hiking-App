@@ -1,4 +1,19 @@
-import { showError, addClickListener, createRouteCard, calculateEta, formatDistance, formatETA, formatElevation } from "./utils.js";
+
+import {
+    showError,
+    addClickListener,
+    createRouteCard
+} from "./utils/ui-utils.js";
+
+import {
+    calculateEta
+} from "./utils/routing-utils.js";
+
+import {
+    formatDistance,
+    formatETA,
+    formatElevation
+} from "./utils/format-utils.js";
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 

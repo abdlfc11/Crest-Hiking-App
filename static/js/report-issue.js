@@ -1,7 +1,10 @@
 // Report Issue form submission handler
 
 // IMPORTS
-import { showError, addClickListener } from "./utils.js";
+import {
+    showError,
+    addClickListener
+} from "./utils/ui-utils.js";
 
 const titleInput = document.getElementById("issue-title");
 const textarea = document.getElementById("issue-description");

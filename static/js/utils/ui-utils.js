@@ -1,170 +1,52 @@
-import { getAppSettings } from "./settingsState.js";
+/**
+ * This file is intended to hold all UI related helper functions
+ * As of July 2026 this file hold the following functions:
+ *      
+ *      - moveMapToPosition(map, position = null, duration = 1200, zoom = 10.5)
+ *      - showError(message, colour = "#ff4d4f")
+ *      - addClickListener(element, func, type)
+ *      - removeDOMElement(element)
+ *      - createRouteCard(routeName, formattedDate, distanceInKm, ETA, elevDisplayValue)
+ *      - createNoRouteCard()
+ *      - createStatsPanel(distanceDisplay, etaDisplay, elevationGain)
+ */      
+
+
+
+// GENERAL 
 
 /**
+ * Function to move the map to a specific coordinate or the centre of the map via an animation
  * 
- * @param {DOMElement} element 
- * @param {function} func 
- * @param {Event} type 
+ * @param {} map OL map instance 
+ * @param {Array} position The specific coordinate to move the map to, if not entered it defaults to the map centre  
+ * @param {number} duration How long the animation to move the map takes
+ * @param {number} zoom Zoom level used by open layers 
+ * @returns {void}
  */
-export function addClickListener(element, func, type) {
-  if (element) element.addEventListener(type, func);
-}
-
-// function to round coordinates to a given decimal point
-export function roundCoords (coordArray, decimals) {
-
-    const [x, y] = coordArray;
-
-    if (decimals === 0) {
-        return [Math.round(x), Math.round(y)]
-    }
-
-    const multiplier = 10 ** decimals;
-
-    const roundedX = Math.round(x * multiplier) / multiplier;
-    const roundedY = Math.round(y * multiplier) / multiplier;
-
-
-    return [roundedX, roundedY];
-}
-
-
-/**
- * Validates whether the input is a valid WGS84 (lat / lon) coordinate 
- * 
- * @param {LatLonObject | [number, number] | null | undefined} coord - The coordinate data to validate NOTE it is in lon lat format 
- * @returns {boolean} True if the input represents a valid latitude and longitude, false otherwise.
- * 
- * @example
- * isValidCoordinate({ lon: -0.1, lat: 51.5 }); // returns true
- * isValidCoordinate([-0.1, 51.5]);             // returns true
- * isValidCoordinate({ lon: -0.1, lat: 95 });   // returns false (latitude out of bounds)
- */
-export function isLonLat(coordinate) {
-
-  // local variables to store extracted coordinate values
-  let lat;
-  let lon;
-
-  // stores if coordinate is array or not 
-  const isCoordinateArray = Array.isArray(coordinate)
-
-  // this ensures it handles dictionaries (objects)
-  if (coordinate && typeof coordinate === 'object' && !isCoordinateArray) {
-    lat = coordinate.lat ?? coordinate.latitude 
-    lon = coordinate.lon ?? coordinate.lng ?? coordinate.longitude
+export function moveMapToPosition(map, position = null, duration = 1200, zoom = 10.5) {
+  if (!map) {
+    console.warn("No map, returning");
+    return;
   }
 
-  // this ensures it handles arrays 
-  else if (isCoordinateArray && coordinate.length >= 2) {
-    lon = coordinate[0];
-    lat = coordinate[1]
-  }
+  const targetPosition = Array.isArray(position) && position.length === 2
+    ? position
+    : (Array.isArray(window.appConfig?.mapInitialCenter) ? window.appConfig.mapInitialCenter : [-211507, 7118524]);
 
-  // returns false for any other format 
-  else {
-    console.warn('isLonLat(coord) : Pass dictionary/object or array into function "isLonLat". ');
-    return false;
-  };
-
-  // this ensures that both lat and lon variables are numbers and can be used in the conditional checks to ensure they are valid WGS84 coordinates 
-  if (!typeof lat === 'number' || !Number.isFinite(lat)) {
-    console.warn('isLonLat(coord) : variable lat is either not a number or is infinite')
-  }; 
-
-  if (!typeof lon === 'number' || !Number.isFinite(lon)) {
-    console.warn('isLonLat(coord) : variable lon is either not a number or is infinite')
-  }; 
-
-  // this returns true if lat is between -90 and 90 and if lon is between -180 and 180, and returns false otherwise
-  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
-}
-
-// function to set the styling for points that are added in manual routing mode
-export function createManualPointStyle(label, colour, radius=7.5, strokeBorderColor="#FFFFFF") {
-  return new ol.style.Style({
-    image : new ol.style.Circle({
-      radius : radius,
-      fill : new ol.style.Fill({
-        color : colour
-      }),
-      stroke : new ol.style.Stroke({
-        color : strokeBorderColor,
-        width : 3
-      })
-    }),
-    text : label ? new ol.style.Text({
-      text : label,
-      font : "bold 12px sans-serif",
-      fill : new ol.style.Fill({
-        color : "black"
-      }),
-      stroke : new ol.style.Stroke({
-        color : strokeBorderColor,
-        width : 3
-      }),
-      offsetY : -15
-    }) : null
+  map.getView().animate({
+    center: targetPosition,
+    zoom: zoom,
+    duration: duration
   })
-}
+};
 
-export function getRouteStrokeStyle() {
-  return {
-    color: "#2563eb",
-    width: 8,
-    lineCap: "round",
-    lineJoin: "round",
-  }
-}
-
-// formating distance between different units
-export function formatDistance(distanceKm) {
-  const appSettings = getAppSettings(); // retrieves copy of app setting object from settingsState.js 
-  const distanceUnit = appSettings?.distanceUnit;
-
-  if (distanceUnit === "miles") {
-    const distanceMiles = distanceKm * 0.621371; 
-    return `${distanceMiles.toFixed(2)} mi`;
-  }
-  return `${distanceKm.toFixed(2)} km`;
-}
-
-export function calculateTotalDistance(points) {
-  let totalDistance = 0;
-  for (let i = 1; i < points.length; i++) {
-    const previous = ol.proj.toLonLat(points[i - 1]);
-    const current = ol.proj.toLonLat(points[i]);
-    totalDistance += ol.sphere.getDistance(previous, current)
-  }
-  return totalDistance;
-}
-
-export function calculateEta(distanceKm) {
-  const averageHikingSpeed = 4.0;
-  const etaHours = distanceKm / averageHikingSpeed;
-  const etaMinutes = Math.floor(etaHours * 60);
-  const etaHoursInt = Math.floor(etaHours);
-  const etaMinutesRemainder = etaMinutes % 60;
-
-  if (etaHoursInt > 0) {
-    return `${etaHoursInt}h ${etaMinutesRemainder}m`;
-  }
-
-  return `${etaMinutesRemainder}m`;
-}
-
-export function formatETA(seconds) {
-    if (isNaN(seconds)) {
-      seconds = parseFloat(seconds)
-    }
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    if (hours === 0) return `${minutes}m`;
-    return `${hours}h ${minutes}m`;
-}
-
+/**
+ * Function used to show an error popup containing the passed in string 
+ * 
+ * @param {string} message The error message to be shown 
+ * @param {*} colour The colour of the error popup, defaults to red 
+ */
 export function showError(message, colour = "#ff4d4f") {
     const container = document.getElementById("error-toast-container");
 
@@ -191,22 +73,19 @@ export function showError(message, colour = "#ff4d4f") {
     }, 3000);
 }
 
-export function moveMapToPosition(map, position = null, duration = 1200, zoom = 10.5) {
-  if (!map) {
-    console.warn("No map, returning");
-    return;
-  }
+// DOM RELATED 
 
-  const targetPosition = Array.isArray(position) && position.length === 2
-    ? position
-    : (Array.isArray(window.appConfig?.mapInitialCenter) ? window.appConfig.mapInitialCenter : [-211507, 7118524]);
-
-  map.getView().animate({
-    center: targetPosition,
-    zoom: zoom,
-    duration: duration
-  })
-};
+/**
+ * 
+ * Used to quickly add an event listener to skip the if statement 
+ * 
+ * @param {DOMElement} element 
+ * @param {function} func 
+ * @param {Event} type 
+ */
+export function addClickListener(element, func, type) {
+  if (element) element.addEventListener(type, func);
+}
 
 /**
  * Removes the passed in DOM element
@@ -225,17 +104,8 @@ export function removeDOMElement(element) {
   }
 }
 
-/**
- * 
- * @param {string|number} elevationChange usually this is a string such as "938.0" or "-329.0" however the possibility of an int / float being passed is accounted for
- * @returns {string} this is a string which has been formated to add a + or leave the string unchanged if it is negative 
- */
-export function formatElevation(elevation) {
-  const elevNum = Math.round(Number(elevation))
-  const elevDisplayValue = isNaN(elevNum) ? "0m" : (elevNum >= 0 ? `+${elevNum} m` : `${elevNum} m`)
 
-  return elevDisplayValue
-}
+// ROUTE CARDS 
 
 /**
  * Generates the HTML string for a saved route card displayed in the UI.
@@ -300,6 +170,11 @@ export function createNoRouteCard() {
           </div>`
 }
 
+/**
+ * This returns a stats panel showing key details of the currently-displayed route 
+ * 
+ * @returns {string} HTML string for the stats panel showing key route details 
+ */
 export function createStatsPanel(distanceDisplay, etaDisplay, elevationGain) {
   return `
       <div class="stats-header">

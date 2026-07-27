@@ -4,11 +4,21 @@
  */
 
 import { deleteRoute, downloadRoute, loadRoute } from "./routeApi.js";
+
 import { closeNav, closeSavedRoutesDash,  } from "../ui.js"
+
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
+
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
+
 import { createElevationProfile, initChartToggleListener } from "../elevationChart.js";
-import {addClickListener, createNoRouteCard, formatDistance} from "../utils.js"
+
+import {
+  addClickListener,
+  createNoRouteCard
+} from "../utils/ui-utils.js"
+
+import { formatDistance } from "../utils/format-utils.js";
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 

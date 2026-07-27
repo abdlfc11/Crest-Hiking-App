@@ -1,4 +1,6 @@
-import { getRouteStrokeStyle } from "./utils.js";
+import {
+  getRouteStrokeStyle
+} from "./utils/style-utils.js"
 
 export let map = null;
 export let tileLayer = null;

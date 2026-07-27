@@ -6,7 +6,10 @@ import { manualRouteState,
   cumbriaBoundary,
   isPointInPolygon
 } from "../routes/routeState.js";
-import { showError } from "../utils.js";
+
+import {
+  showError
+} from "../utils/ui-utils.js"
 
 export async function calculatePath(startPoint, endPoint) {
   const url = window.appConfig.apiCalculatePathUrl;

@@ -1,4 +1,5 @@
-import { getCurrentMode, 
+import {
+  getCurrentMode, 
   getCurrentPathData, 
   getLastKnownDistanceKm, 
   getLoadedRouteCoordinates, 
@@ -10,10 +11,29 @@ import { getCurrentMode,
   setCurrentPathData, 
   normaliseCoordLength
  } from "./routeState.js";
-import { defaultCentre, homeButtonFunction, updateSaveRouteContainer, showLoginModal } from "../ui.js";
+
+import {
+  defaultCentre,
+  homeButtonFunction,
+  updateSaveRouteContainer,
+  showLoginModal
+} from "../ui.js";
+
 import { getMap } from "../map.js";
+
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
-import { createRouteCard, formatDistance, formatElevation, formatETA, removeDOMElement, showError } from "../utils.js";
+
+import {
+  createRouteCard,
+  removeDOMElement,
+  showError
+} from "../utils/ui-utils.js"
+
+import {
+  formatDistance,
+  formatElevation,
+  formatETA
+} from "../utils/format-utils.js"
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
