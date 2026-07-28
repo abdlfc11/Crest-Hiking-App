@@ -13,7 +13,7 @@ config = context.config
 
 from src.config import Config
 
-config.set_main_option("sqlalchemy.url", Config.DATABASE_URI) 
+config.set_main_option("sqlalchemy.url", Config.LOCAL_DATABASE_URI) 
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -25,7 +25,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-from src.models import User, Route, Point, Settings, BetaCode, ActionLog, Issues
+from src.models import User, Route, Point, Settings, ActionLog, Issues, SessionTable
 
 target_metadata = SQLModel.metadata
 
