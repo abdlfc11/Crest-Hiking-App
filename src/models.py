@@ -2,7 +2,7 @@
 
 # IMPORTS
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Text, Column, func
+from sqlalchemy import Text, Column, func, DateTime
 from datetime import timezone, datetime
 from typing import Optional, List
 from sqlalchemy.dialects.postgresql import TIMESTAMP
@@ -22,12 +22,15 @@ class User(SQLModel, table=True):
     username: str = Field(max_length=25, index=True, unique=True, nullable=False)
     preferred_name: Optional[str] = Field(max_length=30, default=None)
     password_hashed: str = Field(max_length=200, nullable=False)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    ) 
 
     # relationships 
     routes: List["Route"] = Relationship(back_populates="user")
     points: List["Point"] = Relationship(back_populates="user")
     settings: List["Settings"] = Relationship(back_populates="user")
+    session_table: List["SessionTable"] = Relationship(back_populates="user")
 
 # ROUTE TABLE
 class Route(SQLModel, table=True):
@@ -38,7 +41,9 @@ class Route(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=100, nullable=False)
     coordinates: str = Field(sa_column=Column(Text, nullable=False))
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    ) 
     eta_seconds: int = Field(nullable=False)
     distance_km: Optional[float] = Field(default=None)
     elevation_change: str = Field(max_length=30, nullable=False)
@@ -61,7 +66,9 @@ class Point(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=50, nullable=False)
     coordinates: str = Field(max_length=1000, nullable=False)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    ) 
 
     # relationships
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
@@ -86,17 +93,6 @@ class Settings(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     user: Optional[User] = Relationship(back_populates="settings")
 
-# BETA CODE TABLE
-class BetaCode(SQLModel, table=True):
-    
-    #name
-    __tablename__ = "betacode"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    code: str = Field(unique=True, index=True, nullable=False)
-    used: bool = Field(nullable=False, default=False)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
 # ERROR LOGGING TABLE
 class ActionLog(SQLModel, table=True):
     __tablename__ = "action_log"
@@ -114,12 +110,8 @@ class ActionLog(SQLModel, table=True):
     error_code: Optional[str] = Field(default=None, nullable=True, max_length=50) # for easy identification 
     
     created_at: datetime = Field(
-        sa_column=Column(
-            TIMESTAMP,
-            nullable=False,
-            server_default=func.now()
-        )
-    )
+        sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    )       
 
 # ISSUE REPORT TABLE
 class Issues(SQLModel, table=True):
@@ -128,5 +120,21 @@ class Issues(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(nullable=False, max_length=100)
     description: str = Field(nullable=False, max_length=1000)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    ) 
 
+# SESSIONS TABLE (used for auth)
+class SessionTable(SQLModel, table=True):
+    __tablename__ = "session_table"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    session_id: str = Field(unique=True, index=True, nullable=False)
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    ) 
+    expires_at: datetime = Field(nullable=False)
+
+    # relationships
+    user_id: int = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    user: Optional[User] = Relationship(back_populates="session_table")
