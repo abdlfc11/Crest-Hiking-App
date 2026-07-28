@@ -9,5 +9,9 @@ engine = create_engine(
 )
 
 def get_session():
+    """
+    FastAPI dependency generator that yields an active database session 
+    and handles automatic cleanup after request execution.
+    """
     with Session(engine) as session:
         yield session
