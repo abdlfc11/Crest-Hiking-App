@@ -117,11 +117,12 @@ export function removeDOMElement(element) {
  * @param {string} routeName: The display name of the route.
  * @param {string} formattedDate: Human-readable date string (e.g. "Saved on 15 June 2026").
  * @param {number} distanceInKm: Route length in kilometers. Used both for the data attribute and for formatting.
+ * @param {string} formattedDistance: String showing formatted distance 
  * @param {string} ETA: Formatted estimated time to complete the route.
  * @param {string} elevDisplayValue: Pre-formatted elevation change string for display.
  * @returns {string} HTML string for the complete route card.
  */
-export function createRouteCard(routeName, formattedDate, distanceInKm, ETA, elevDisplayValue) {
+export function createRouteCard(routeName, formattedDate, distanceInKm, formattedDistance, ETA, elevDisplayValue) {
   return `<div class="route-card" data-route-name="${routeName}">
                               <div class="route-card-header">
                                   <h3 class="route-card-name">${routeName}</h3>
@@ -130,7 +131,7 @@ export function createRouteCard(routeName, formattedDate, distanceInKm, ETA, ele
                               <div class="route-card-stats">
                                   <div class="stat-item">
                                       <span class="stat-label">Distance:</span>
-                                      <span class="stat-value" data-distance-km="${distanceInKm}">${formatDistance(distanceInKm)}</span>
+                                      <span class="stat-value" data-distance-km="${distanceInKm}">${formattedDistance}</span>
                                   </div>
                                   <div class="stat-item">
                                       <span class="stat-label">ETA:</span>
