@@ -1,13 +1,10 @@
 //#region IMPORTS
 
+import { showError } from "../utils/ui-utils.js";
 import { 
   validatePassword,
   validateRegisterInput,
-  userFeedback, 
-  saveToken, 
-  getToken, 
-  clearToken, 
-  authHeaders
+  userFeedback 
 } from "./helpers.js";
 
 //#endregion
@@ -134,23 +131,47 @@ function clearRegisterEntries() {
 // ###########
 
 // Function to handle user login
-export function login() {
+export async function login() {
 
   const username = loginUsernameEntry.value;
   const password = loginPasswordEntry.value;
   loginValidationLabel.style.color = "#ff4d4d";
 
-  fetch(apiLoginUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username: username, password: password }),
-  })
+  try { 
+
+    const response = await fetch(apiLoginUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username: username, password: password }),
+    })
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      userFeedback(loginValidationLabel, data.message, false);
+      return;
+    };
+
+    if (data.success) {
+      loginUsernameEntry.value = "";
+      loginPasswordEntry.value = "";
+      window.location.href = "/map"
+    } else {
+      userFeedback(loginValidationLabel, data.message, false);
+    }
+  } 
+  catch(error) {
+    console.error("ERROR: ", error);
+    showError(error.message || "Sorry, there was an unexpected error whilst logging in, try again later.")
+  }
+
+}
+  /**
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        saveToken(data.access_token)
         loginUsernameEntry.value = "";
         loginPasswordEntry.value = "";
         window.location.href = "/map"
@@ -160,8 +181,9 @@ export function login() {
     })
     .catch((error) => {
       console.error("Error", error);
+      showError(error.message || "Sorry, there was an unexpected error whilst logging in, try again later.")
     });
-} 
+} */
 
 // Function to handle user logging out
 export function logout() {
@@ -175,7 +197,6 @@ export function logout() {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        clearToken();
         window.location.href = "https://crestr.co.uk";
         settingsModal.classList.remove("active");
       }
@@ -207,7 +228,6 @@ export function deleteAccount(skipConfirm = false) {
   .then((response) => response.json())
   .then((data) => {
     if (data.success) {
-      clearToken();
       window.location.href = 'https://crestr.co.uk'
       userFeedback(loginValidationLabel, data.message, true)
     }
