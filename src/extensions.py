@@ -7,14 +7,9 @@ from datetime import datetime, timedelta, timezone
 from sys import stderr
 from typing import Any, Optional
 
-import jwt
-
 
 # Third Party Libraries
 from fastapi import Header, HTTPException, Depends, Cookie
-from flask import session
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from sqlmodel import Session, select
 
 # Local Files 
@@ -25,24 +20,14 @@ from src.Pathfinding.Nodefinder import NodeFinder
 
 #endregion
 
-# Initialises the limiter 
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "500 per hour"],
-    storage_uri="memory://",
-)
-
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
 
-def get_current_user(
-    session_id: Optional[str] = Cookie(default=None),
-    db: Session = Depends(get_session),
+def get_user_from_session_id(
+    session_id: Optional[str],
+    db: Session,
 ) -> Optional[User]:
     """
-    Silently returns the User if a valid session cookie exists,
-    otherwise returns None. 
-    
-    Never raises.
+    returns the user with corresponding to the session ID 
     """
     if not session_id:
         return None
@@ -62,6 +47,17 @@ def get_current_user(
     ).first()
 
     return user
+
+
+def get_current_user(
+    session_id: Optional[str] = Cookie(default=None),
+    db: Session = Depends(get_session),
+) -> Optional[User]:
+    """
+    Silently returns the User if a valid session cookie exists,
+    otherwise returns None. Never raises.
+    """
+    return get_user_from_session_id(session_id, db)
 
 
 def log_action(
