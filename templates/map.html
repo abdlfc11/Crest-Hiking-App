@@ -550,11 +550,11 @@
             mapInitialZoom: {{ map_zoom | default(10) }},
             initialCurrentPath: {% if current_path %}{{ current_path | tojson }}{% else %}null{% endif %},
             initialSavedPointsLookup: {
-            {% if saved_points %}
-                {% for point in saved_points %}
-                "{{ point.name }}": "{{ point.coordinates[0] }}, {{ point.coordinates[1] }}",
-                {% endfor %}
-            {% endif %}
+                {% if saved_points %}
+                    {% for point in saved_points %}
+                    "{{ point.name }}": "{{ point.coordinates[0] }}, {{ point.coordinates[1] }}",
+                    {% endfor %}
+                {% endif %}
             },
             apiLoginUrl: "/auth/login",
             apiLogoutUrl: "/auth/logout",
@@ -569,10 +569,11 @@
             apiSaveRouteUrl: "/routing/save-route",
             apiLoadRouteUrl: "/routing/load-route",
             mapPageUrl: "/map",
-            apiDownloadRouteFileUrl: "/routing/download-route-file",
+            apiDownloadRouteFileUrl: "/routing/download-route",
             apiSaveSettings: "/settings/save-settings",
             apiGetSettings: "/settings/get-settings",
-            apiImportRoute: "/routing/import-route"
+            apiImportRouteUrl: "/routing/import-route-file",
+            apiLogErrorUrl: '/api/log-error'
         };
     </script>
 
