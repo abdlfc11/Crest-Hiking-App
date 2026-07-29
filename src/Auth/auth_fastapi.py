@@ -15,7 +15,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 # Local Modules
 from src.db import get_session
 from src.models import Point, Route, User, SessionTable, Settings
-from src.extensions import limiter, log_action, get_current_user
+from src.extensions import log_action, get_current_user
 from src.Auth.auth_schemas import LoginUser, RegisterUser
 from src.constants import SPECIAL_CHARACTERS
 
