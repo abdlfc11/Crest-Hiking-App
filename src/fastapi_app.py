@@ -25,6 +25,7 @@ from src.Report_Issue.report_issue_fastapi import router as report_issue_router
 from src.Auth.auth_fastapi import router as auth_router
 from src.Settings.setings_fastapi import router as settings_router
 from src.Routes.routes_fastapi import router as routes_router
+from src.Error_Logging.error_logging import router as error_logging_router
 
 #endregion
 
@@ -50,6 +51,7 @@ app.include_router(report_issue_router)
 app.include_router(auth_router)
 app.include_router(settings_router)
 app.include_router(routes_router)
+app.include_router(error_logging_router)
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
