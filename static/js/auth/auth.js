@@ -4,7 +4,8 @@ import { showError } from "../utils/ui-utils.js";
 import { 
   validatePassword,
   validateRegisterInput,
-  userFeedback 
+  clearRegisterEntries,
+  userFeedback
 } from "./helpers.js";
 
 //#endregion
@@ -29,18 +30,6 @@ const registerPasswordEntry1 = document.getElementById("register-password-entry1
 const registerPasswordEntry2 = document.getElementById("register-password-entry2");
 const registerUsernameEntry = document.getElementById("register-username-entry");
 const registerPreferredNameEntry = document.getElementById("register-preferred-name-entry");
-const reqLength = document.getElementById("req-length");
-const reqNumber = document.getElementById("req-number");
-const reqSpecial = document.getElementById("req-special");
-const reqMatch = document.getElementById("req-match");
-const specialCharacters = [
-  "@", "#", "$", "%", "^",
-  "&", "*", "(", ")", "_",
-  "+", "-", "=", "[", "]",
-  "{", "}", "|", ";", ":",
-  ",", ".", "<", ">", "?",
-  "/",
-];
 
 // icon elements
 const icons = document.querySelectorAll(".fa-eye");
@@ -63,18 +52,8 @@ export function switchToRegistering() {
   window.location.href = "/register";
 }
 
-function updateRequirement(element, condition) {
-    element.classList.remove("valid", "invalid");
 
-    if (condition) {
-        element.classList.add("valid");
-    } else {
-        element.classList.add("invalid");
-    }
-}
-
-
-function register() {
+async function register() {
   const username = registerUsernameEntry.value;
   const password1 = registerPasswordEntry1.value;
   const password2 = registerPasswordEntry2.value;
@@ -89,42 +68,45 @@ function register() {
       registerValidationLabel.style.opacity = "0";
     }, 3000);
     return;
-  }
+  };
 
-  fetch(apiRegisterUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      preferred_name: preferredName,
-      username: username,
-      password1: password1,
-      password2: password2,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        clearRegisterEntries()
-        window.location.href = 'https://crestr.co.uk'
-        userFeedback(loginValidationLabel, data.message, true)
-      } else {
-        userFeedback(registerValidationLabel, data.message, false)
-      }
-    })
-    .catch((error) => {
-      console.error("Error", error);
+  try { 
+
+    console.log("ENTERING FETCH")
+
+    const response = await fetch(apiRegisterUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        preferred_name: preferredName,
+        username: username,
+        password1: password1,
+        password2: password2,
+      }),
     });
-}
 
-// helper
+    const data = await response.json();
 
-function clearRegisterEntries() {
-  registerUsernameEntry.value = "";
-  registerPasswordEntry1.value = "";
-  registerPasswordEntry2.value = "";
-}
+    if (!response.ok) {
+      userFeedback(registerValidationLabel, data.message, false);
+      return;
+    };
+
+    if (data.success) {
+      clearRegisterEntries();
+      window.location.href = 'https://crestr.co.uk';
+      userFeedback(loginValidationLabel, data.message, true);
+    } else {
+      userFeedback(registerValidationLabel, data.message, false);
+    }
+} catch (error) {
+    console.log(`ERROR: ${error}`);
+    userFeedback(registerValidationLabel, error.message, false);
+};
+
+};
 
 // ###########
 // LOGIN AND LOGOUT
@@ -168,22 +150,6 @@ export async function login() {
   }
 
 }
-  /**
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        loginUsernameEntry.value = "";
-        loginPasswordEntry.value = "";
-        window.location.href = "/map"
-      } else {
-        userFeedback(loginValidationLabel, data.message, false);
-      }
-    })
-    .catch((error) => {
-      console.error("Error", error);
-      showError(error.message || "Sorry, there was an unexpected error whilst logging in, try again later.")
-    });
-} */
 
 // Function to handle user logging out
 export function logout() {
@@ -207,7 +173,7 @@ export function logout() {
 // DELETING ACCOUNT
 // ###########
 
-export function deleteAccount(skipConfirm = false) {
+export async function deleteAccount(skipConfirm = false) {
 
   const userConfirmation = skipConfirm || confirm("Are you sure you want to delete your account ? ") // ensures the user is sure they want to delete 
 
@@ -216,25 +182,38 @@ export function deleteAccount(skipConfirm = false) {
     return;
   }
 
+  // else, carry on with the deletion process
+
   const url = window.appConfig.apiDeleteAccountUrl
 
-  // else, carry on with the deletion process
-  fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then((response) => response.json())
-  .then((data) => {
-    if (data.success) {
-      window.location.href = 'https://crestr.co.uk'
-      userFeedback(loginValidationLabel, data.message, true)
-    }
-  })
-  .catch((error) => {
-    console.error("Error", error);
-  });
+  try { 
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      showError("There was an unexpected error whilst deleting your account.")
+      return;
+    };
+
+    if (!data.success) {
+      showError("There was an unexpected error whilst deleting your account.")
+      return;
+    };
+
+    // redirect back to landing page if deletion successfull
+    window.location.href = 'https://crestr.co.uk'
+  } catch(error) {
+    console.log(`ERROR : ${error.message}`)
+    showError("There was an unexpected error whilst deleting your account.")
+    return;
+  };
 }
 
 // ###########
