@@ -1,3 +1,5 @@
+#region IMPORTS 
+
 # Core Library Imports
 import os
 from pathlib import Path
@@ -12,15 +14,20 @@ import traceback
 from sqlmodel import Session, select
 
 # Local Module Imports
-from extensions import service, get_current_user, log_action
+from src.extensions import service, get_current_user, log_action
 from src.constants import DEFAULT_CENTRE, DEFAULT_ZOOM
 from src.models import User, Route, Settings, Point
 from src.config import Config
-from src.db import get_session
+from src.db import get_session, engine # get_session used for fastapi routes and engine used for short-lived Session instances in JINJA templates 
 
 from src.Points.points_fastapi import router as points_router
 from src.Report_Issue.report_issue_fastapi import router as report_issue_router
 from src.Auth.auth_fastapi import router as auth_router
+from src.Settings.setings_fastapi import router as settings_router
+
+#endregion
+
+#region INITIALISATION
 
 # Absolute paths to make the correct path for static and template files 
 BASE_DIR = Path(__file__).resolve().parent.parent   # project root
@@ -40,12 +47,19 @@ app.mount(
 app.include_router(points_router)
 app.include_router(report_issue_router)
 app.include_router(auth_router)
+app.include_router(settings_router)
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-def format_distance(distance_km, db: Session = Depends(get_session)):
-    try:
-        with Session(engine) as db:
+#endregion
+
+#region JINJA TEMPLATES 
+
+def format_distance(
+    distance_km,
+):
+    with Session(engine) as db:
+        try:
             distance_unit = db.exec(
                 select(Settings.value).where(Settings.key == "distanceUnit")
             ).first()
@@ -53,8 +67,8 @@ def format_distance(distance_km, db: Session = Depends(get_session)):
                 return f"{round(distance_km, 2)} km"
             elif distance_unit == "miles":
                 return f"{round(distance_km * 0.621371, 2)} mi"
-    except Exception as e:
-        log_action('Template filter for distance unit', False, e, None, 'TEMPLATE_FILTER: DISTANCE UNIT')
+        except Exception as e:
+            log_action('Template filter for distance unit', False, e, None, 'TEMPLATE_FILTER: DISTANCE UNIT')
 
 def format_elevation(elevation_gain):
     if not isinstance(elevation_gain, int) or isinstance(elevation_gain, float):
@@ -75,6 +89,8 @@ templates.env.filters["format_distance"] = format_distance
 templates.env.filters["format_elevation"] = format_elevation
 templates.env.filters["format_eta"] = format_eta
 templates.env.filters["strftime"] = strftime_filter
+
+#endregion
 
 # Error handling ( only returns templates of error pages that exist )
 
