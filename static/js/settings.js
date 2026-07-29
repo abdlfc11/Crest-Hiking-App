@@ -182,9 +182,7 @@ function initAccountManagementButtons() {
   // Logout button 
   const logoutBtn = document.getElementById("settings-logout-button");
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      logout();
-    });
+    logoutBtn.addEventListener("click", logout );
   }
 
   // Delete account 
