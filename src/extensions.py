@@ -11,7 +11,7 @@ import jwt
 
 
 # Third Party Libraries
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Depends, Cookie
 from flask import session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -19,8 +19,8 @@ from sqlmodel import Session, select
 
 # Local Files 
 from config import Config
-from db import engine
-from models import ActionLog, User
+from db import get_session, engine
+from src.models import ActionLog, User, SessionTable
 from src.Pathfinding.Nodefinder import NodeFinder
 
 #endregion
@@ -34,112 +34,42 @@ limiter = Limiter(
 
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
 
-def get_current_user_jwt(authorisation: str | None = Header(default=None, alias="Authorization")) -> User | None:
+def get_current_user(
+    session_id: Optional[str] = Cookie(default=None),
+    db: Session = Depends(get_session),
+) -> Optional[User]:
     """
-    Extracts, validates, and decodes a JWT from the HTTP Authorization header, 
-    then retrieves the corresponding user from the database.
-
-    Args:
-        authorisation (str | None): The raw Authorization header value (e.g., 'Bearer <token>').
-
-    Returns:
-        User | None: The User model instance corresponding to the 'sub' claim in the JWT, 
-        or None if no matching user is found.
-
-    Raises:
-        HTTPException: 
-            - 401 "Missing Token" if the header is absent.
-            - 401 "Invalid auth scheme" if the header does not start with 'Bearer '.
-            - 401 "Token Expired" if the token has passed its expiration time.
-            - 401 "Invalid Token" if the token signature or structure is invalid.
-
-    Examples:
-        >>> get_current_user_jwt("Bearer eyJhbGciOiJIUzI1Ni...")
-        <User id=1 username='johndoe'>
+    Silently returns the User if a valid session cookie exists,
+    otherwise returns None. 
+    
+    Never raises.
     """
-
-    # this returns an error if no token is found 
-    if not authorisation:
-        raise HTTPException(
-            status_code=401,
-            detail= {
-                "success": False,
-                "message": "Please login to save points",
-                "error_message": "Missing Token"
-            }
-        )
-
-    # this returns an error if the structure of the token is invalid
-    if not authorisation.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid auth scheme")
-
-    # this retrieves the actual token (as the first 7 chars are 'Bearer ')
-    token = authorisation[7:]
-
-    try:
-        payload = jwt.decode(token, Config.JWT_SECRET, algorithms="HS256")
-        
-        # this returns the username 
-        username = payload['sub']
-
-        with Session(engine) as db:
-            return db.exec(select(User).where(User.username == username)).first()
-    except jwt.ExpiredSignatureError as e:
-        raise HTTPException(status_code=401, detail=f"Token Expired: {e}")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid Token: {e}")
-
-def create_access_token(username: str) -> str | bool:
-    """
-    Generates a JWT access token for a given user that expires in 24 hours
-
-    Args:
-        username (str): The unique identifier of the user to encode in the token.
-
-    Returns:
-        str: The encoded JWT string if successful.
-        bool: False if the username is empty or falsy.
-
-    Examples:
-        >>> create_access_token("johndoe")
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-        >>> create_access_token("")
-        False
-    """
-    if not username:
-        return False
-
-    payload = {
-        "sub": username,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=24)
-    }
-
-    return jwt.encode(payload, Config.JWT_SECRET, algorithm="HS256")
-
-def get_current_user():
-    """
-    Retrieves the currently logged-in user from the database based on the session data.
-
-    Checks the active Flask session for a 'username'. If present, it queries the database to find and return the matching User record.
-
-    Returns:
-        Optional[User]: The User model instance if found; None if no session exists or the user is not found in the database.
-    """
-
-    username = session.get("username")
-    print(username)
-    if not username:
-        print("no username detected")
+    if not session_id:
         return None
-    with Session(engine) as db:
-        return db.exec(select(User).where(User.username == username)).first()
+
+    session = db.exec(
+        select(SessionTable).where(
+            SessionTable.session_id == session_id,
+            SessionTable.expires_at > datetime.now(timezone.utc),
+        )
+    ).first()
+
+    if session is None:
+        return None
+
+    user = db.exec(
+        select(User).where(User.id == session.user_id)
+    ).first()
+
+    return user
+
 
 def log_action(
     action: str, 
     outcome: bool, 
     info: Optional[Any] = None, 
     duration_ms: Optional[int] = None,
-    code: Optional[str] = None
+    code: Optional[str] = None,
 ) -> None:
     """
     Records an application event or metric into the central ActionLog table.
@@ -148,7 +78,8 @@ def log_action(
     to guarantee that transaction failures in the main application flow do 
     not disrupt or prevent the creation of the event log. 
 
-    Args:
+    Parameters:
+    
         - action (str): The name of the event or endpoint (e.g., 'pathfind_request').
 
         - outcome (bool): True if the operation succeeded, False if it failed.
@@ -168,8 +99,8 @@ def log_action(
         None
 
     Raises:
-        Does not propagate exceptions. Internal failures (e.g., complete database 
-        unreachability) are caught silently and dumped safely to system standard error logs.
+        Does not raise any exceptions 
+        Internal failures (e.g., complete database unreachability) are caught silently and dumped safely to system standard error logs.
     """
     with Session(engine) as log_db:
         try:
