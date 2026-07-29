@@ -18,8 +18,8 @@ from flask_limiter.util import get_remote_address
 from sqlmodel import Session, select
 
 # Local Files 
-from config import Config
-from db import get_session, engine
+from src.config import Config
+from src.db import get_session, engine
 from src.models import ActionLog, User, SessionTable
 from src.Pathfinding.Nodefinder import NodeFinder
 

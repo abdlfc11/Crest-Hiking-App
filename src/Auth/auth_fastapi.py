@@ -14,9 +14,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 # Local Modules
 from src.db import get_session
-from src.models import Point, Route, User, SessionTable
+from src.models import Point, Route, User, SessionTable, Settings
 from src.extensions import limiter, log_action, get_current_user
-from src.Auth.auth_schemas import LoginUser, RegisterUser, DeleteUser, LogoutUser
+from src.Auth.auth_schemas import LoginUser, RegisterUser
 from src.constants import SPECIAL_CHARACTERS
 
 #endregion
@@ -152,7 +152,7 @@ def logout(
 #region REGISTER ACCOUNT
 
 @router.post(
-    'auth/register',
+    '/auth/register',
     dependencies=[Depends(RateLimiter(limiter=Limiter(Rate(10, Duration.MINUTE * 1))))] # 10 per minute 
 )
 def register(
@@ -225,7 +225,14 @@ def register(
 
 
         if existing_user:
-            return jsonify({"success": False, "message": "Someone has already chosen this username"})
+        
+            raise HTTPException(
+                status_code=409,          # or 400/422, your choice
+                detail={
+                    "success": False,
+                    "message": "Someone has already chosen this username"
+                }
+            )
         
         new_user = User(
             username = username,
@@ -264,11 +271,10 @@ def register(
 #region DELETE ACCOUNT
 
 @router.post(
-    'auth/delete-account',
+    '/auth/delete-account',
     dependencies=[Depends(RateLimiter(limiter=Limiter(Rate(10, Duration.MINUTE * 1))))] # 10 per minute
 )
 def delete_account(
-    data: DeleteUser,
     response: Response,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_session),
@@ -296,8 +302,17 @@ def delete_account(
             .where(Point.user_id == user.id)
         )
 
-        db.delete(user)
+        db.exec(
+            delete(SessionTable)
+            .where(SessionTable.user_id == user.id)
+        )
 
+        db.exec(
+            delete(Settings)
+            .where(Settings.user_id == user.id)
+        ) 
+
+        db.exec(delete(User).where(User.id == user.id)) 
         db.commit()
 
         response.delete_cookie(
