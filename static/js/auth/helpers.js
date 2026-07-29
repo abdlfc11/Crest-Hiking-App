@@ -1,50 +1,31 @@
+const specialCharacters = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "[", "]", "{", "}", "|", ";", ":", ",", ".", "<", ">", "?", "/"]
+const reqLength = document.getElementById("req-length");
+const reqNumber = document.getElementById("req-number");
+const reqSpecial = document.getElementById("req-special");
+const reqMatch = document.getElementById("req-match");
 
-//#region JWTs 
+//#region Registering Specific 
 
-const TOKEN_KEY = "access_token";
+function updateRequirement(element, condition) {
+    element.classList.remove("valid", "invalid");
 
-/**
- * Saves a JWT retrieved from the backend
- * @param {string} token 
- */
-export function saveToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
-};
+    if (condition) {
+        element.classList.add("valid");
+    } else {
+        element.classList.add("invalid");
+    }
+}
 
-/**
- * Retrieves a currently saved JWT
- */
-export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
-};
-
-/**
- * Removes the currently stored JWT
- */
-export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY);
-};
-
-/**
- * Used to identify if a user is currently logged in or not 
- * @returns {boolean} True if a user is logged in but false otherwise 
- */
-export function isLoggedIn() {
-    return !!getToken();
-};
-
-/**
- * Creates the JWT authorisation string to be used in a header
- * @returns {string} The authorisation (JWT) string to be used in the header
- */
-export function authHeaders() {
-    const token = getToken();
-    return token ? { "Authorization": `Bearer ${token}` } : {};
-};
+export function clearRegisterEntries() {
+  registerUsernameEntry.value = "";
+  registerPasswordEntry1.value = "";
+  registerPasswordEntry2.value = "";
+}
 
 //#endregion
 
-//# region Validation 
+//#region Validation 
+
 export function validatePassword(p1, p2) {
 
     // these are the requirements 

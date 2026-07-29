@@ -1035,20 +1035,24 @@ async function handleAutoRouteGeneration(start=null, end=null) {
 
   try {
     const response = await calculatePath(startPoint, endPoint); // response.coordinates may return coordinates whereby each element has 3 values (x, y and elevation)
+
     const routeStats = displayPath(response);
+
     routeStats.eta_seconds = formatETA(routeStats.eta_seconds)
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     displayAutoRouteStats(getLastAutoRouteStats());
+
     initChartToggleListener();
     createElevationProfile(response.coordinates);
+
     if (saveContainer) saveContainer.style.display = "flex";
+
   } catch (error) {
-    console.error(error);
+    throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
   } finally {
     generatePathButton.classList.remove("loading");
-    generatePathButton.disabled = false;
-    
+    generatePathButton.disabled = false;   
   }
 };
 
