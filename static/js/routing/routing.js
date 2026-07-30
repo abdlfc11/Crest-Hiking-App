@@ -16,28 +16,33 @@ export async function calculatePath(startPoint, endPoint) {
   const startArray = startPoint.split(",").map((num) => Number(num.trim()));
   const endArray = endPoint.split(",").map((num) => Number(num.trim()));
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      start_point: startArray,
-      end_point: endArray,
-    }),
-  });
+  try {
 
-  const data = await response.json();
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        start_point: startArray,
+        end_point: endArray,
+      }),
+    });
 
-  if (!response.ok) {
-    showError(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
-    throw new Error(`HTTP error: ${response.status}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
+    };
+
+    if (data.success) {
+      return data;
+    };
+
+    throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.");
   }
-
-  if (data.success) {
-    return data;
-  }
-  showError(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
-  throw new Error(data.message || "Path creation failed");
-}
+  catch(error) {
+    showError(error.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
+  };
+};
 
 window.calculatePath = calculatePath; // To test the calculation of paths i.e how long it takes
 
