@@ -105,7 +105,8 @@ import {
   createSettingsTour
 } from "./tours/tours.js";
 
-import { logout } from "./auth.js";
+import { logout } from "./auth/auth.js";
+import { logError } from "./utils/logError-utils.js";
 
 //#endregion
 
@@ -630,7 +631,7 @@ async function handleRouteImport() {
       
       const file = importRouteFileInput.files[0];
 
-      if (!validateFileInput()) {
+      if (!validateFileInput(file)) {
         return false;
       }
 
@@ -712,10 +713,7 @@ async function handleRouteImport() {
  * Function responsible for validating the import route input.
  * @returns {boolean} - True if the input is valid, false otherwise.
  */
-function validateFileInput() {
-
-    // this retrieves the file from the file input element
-    const file = importRouteFileInput.files[0];
+function validateFileInput(file) {
 
     // this checks if a file is selected
     if (!file) {
@@ -1327,16 +1325,20 @@ function redoManualRoutePoint() {
 };
 
 async function manualRouteClickHandler(event) {
-  const coordinate = event.coordinate;
 
-  const response = await addManualPoint(coordinate[0], coordinate[1]);
+  try { 
+    const coordinate = event.coordinate;
 
-  // This checks success status
-  if (!response || !response.success) {
+    const response = await addManualPoint(coordinate[0], coordinate[1]);
 
-    // Fallback message present if response.message is undefined
-    const errorMessage = response?.message || "Failed to add manual point.";
-    showError(errorMessage);
+    // This checks success status
+    if (!response || !response.success) {
+
+      throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
+    }
+  } catch (error) {
+    showError("Sorry, there was an error whilst creating the path.");
+    logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
     return;
   }
 }

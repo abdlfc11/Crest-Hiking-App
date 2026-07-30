@@ -133,6 +133,17 @@ def delete_point(
     point: PointSchema,
     user: User | None = Depends(get_current_user)
 ):
+
+    if not user:
+
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "success": False,
+                "message": "Unauthenticated attempt to delete point"
+            }
+        )
+
     point_name = point.point_name
 
     if not point_name:
@@ -150,8 +161,18 @@ def delete_point(
 
             point_to_delete = db.exec(
                 select(Point)
-                .where(Point.name == point_name and Point.user_id == user.user_id)
+                .where(Point.name == point_name, Point.user_id == user.id)
             ).first()
+
+            if not point_to_delete:
+                
+                raise HTTPException(
+                    status_code=404,
+                    detail={
+                        "success": False,
+                        "message": "Point to be deleted could not be found"
+                    }
+                )
 
             db.delete(point_to_delete)
             db.commit()

@@ -50,7 +50,7 @@ def get_settings(
     except HTTPException:
         raise
     except Exception as error:
-        short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
+        short_traceback = "".join(traceback.format_exception_only(type(error), error)).strip()
 
         log_action('Getting Settings', False, short_traceback, None, 'FAILED_GET_SETTINGS')
 

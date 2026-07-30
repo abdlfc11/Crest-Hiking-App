@@ -12,6 +12,28 @@ from .error_logging_schemas import Error
 
 router = APIRouter()
 
+error_codes = [
+    "LOGIN",
+    "FAILED_REGISTRATION",
+    "FAILED_ACCOUNT_DELETION",
+    "FAILED_GET_SETTINGS",
+    "FAILED_SAVE_SETTINGS",
+    "INVALID_COORDS_AUTO_PATH_CREATION",
+    "NO_PATH_FOUND",
+    "SAVING_POINT",
+    "SAVE_ROUTE",
+    "TEMPLATE_FILTER_DISTANCE_UNIT",
+    "LOAD_ROUTE",
+    "DOWNLOAD_ROUTE",
+    "IMPORT_ROUTE",
+    "GET_SAVED_POINT",
+    "DELETE_POINT",
+    "DELETE_ROUTE",
+    "LOAD_MAP",
+    "RESET_VIEW",
+    "SEARCH_AREA"
+]
+
 # NOTE : Use correct error codes, these are available at the following link (crestr docs) https://docs.crestr.co.uk/technical/action_log_codes/
 
 @router.post(
@@ -38,13 +60,26 @@ def log_error(data: Error | None = None):
         duration_ms = data.duration_ms
         error_code = data.error_code
 
+        if error_code not in error_codes:
+
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "success": False,
+                    "message": "Incorrect error code. "
+                }
+            )
+
         log_action(action=action, outcome=outcome, info=info, duration_ms=duration_ms, code=error_code)
         
         return {"success": True, "message": "Successfully logged error"}
 
+    except HTTPException:
+        raise
+
     except Exception as error:
 
-        short_traceback = "".join(format_exception_only(type(e), e)).strip()     
+        short_traceback = "".join(format_exception_only(type(error), error)).strip()     
 
         log_action("Logging Error", False, short_traceback, None, 'LOGGING ERROR')
 

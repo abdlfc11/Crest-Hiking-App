@@ -125,7 +125,6 @@ def calculate_path(
         # This is wrapped in a try/except fallback block so that if logging functions fail, the program doesn't crash 
         try:
             with Session(engine) as db:
-                user = get_current_user()
                 if user:
                     db_routes = db.exec(
                         select(Route)
@@ -150,9 +149,9 @@ def calculate_path(
                 "success": False,
                 "map_centre": DEFAULT_CENTRE,
                 "available_routes": available_routes, 
-                "message": e.message
+                "message": str(e)
             }
-        )
+        ) from e
 
     try:
         # This builds the route using the Web Mercator coordinates
@@ -160,7 +159,6 @@ def calculate_path(
 
         if not path:  
             with Session(engine) as db:
-                user = get_current_user()
                 if user:
                     db_routes = db.exec(
                         select(Route)
@@ -394,17 +392,22 @@ def save_route(
             "message" : "A route with this name already exists. Please pick a new name."
         }
 
-
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
 
         short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
         
-        log_action('Saving Route', True, short_traceback, None, 'SAVE_ROUTE')
+        log_action('Saving Route', False, short_traceback, None, 'SAVE_ROUTE')
 
-        return {"success": False,
-            "message": "There was an error saving your route. "
-        }
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "message": "There was an error saving your route. "
+            }
+        )
 
 #endregion
 
@@ -610,12 +613,23 @@ def delete_route(
             select(Route)
             .where(Route.name == route_name, Route.user_id == user.id)
         ).first()
+        
+        if not route:
+
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "success": False,
+                    "message": "Route to be deleted could not be found"
+                }
+            )
+        deleted_route_name = route.name
         db.delete(route)
         db.commit()
 
         return {
             "success": True,
-            "message": f"Successfully deleted the route : {route.name}"
+            "message": f"Successfully deleted the route : {deleted_route_name}"
         }
 
     except HTTPException:
@@ -666,6 +680,8 @@ async def import_route(
             coords (list of [lat, lon, ele?])
     """
 
+    MAX_FILE_MB = 5
+
     if not user:
 
         raise HTTPException(
@@ -685,6 +701,15 @@ async def import_route(
             detail={
                 "success": False,
                 "message": "Cannot receive uploaded file"
+            }
+        )
+    
+    if route_file.size > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "success": False,
+                "message": "Imported route is too large, please pick a route under 5MB in size. "
             }
         )
     
@@ -734,6 +759,8 @@ async def import_route(
 
                 converted_points.append([web_mercator_coords[0], web_mercator_coords[1], ele])
 
+            log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
+
             return {
                 "success": True,
                 "coords": converted_points,
@@ -742,6 +769,7 @@ async def import_route(
         # this handles FIT file types
         elif ext == "fit":
             coords = []
+            converted_coords = []
             fitfile = FitFile(raw)
 
             for record in fitfile.get_messages("record"):
@@ -757,17 +785,34 @@ async def import_route(
                 lon_deg = lon * (180 / 2**31)
 
                 coords.append([lat_deg, lon_deg])
+            
+            for coord in coords:
+                
+                lat, lon = coord[0], coord[1]
+
+                web_mercator_coords = service.convert_wgs84_to_web_mercator(lon, lat)
+
+                converted_coords.append([web_mercator_coords[0], web_mercator_coords[1]])
+
+            log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
 
             return {
                 "success": True,
-                "coords": coords
+                "coords": converted_coords
             }
 
         # this handles KML file types
         elif ext == "kml":
-            route_file.stream.seek(0)
-            doc = KML.parse(route_file.stream, strict=False)
+
+            # moves file pointer back to the first byte to allow the entire file to be read 
+            await route_file.seek(0)
+
+            doc = KML.parse(route_file.file, strict=False)
             coords = extract_kml_coords(doc)
+            
+            # logging is commented out as KML imports are not fully supported --> prevents false positives 
+            # log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
+
             return {
                 "success": True,
                 "coords": coords

@@ -16,7 +16,7 @@ scipy==1.14.1  # needed for KDTree
 # fast api 
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-python-multipart==0.0.9
+python-multipart==0.0.32
 
 # Auth / Rate Limiting
 PyJWT==2.13.0

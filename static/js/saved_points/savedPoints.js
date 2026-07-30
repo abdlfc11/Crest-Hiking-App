@@ -2,6 +2,7 @@ import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
 import { showLoginModal, showDeletePointModal } from "../ui.js";
 import { showError } from "../utils/ui-utils.js";
+import { logError } from "../utils/logError-utils.js";
 
 let savedPointsLayer = null;
 
@@ -47,15 +48,16 @@ async function getSavedPoints() {
     
     const url = window.appConfig.apiGetSavedPointsUrl;
 
-    const response = await fetch(url)
+    const response = await fetch(url);
+
+    const data = await response.json();
     
     // e.g when FastAPI returns HTTPException, such as if authorisation failed 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail?.message || "Failed to fetch points");
+      throw new Error(data.message || "Failed to fetch points");
     }
 
-    return await response.json();
+    return data
 }
 
 export function loadAndDisplaySavedPoints() {
@@ -72,7 +74,10 @@ export function loadAndDisplaySavedPoints() {
       .then(convertPointsToFeatures)
       .then(createSavedPointsLayer)
       .then(addLayerToMap)
-      .catch(err => showError(err.message || "Sorry, there was an unexpected error displaying saved points."))
+      .catch(err => {
+        logError("Getting Saved Points", error.message, null, "GET_SAVED_POINT")
+        showError("Sorry, there was an unexpected error whilst displaying saved points.");
+      })
 }
 
 export async function saveNewPoint(coordinate, name) {
@@ -101,37 +106,34 @@ export async function saveNewPoint(coordinate, name) {
         }),
       })
       
-      const data = await response.json();
+      const data = await response.json().catch(() => ({})); // .catch used to resolve errors safely, they are then caught later
 
       if (response.status === 401) {
         showLoginModal(true);
         return;
       }
       else if (!response.ok) {
-        throw new Error(data.detail.message || "There was an unexpected error whilst saving your point, try again later.")
-        return;
+        throw new Error(data.message || "No info to display")
       }
 
       if (data.success) {
           return loadAndDisplaySavedPoints();
         }
-      showError(data.message || "There was an error on our end, please try again later.");
+      throw new Error(data.message)
       return;
   }
   catch(error) {
-    console.log(error)
-    showError(error.message);
+    showError("There was an unexpected error whilst saving your point, try again later.");
     return false;
   }
 }
 
 export async function deleteSavedPoint(selectedPoint) {
-  if (!selectedPoint) {
-    showError("Error: No point is currently selected for deletion.");
-    return;
-  }
 
   try { 
+    if (!selectedPoint) {
+      throw new Error("No point is currently selected for deletion.");
+    }
 
     const pointName = selectedPoint.get("name");
     
@@ -152,8 +154,7 @@ export async function deleteSavedPoint(selectedPoint) {
     }
     else if (!response.ok) {
       showDeletePointModal(false);
-      throw new Error(data.detail.message || "There was an unexpected error whilst deleting your point, try again later.")
-      return;
+      throw new Error(data.message || "There was an unexpected error whilst deleting your point, try again later.")
     }
 
     if (data.success) {
@@ -168,6 +169,7 @@ export async function deleteSavedPoint(selectedPoint) {
     }
   }
   catch(error) {
-    showError(error.message)
+    logError("Deleting Point", error.message, null, "DELETE_POINT")
+    showError("There was an unexpected error whilst saving your point, try again later.")
   }
 }
