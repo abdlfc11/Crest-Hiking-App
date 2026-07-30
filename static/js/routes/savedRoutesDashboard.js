@@ -135,8 +135,6 @@ async function onDownloadClick(event, format, DOMElement) {
   
   try {
 
-    throw new Error("Test Error")
-
     const response = await downloadRoute(route.routeName, format, DOMElement); 
     
     const blob = await response.blob(); // this gets binary file
