@@ -40,7 +40,7 @@ export async function calculatePath(startPoint, endPoint) {
     throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.");
   }
   catch(error) {
-    showError(error.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
+    throw error
   };
 };
 
@@ -144,7 +144,7 @@ export async function addManualPoint(x, y) {
     }
   }
   catch (error) {
-    return {"success": false, "message": "Sorry, we not find a path to that location"};;
+    throw error
   }
 
   // this appends the segment to pathCoords (skips first point to prevent duplication)

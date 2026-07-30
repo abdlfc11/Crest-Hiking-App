@@ -106,6 +106,7 @@ import {
 } from "./tours/tours.js";
 
 import { logout } from "./auth/auth.js";
+import { logError } from "./utils/logError-utils.js";
 
 //#endregion
 
@@ -1327,16 +1328,20 @@ function redoManualRoutePoint() {
 };
 
 async function manualRouteClickHandler(event) {
-  const coordinate = event.coordinate;
 
-  const response = await addManualPoint(coordinate[0], coordinate[1]);
+  try { 
+    const coordinate = event.coordinate;
 
-  // This checks success status
-  if (!response || !response.success) {
+    const response = await addManualPoint(coordinate[0], coordinate[1]);
 
-    // Fallback message present if response.message is undefined
-    const errorMessage = response?.message || "Failed to add manual point.";
-    showError(errorMessage);
+    // This checks success status
+    if (!response || !response.success) {
+
+      throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
+    }
+  } catch (error) {
+    showError("Sorry, there was an error whilst creating the path.");
+    logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
     return;
   }
 }
