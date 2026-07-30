@@ -95,7 +95,7 @@ async function register() {
     };
 
     if (data.success) {
-      clearRegisterEntries();
+      clearRegisterEntries(registerUsernameEntry, registerPasswordEntry1, registerPasswordEntry2);
       window.location.href = 'https://crestr.co.uk';
       userFeedback(loginValidationLabel, data.message, true);
     } else {
@@ -313,7 +313,7 @@ if (registerButton) {
 }
 
 if (deleteAccountButton) {
-  deleteAccountButton.addEventListener('click', deleteAccount)
+  deleteAccountButton.addEventListener('click', (e) => {deleteAccount(e)})
 }
 
 if (registerPasswordEntry1) {
