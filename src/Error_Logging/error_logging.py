@@ -44,7 +44,7 @@ def log_error(data: Error | None = None):
 
     except Exception as error:
 
-        short_traceback = "".join(format_exception_only(type(e), e)).strip()     
+        short_traceback = "".join(format_exception_only(type(error), error)).strip()     
 
         log_action("Logging Error", False, short_traceback, None, 'LOGGING ERROR')
 
