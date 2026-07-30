@@ -23,8 +23,13 @@ from src.models import Route, User
 
 from src.constants import DEFAULT_CENTRE
 
-from src.extensions import service, log_action, get_current_user, get_user_from_session_id
-
+from src.extensions import (
+    service,
+    log_action,
+    get_current_user,
+    get_user_from_session_id,
+    rate_limit_exceeded_callback
+)
 from src.Routes.routes_schemas import (
     CalculateRouteModel,
     SaveRouteModel,
@@ -46,41 +51,6 @@ from src.Routes.helpers import (
 router = APIRouter()
 
 # FASTAPI ROUTES 
-
-async def rate_limit_exceeded_callback(request: Request, response: Response):
-    """
-    Called by fastapi-limiter when the rate limit is exceeded.
-    """
-
-    try:
-        with Session(engine) as db:
-
-            session_id = request.cookies.get("session_id")
-            user = get_user_from_session_id(session_id, db)
-
-            if user:
-                db_routes = db.exec(
-                    select(Route).where(Route.user_id==user.id)
-                ).all()
-                available_routes = [route.model_dump() for route in db_routes]
-            else:
-                available_routes = []
-        
-            log_action('Rate Limiting', False, 'Rate limit exceeded', None, 'RATE_LIMIT_HIT')
-    except Exception as error:
-        short_traceback = "".join(traceback.format_exception_only(type(error), error)).strip()
-        log_action('MISC', False, short_traceback, None, 'RATE_LIMIT_HIT')
-        available_routes = []
-    
-    raise HTTPException(
-        status_code=429,
-        detail={
-            "success": False,
-            "map_centre": DEFAULT_CENTRE, # This keeps the front-end Map safe from crashing
-            "available_routes": available_routes, # So does this
-            "message": "Too many requests. Please slow down."
-        }
-    )
 
 #region Calculating Path 
 
