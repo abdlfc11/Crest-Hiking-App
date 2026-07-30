@@ -16,10 +16,10 @@ function updateRequirement(element, condition) {
     }
 }
 
-export function clearRegisterEntries() {
-  registerUsernameEntry.value = "";
-  registerPasswordEntry1.value = "";
-  registerPasswordEntry2.value = "";
+export function clearRegisterEntries(username, password1, password2) {
+  username.value = "";
+  password1.value = "";
+  password2.value = "";
 }
 
 //#endregion
