@@ -44,7 +44,11 @@ def search_area(
             'countrycodes': 'gb'
         }
 
-        response = requests.get("https://eu1.locationiq.com/v1/search", params=query_parameters)
+        response = requests.get(
+           "https://eu1.locationiq.com/v1/search",
+            params=query_parameters,
+            timeout=(3.05, 10), # 3.05s is connection timeout and 10s is read timeout 
+        )
         results = response.json()
 
         if isinstance(results, list) and len(results) > 0:
