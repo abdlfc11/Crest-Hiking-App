@@ -20,3 +20,4 @@ class Config:
     GRAPH_PATH = os.getenv('GRAPH_PATH')
     UMAMI_WEBSITE_ID = os.getenv('UMAMI_WEBSITE_ID')
     UMAMI_SCRIPT_URL = os.getenv('UMAMI_SCRIPT_URL')
+    ENVIRONMENT = os.getenv('ENVIRONMENT')

@@ -18,12 +18,15 @@ from src.models import Point, Route, User, SessionTable, Settings
 from src.extensions import log_action, get_current_user
 from src.Auth.auth_schemas import LoginUser, RegisterUser
 from src.constants import SPECIAL_CHARACTERS
+from src.config import Config
 
 #endregion
 
 #region INITIALISATION
 
 router = APIRouter()
+
+COOKIE_SECURE = Config.ENVIRONMENT == "Production"
 
 #endregion
 
@@ -83,7 +86,7 @@ def login(
             key="session_id",
             value=session.session_id,
             httponly=True,
-            secure=True,
+            secure=COOKIE_SECURE, 
             samesite="lax",
             max_age=60 * 60 * 24 * 7,
         )
@@ -138,7 +141,7 @@ def logout(
         key="session_id",
         path="/",
         httponly=True,
-        secure=True,
+        secure=COOKIE_SECURE,
         samesite="lax"
     )
 
@@ -319,7 +322,7 @@ def delete_account(
             key="session_id",
             path='/',
             httponly=True,
-            secure=True,
+            secure=COOKIE_SECURE,
             samesite="lax"
         )
 
