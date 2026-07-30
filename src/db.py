@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, create_engine, Session
-from config import Config
+from src.config import Config
 
 engine = create_engine(
     Config.DATABASE_URI,
@@ -9,5 +9,9 @@ engine = create_engine(
 )
 
 def get_session():
+    """
+    FastAPI dependency generator that yields an active database session 
+    and handles automatic cleanup after request execution.
+    """
     with Session(engine) as session:
         yield session

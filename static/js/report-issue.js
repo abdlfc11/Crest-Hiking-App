@@ -1,7 +1,10 @@
 // Report Issue form submission handler
 
 // IMPORTS
-import { showError, addClickListener } from "./utils.js";
+import {
+    showError,
+    addClickListener
+} from "./utils/ui-utils.js";
 
 const titleInput = document.getElementById("issue-title");
 const textarea = document.getElementById("issue-description");
@@ -104,16 +107,20 @@ async function handleSubmission() {
             },
             body: JSON.stringify({ title: title, description: description })
         });
+
+        const data = await response.json();
         
         if (!response.ok) {
-            showError("There was an unexpected error whilst submitting the issue report.");
+            console.log(data);
+            console.log(response);
+            throw new Error("There was an unexpected error whilst submitting the issue report.")
             return;
         }
 
-        const data = await response.json()
-
         if (!data.success) {
-            showError("There was an unexpected error whilst submitting the issue report.");
+            console.log(data);
+            console.log(response);
+            throw new Error("There was an unexpected error whilst submitting the issue report.");
             return;
         }
 
@@ -123,6 +130,7 @@ async function handleSubmission() {
         textarea.value = '';
 
     } catch (error) {
+
         showError("There was an unexpected error whilst submitting the issue report.");
     } finally {
         // This re-enables the submit button

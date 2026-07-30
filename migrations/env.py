@@ -25,7 +25,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 
-from src.models import User, Route, Point, Settings, BetaCode, ActionLog, Issues
+from src.models import User, Route, Point, Settings, ActionLog, Issues, SessionTable
 
 target_metadata = SQLModel.metadata
 

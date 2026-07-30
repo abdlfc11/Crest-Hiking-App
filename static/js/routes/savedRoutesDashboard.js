@@ -4,11 +4,23 @@
  */
 
 import { deleteRoute, downloadRoute, loadRoute } from "./routeApi.js";
+
 import { closeNav, closeSavedRoutesDash,  } from "../ui.js"
+
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
+
 import { setLoadedRouteCoordinates, setCurrentPathData } from "./routeState.js";
+
 import { createElevationProfile, initChartToggleListener } from "../elevationChart.js";
-import {addClickListener, createNoRouteCard, formatDistance} from "../utils.js"
+
+import {
+  addClickListener,
+  createNoRouteCard,
+  showError
+} from "../utils/ui-utils.js"
+
+import { formatDistance } from "../utils/format-utils.js";
+import { logError } from "../utils/logError-utils.js";
 
 const allRoutesContainer = document.getElementById("all-routes-container");
 
@@ -48,16 +60,20 @@ async function onLoadClick(event) {
   const route = getRouteFromCard(routeCard);
   if (!route) return;
 
-  await closeSavedRoutesDash();
-  await closeNav();
-  const data = await loadRoute(route.routeName);
-  await displayLoadedRouteOnMap(data);
-  await initChartToggleListener();
-  await createElevationProfile(data.coordinates)
+  try {
+    await closeSavedRoutesDash();
+    await closeNav();
+    const data = await loadRoute(route.routeName);
+    await displayLoadedRouteOnMap(data);
+    await initChartToggleListener();
+    await createElevationProfile(data.coordinates)
 
-  // both set calls could set coords whereby each coord is formed of 3 elements i.e (x, y and elevation)
-  await setLoadedRouteCoordinates(data.coordinates);
-  await setCurrentPathData(data.coordinates);
+    // both set calls could set coords whereby each coord is formed of 3 elements i.e (x, y and elevation)
+    await setLoadedRouteCoordinates(data.coordinates);
+    await setCurrentPathData(data.coordinates);
+  } catch (error) {
+    showE
+  }
 
   event.preventDefault();
 }
@@ -89,8 +105,8 @@ async function onDeleteClick(event) {
 
     }
   } catch (error) {
-    console.error("Delete route failed:", error);
-    alert(error.message || "Could not delete route");
+
+    showError("Sorry, there was an unexpected error, try again later. ")
   }
 
   event.preventDefault();
@@ -119,6 +135,8 @@ async function onDownloadClick(event, format, DOMElement) {
   
   try {
 
+    throw new Error("Test Error")
+
     const response = await downloadRoute(route.routeName, format, DOMElement); 
     
     const blob = await response.blob(); // this gets binary file
@@ -146,7 +164,10 @@ async function onDownloadClick(event, format, DOMElement) {
 
   } 
   catch(error) {
-    console.error("Download route failed: ", error)
+  
+    logError("Downloading Route", error.message, null, "DOWNLOAD_ROUTE")
+
+    showError("Sorry, there was an unexpected error, try again later. ")
   }
   finally {
     DOMElement.disabled = false;

@@ -15,30 +15,30 @@
     <!-- #region CSS FILES -->
 
     <!-- Global CSS files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/tokens.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base/reset.css') }}">
 
     <!-- Component CSS Files --> 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/toggle-switch.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/error-toast.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/loading-spinner.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/tooltip.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/modal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/toggle-switch.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/error-toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/loading-spinner.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/tooltip.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/buttons.css') }}">
 
     <!-- Layout CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/nav-menu.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/slide-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/layout/nav-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/layout/slide-panel.css') }}">
 
     <!-- Page-Specific CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/map.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/stats-panel.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/saved-routes.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/settings-panel.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/import-route.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/map.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/stats-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/saved-routes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/settings-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/import-route.css') }}">
 
     <!-- Tours.js CSS File-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/tours.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/vendor/tours.css') }}">
 
     <!-- #endregion -->
 
@@ -245,7 +245,7 @@
     <div id="saved-routes-dashboard">
         <div class="inner-content">
             
-                {% if not session.get("preferred_name") %}
+                {% if user is none or not user.preferred_name %}
                     <header id="dashboard-header" class="saved-route-header">
                         <div id="top-section">
                             <h1>Please Login to save routes</h1>
@@ -259,7 +259,7 @@
 
                 <header id="dashboard-header" class="saved-route-header">
                     <div id="top-section">
-                        <h1>Hi {{ session.get("preferred_name") }}, these are your saved routes</h1>
+                        <h1>Hi {{ user.preferred_name }}, these are your saved routes</h1>
 
                         <div id="go-back-button-container">
                             <a class="closebtn" id="saved-routes-dash-go-back-button">&times;</a>
@@ -376,7 +376,7 @@
  
                  <!-- Delete Account -->
 
-                 {% if not session.get('preferred_name') %} 
+                 {% if user is none or not user.preferred_name %} 
 
                 {% else %} 
                     <div class="settings-item settings-item-destructive" id="delete-account-container">
@@ -545,35 +545,36 @@
             mapInitialZoom: {{ map_zoom | default(10) }},
             initialCurrentPath: {% if current_path %}{{ current_path | tojson }}{% else %}null{% endif %},
             initialSavedPointsLookup: {
-            {% if saved_points %}
-                {% for point in saved_points %}
-                "{{ point.name }}": "{{ point.coordinates[0] }}, {{ point.coordinates[1] }}",
-                {% endfor %}
-            {% endif %}
+                {% if saved_points %}
+                    {% for point in saved_points %}
+                    "{{ point.name }}": "{{ point.coordinates[0] }}, {{ point.coordinates[1] }}",
+                    {% endfor %}
+                {% endif %}
             },
-            apiLoginUrl: "{{ url_for('auth_api.login') }}",
-            apiLogoutUrl: "{{ url_for('auth_api.logout') }}",
-            apiRegisterUrl: "{{ url_for('auth_api.registering') }}",
-            apiCalculatePathUrl: "{{ url_for('route_api.calculate_path') }}",
-            apiSearchAreaUrl: "{{ url_for('search_area') }}",
-            apiSavePointUrl: "{{ url_for('point_api.save_point') }}",
-            apiGetSavedPointsUrl: "{{ url_for('point_api.get_saved_points') }}",
-            apiDeletePointUrl: "{{ url_for('point_api.delete_point') }}",
-            apiDeleteRouteUrl: "{{ url_for('route_api.delete_route') }}",
-            apiSaveRouteUrl: "{{ url_for('route_api.save_route') }}",
-            apiDeleteAccountUrl: "{{ url_for('auth_api.delete_account') }}",
-            apiLoadRouteUrl: "{{ url_for('route_api.load_route') }}",
-            mapPageUrl: "{{ url_for('map_view') }}",
-            apiDownloadRouteUrl: "{{ url_for('route_api.download_route') }}",
-            apiSaveSettings: "{{ url_for('settings_api.save_settings') }}",
-            apiGetSettings: "{{ url_for('settings_api.get_settings') }}",
-            apiImportRoute: "{{ url_for('route_api.import_route') }}"
+            apiLoginUrl: "/auth/login",
+            apiLogoutUrl: "/auth/logout",
+            apiRegisterUrl: "/auth/register",
+            apiDeleteAccountUrl: "auth/delete-account",
+            apiCalculatePathUrl: "/routing/calculate-path",
+            apiSearchAreaUrl: "/search/search-area",
+            apiSavePointUrl: "/points/save-point",
+            apiGetSavedPointsUrl: "/points/get-saved-points",
+            apiDeletePointUrl: "/points/delete-point",
+            apiDeleteRouteUrl: "/routing/delete-route",
+            apiSaveRouteUrl: "/routing/save-route",
+            apiLoadRouteUrl: "/routing/load-route",
+            mapPageUrl: "/map",
+            apiDownloadRouteFileUrl: "/routing/download-route",
+            apiSaveSettings: "/settings/save-settings",
+            apiGetSettings: "/settings/get-settings",
+            apiImportRouteUrl: "/routing/import-route-file",
+            apiLogErrorUrl: '/api/log-error'
         };
     </script>
 
-    <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='js/routes/savedRoutesDashboard.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='js/importRoute.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='js/map.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='js/routes/savedRoutesDashboard.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='js/importRoute.js') }}"></script>
     <script>lucide.createIcons();</script>
 
 </body>

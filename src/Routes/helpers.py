@@ -23,7 +23,7 @@ def isRoughlyInCumbria(x: float, y: float) -> bool:
 
     return x >= MIN_X and x <= MAX_X and y >= MIN_Y and y <= MAX_Y 
 
-def haversine(x1, y1, x2, y2):
+def haversine(x1: float, y1: float, x2: float, y2: float):
 
     # NOTE : coords need to be in lon/lat, make sure to convert coords
 
@@ -40,7 +40,7 @@ def haversine(x1, y1, x2, y2):
 
     return R * c
 
-def normalise_route(coordinates, avg_speed_kmh=4.5):
+def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5):
     """
     This function converts raw route geometry into metrics e.g ETA and elevation data (if present)
     """
@@ -95,18 +95,18 @@ def normalise_route(coordinates, avg_speed_kmh=4.5):
     }
 
 # helper function which returns true if the first coordinate has 3 values (i.e x, y and z)
-def check_elevation(coords):
+def check_elevation(coords: list):
     return bool(coords) and len(coords[0]) == 3
 
 # returns the x and y coords of a coordinate that may be 2D or 3D
-def get_xy(coord):
+def get_xy(coord: list):
     if len(coord) >= 2:
         return coord[0], coord[1]
     return coord
 
 # if a coord is over 180 degrees then it is definitely not wgs84 (181 used as buffer for edge cases)
 # this helper thus returns true if a coord is web mercator and false if it isn't (and thus is wgs84)
-def check_web_mercator(coord):
+def check_web_mercator(coord: list):
     if coord is None:
         return False
     return abs(coord[0]) > 181 or abs(coord[1]) > 181
@@ -138,7 +138,7 @@ def parse_eta_to_seconds(eta_string: str):
 
 #region GEOSPATIAL FILE PROCESSING HELPER FUNCTIONS
 
-def generate_geojson(route):
+def generate_geojson(route: object):
 
     raw_coordinates_str = route.coordinates
 
@@ -182,7 +182,7 @@ def generate_geojson(route):
     # returns as JSON string
     return json.dumps(geojson_feature)
 
-def generate_gpx(route):
+def generate_gpx(route: object):
     gpx = gpxpy.gpx.GPX() # initialises container
     track = gpxpy.gpx.GPXTrack(name=route.name) # creates a track (the entire route) and adds it to the container (next line)
     gpx.tracks.append(track) 
@@ -212,7 +212,7 @@ def generate_gpx(route):
 
     return gpx.to_xml()
 
-def parse_kml_coord_list(coord_list) -> list:
+def parse_kml_coord_list(coord_list: list) -> list:
     """
     converts a list of KML coord tuples into the format of this app
 
@@ -234,7 +234,7 @@ def parse_kml_coord_list(coord_list) -> list:
     return coords
 
 
-def process_kml_feature(feature) -> list:
+def process_kml_feature(feature: dict) -> list:
     """
     this (recursively) processes KML features returns a list of coords extracted from any geometry found within KML features
     """

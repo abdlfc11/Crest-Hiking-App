@@ -1,7 +1,24 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
-import { formatDistance, getRouteStrokeStyle, createManualPointStyle, formatETA, createStatsPanel, formatElevation } from "../utils.js";
+
+import {
+  formatDistance,
+  formatElevation,
+  formatETA
+} from "../utils/format-utils.js"
+
+import {
+  getRouteStrokeStyle,
+  createManualPointStyle
+} from "../utils/style-utils.js"
+
+import {
+  createStatsPanel
+} from "../utils/ui-utils.js"
+
 import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
+
 import { deleteRoute, loadRoute } from "./routeApi.js";
+
 import { initChartToggleListener } from "../elevationChart.js";
 
 

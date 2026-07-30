@@ -2,20 +2,29 @@
 
 import {
   roundCoords,
-  createManualPointStyle,
-  formatDistance,
-  calculateTotalDistance,
   calculateEta,
+  calculateTotalDistance,
+  isLonLat
+} from "./utils/routing-utils.js";
+
+import {
+  createManualPointStyle,
+  getRouteStrokeStyle
+} from "./utils/style-utils.js";
+
+import {
+  formatDistance,
+  formatETA,
+  formatElevation
+} from "./utils/format-utils.js";
+
+import {
   moveMapToPosition,
-  getRouteStrokeStyle,
   showError,
   addClickListener,
-  formatETA,
   removeDOMElement,
-  createStatsPanel,
-  formatElevation,
-  isLonLat
-} from "./utils.js";
+  createStatsPanel
+} from "./utils/ui-utils.js";
 
 import { calculatePath, addManualPoint } from "./routing/routing.js";
 
@@ -32,6 +41,7 @@ import {
   loadAndDisplaySavedPoints,
   getSavedPointsLayer,
   saveNewPoint,
+  deleteSavedPoint
 } from "./saved_points/index.js";
 
 import {
@@ -149,11 +159,11 @@ const saveRouteToggleButton = document.getElementById("save-route-toggle-button"
 const saveRouteContainer = document.getElementById('save-route-container');
 
 // delete point modal
-const deletePointConfirmationDialog = document.getElementById("delete-point-confirmation-dialog");
-const pointDeleteModalNameDisplay = document.getElementById("point-name-display");
-const pointDeleteDeleteButton = document.getElementById("point-delete-delete-button");
-const pointDeleteExitButton = document.getElementById("point-delete-exit-button");
-const pointDeleteDialogWrapper = deletePointConfirmationDialog?.querySelector(".wrapper");
+const deletePointModal = document.getElementById("delete-point-confirmation-dialog");
+const deletePointModalNameDisplay = document.getElementById("point-name-display");
+const deletePointModalDeleteButton = document.getElementById("point-delete-delete-button");
+const deletePointModalExitButton = document.getElementById("point-delete-exit-button");
+const deletePointModalContent = deletePointModal.querySelector('.modal-content');
 
 // login modal
 const loginModal = document.getElementById('login-dialog');
@@ -279,12 +289,37 @@ function loginModalLogin() {
 };
 
 /**
- * Function used to catch clicks outside of the modal in order to close the modal upon these clicks 
+ * Function used to catch clicks outside of the login modal in order to close the modal upon these clicks 
  * @returns {void}
  */
 function dismissLoginModal(e) {
   if (loginModalContent && !loginModalContent.contains(e.target)) {
       showLoginModal(false);
+    }
+};
+
+//#endregion
+
+//#region DELETE POINT MODAL
+
+/**
+ * Displays the Delete Point Modal if True is passed into the function and hides it if False is passed into the function
+ * 
+ * @param {boolean} show 
+ * @returns {void}
+ */
+export function showDeletePointModal(show) {
+  if (!deletePointModal) return;
+  show ? deletePointModal.showModal() : deletePointModal.close();
+}
+
+/**
+ * Function used to catch clicks outside of the login modal in order to close the modal upon these clicks 
+ * @returns {void}
+ */
+function dismissDeletePointModal(e) {
+  if (deletePointModalContent && !deletePointModalContent.contains(e.target)) {
+      showDeletePointModal(false);
     }
 };
 
@@ -467,8 +502,8 @@ export function mapClickHandler(event) {
     selectedPoint = newSelection;
     const pointName = selectedPoint.get("name");
     selectedPoint.setStyle(getSelectedPointStyle(pointName));
-    pointDeleteModalNameDisplay.textContent = pointName;
-    showPointDeleteDialog(true);
+    deletePointModalNameDisplay.textContent = pointName;
+    showDeletePointModal(true);
   } else if (!featureClicked) {
     const coordinate = event.coordinate;
     const [lon, lat] = ol.proj.toLonLat(coordinate);
@@ -627,7 +662,7 @@ async function handleRouteImport() {
     }
 
     try {
-      const response = await fetch('/save_route', {
+      const response = await fetch(window.appConfig.apiSaveRouteUrl, {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1012,20 +1047,24 @@ async function handleAutoRouteGeneration(start=null, end=null) {
 
   try {
     const response = await calculatePath(startPoint, endPoint); // response.coordinates may return coordinates whereby each element has 3 values (x, y and elevation)
+
     const routeStats = displayPath(response);
+
     routeStats.eta_seconds = formatETA(routeStats.eta_seconds)
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     displayAutoRouteStats(getLastAutoRouteStats());
+
     initChartToggleListener();
     createElevationProfile(response.coordinates);
+
     if (saveContainer) saveContainer.style.display = "flex";
+
   } catch (error) {
-    console.error(error);
+    throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
   } finally {
     generatePathButton.classList.remove("loading");
-    generatePathButton.disabled = false;
-    
+    generatePathButton.disabled = false;   
   }
 };
 
@@ -1350,60 +1389,35 @@ export function handleInitialTour() {
 
 //#region DELETING POINTS
 
-function showPointDeleteDialog(show) {
-  if (!deletePointConfirmationDialog) return;
-  show ? deletePointConfirmationDialog.showModal() : deletePointConfirmationDialog.close();
-}
+function deselectSelectedPoint() {
+  if (selectedPoint) {
+    selectedPoint.setStyle(getSavedPointStyle(selectedPoint.get("name")));
+
+    return null;
+  }
+  return
+};
 
 function initPointDeleteHandlers() {
-  if (!deletePointConfirmationDialog) return;
+  if (!deletePointModal) return;
 
-  deletePointConfirmationDialog.addEventListener("click", (e) => {
-    if (pointDeleteDialogWrapper && !pointDeleteDialogWrapper.contains(e.target)) {
-      deletePointConfirmationDialog.close();
-    }
+  // for hiding if clicking anywhere outside the modal
+  deletePointModal.addEventListener("click", (e) => {
+    dismissDeletePointModal(e);
   });
 
-  deletePointConfirmationDialog.addEventListener("close", () => {
-    if (selectedPoint) {
-      selectedPoint.setStyle(getSavedPointStyle(selectedPoint.get("name")));
-      selectedPoint = null;
-    }
+  // for deselecting the currently-selected point when the modal is closed 
+  deletePointModal.addEventListener("close", deselectSelectedPoint);
+
+  // for when the user clicks the 'exit' button on the modal
+  deletePointModalExitButton?.addEventListener("click", () => {
+    showDeletePointModal(false)
   });
 
-  pointDeleteDeleteButton?.addEventListener("click", () => {
-    if (!selectedPoint) {
-      alert("Error: No point is currently selected for deletion.");
-      showPointDeleteDialog(false);
-      return;
-    }
-
-    const pointName = selectedPoint.get("name");
-    fetch(window.appConfig.apiDeletePointUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ point_name: pointName }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          showPointDeleteDialog(false);
-          selectedPoint = null;
-          loadAndDisplaySavedPoints();
-        } else {
-          alert(`Error deleting point: ${data.message}`);
-          showPointDeleteDialog(false);
-        }
-      })
-      .catch((error) => {
-        alert(`Network Error: Could not delete point: ${error.message}`);
-        showPointDeleteDialog(false);
-      });
+  // for when the user clicks 'delete point' on the modal
+  deletePointModalDeleteButton?.addEventListener("click", () => {
+    deleteSavedPoint(selectedPoint)
   });
-
-  pointDeleteExitButton?.addEventListener("click", () =>
-    showPointDeleteDialog(false),
-  );
 }
 
 //#endregion

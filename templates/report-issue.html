@@ -2,23 +2,25 @@
 <html>
 <head>
 
+    <title>Crestr: Report an Issue</title>
+
     <!-- CSS -->
      
     <!-- Global CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/tokens.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/reset.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base/tokens.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base/reset.css') }}" />
 
     <!-- Component CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/form-fields.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/theme-toggle.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/error-toast.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/buttons.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/form-fields.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/theme-toggle.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/error-toast.css') }}" />
     
     <!-- Layout CSS File -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/navbar.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/layout/navbar.css') }}" />
 
     <!-- Page Specific CSS File -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/report-issue.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/report-issue.css') }}" />
 
     <!-- Favicon -->
     <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
@@ -79,7 +81,7 @@
         </div>
 </div>
 
-<script> const apiReportIssueUrl = "{{ url_for('report_issues.report_issue_api') }}"; </script>
-<script type="module" src="{{ url_for('static', filename='js/report-issue.js') }}"></script>
+<script> const apiReportIssueUrl = "/api/report-issue"; </script>
+<script type="module" src="{{ url_for('static', path='js/report-issue.js') }}"></script>
 </body>
 </html>
