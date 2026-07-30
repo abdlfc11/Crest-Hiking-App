@@ -1,7 +1,6 @@
 import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
 import { showLoginModal, showDeletePointModal } from "../ui.js";
-import { authHeaders } from "../auth/helpers.js";
 import { showError } from "../utils/ui-utils.js";
 
 let savedPointsLayer = null;
@@ -48,9 +47,7 @@ async function getSavedPoints() {
     
     const url = window.appConfig.apiGetSavedPointsUrl;
 
-    const response = await fetch(url, {
-      headers: authHeaders()
-    })
+    const response = await fetch(url)
     
     // e.g when FastAPI returns HTTPException, such as if authorisation failed 
     if (!response.ok) {
@@ -95,8 +92,7 @@ export async function saveNewPoint(coordinate, name) {
     const response = await fetch(url, {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json",
-          ...authHeaders()
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           point_name: name,
@@ -142,8 +138,7 @@ export async function deleteSavedPoint(selectedPoint) {
     const response = await fetch(window.appConfig.apiDeletePointUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        ...authHeaders()
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({ point_name: pointName }),
     });
