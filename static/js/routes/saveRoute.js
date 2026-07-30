@@ -110,7 +110,6 @@ function handleSaveRoute(e) {
     body: JSON.stringify({
       route_name: routeName,
       coordinates: pathCoordinates,
-      type: "route-generation"
     }),
   })
     .then((response) => {
@@ -144,9 +143,11 @@ function handleSaveRoute(e) {
 
         eta = formatETA(routeInfo.eta_seconds);
         
-        if (noRouteCreateDiv) removeDOMElement(noRouteCreateDiv);        
+        if (noRouteCreateDiv) removeDOMElement(noRouteCreateDiv);   
+        
+        const formattedDistance = formatDistance(rawDistanceKm)
 
-        const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue);
+        const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, formattedDistance, eta, elevDisplayValue);
 
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
         homeButtonFunction();
