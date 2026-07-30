@@ -26,6 +26,7 @@ services:
   web-fastapi:
     build: .
     command: gunicorn -c src/gunicorn.config.py fastapi_app:app
+    ### command: uvicorn fastapi_app:app --reload --host 0.0.0.0 --port 5001 # Use this command when debugging 
     volumes:
       - ./src:/app/src
       - ./templates:/app/templates
