@@ -631,7 +631,7 @@ async function handleRouteImport() {
       
       const file = importRouteFileInput.files[0];
 
-      if (!validateFileInput()) {
+      if (!validateFileInput(file)) {
         return false;
       }
 
@@ -713,10 +713,7 @@ async function handleRouteImport() {
  * Function responsible for validating the import route input.
  * @returns {boolean} - True if the input is valid, false otherwise.
  */
-function validateFileInput() {
-
-    // this retrieves the file from the file input element
-    const file = importRouteFileInput.files[0];
+function validateFileInput(file) {
 
     // this checks if a file is selected
     if (!file) {
