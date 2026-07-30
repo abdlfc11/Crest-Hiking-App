@@ -108,6 +108,18 @@ export function removeDOMElement(element) {
 // ROUTE CARDS 
 
 /**
+ * Replaces any character within passed in string that interfere with HTML and returns the edited string
+ * 
+ * @param {string} value The string to be checked to ensure it does not interfere with HTML
+ * @returns {string} The safe string which can be placed into 
+ */
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&`#39`;"
+  })[c]);
+}
+
+/**
  * Generates the HTML string for a saved route card displayed in the UI.
  *
  * This function builds a self-contained route card element with header,
@@ -123,34 +135,37 @@ export function removeDOMElement(element) {
  * @returns {string} HTML string for the complete route card.
  */
 export function createRouteCard(routeName, formattedDate, distanceInKm, formattedDistance, ETA, elevDisplayValue) {
-  return `<div class="route-card" data-route-name="${routeName}">
-                              <div class="route-card-header">
-                                  <h3 class="route-card-name">${routeName}</h3>
-                                  <span class="route-card-date">Saved on ${formattedDate}</span>
-                              </div>
-                              <div class="route-card-stats">
-                                  <div class="stat-item">
-                                      <span class="stat-label">Distance:</span>
-                                      <span class="stat-value" data-distance-km="${distanceInKm}">${formattedDistance}</span>
-                                  </div>
-                                  <div class="stat-item">
-                                      <span class="stat-label">ETA:</span>
-                                      <span class="stat-value">${ETA}</span>
-                                  </div>
-                                  <div class="stat-item">
-                                      <span class="stat-label">Elevation Gain:</span>
-                                      <span class="stat-value">${elevDisplayValue}</span>
-                                  </div>
-                              </div>
-                              <div class="route-card-actions">
-                                  <button type="button" class="route-btn route-btn-delete">Delete</button>
-                                  <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
-                                  <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
-                                  <button type="button" class="route-btn route-btn-load">Load</button>
-                              </div>
-                          </div>
-                          `;
-}
+
+    const safeRouteName = escapeHtml(routeName)
+
+    return `<div class="route-card" data-route-name="${safeRouteName}">
+                                <div class="route-card-header">
+                                    <h3 class="route-card-name">${safeRouteName}</h3>
+                                    <span class="route-card-date">Saved on ${formattedDate}</span>
+                                </div>
+                                <div class="route-card-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Distance:</span>
+                                        <span class="stat-value" data-distance-km="${distanceInKm}">${formattedDistance}</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">ETA:</span>
+                                        <span class="stat-value">${ETA}</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Elevation Gain:</span>
+                                        <span class="stat-value">${elevDisplayValue}</span>
+                                    </div>
+                                </div>
+                                <div class="route-card-actions">
+                                    <button type="button" class="route-btn route-btn-delete">Delete</button>
+                                    <button type="button" class="route-btn route-btn-download-gpx">GPX</button>
+                                    <button type="button" class="route-btn route-btn-download-geojson">GeoJSON</button>
+                                    <button type="button" class="route-btn route-btn-load">Load</button>
+                                </div>
+                            </div>
+                            `;
+    }
 
 /**
  * This returns a card showing users that there are no saved routes for both a clean UI and a UX
