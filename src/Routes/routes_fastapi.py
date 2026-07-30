@@ -125,7 +125,6 @@ def calculate_path(
         # This is wrapped in a try/except fallback block so that if logging functions fail, the program doesn't crash 
         try:
             with Session(engine) as db:
-                user = get_current_user()
                 if user:
                     db_routes = db.exec(
                         select(Route)
@@ -150,9 +149,9 @@ def calculate_path(
                 "success": False,
                 "map_centre": DEFAULT_CENTRE,
                 "available_routes": available_routes, 
-                "message": e.message
+                "message": str(e)
             }
-        )
+        ) from e
 
     try:
         # This builds the route using the Web Mercator coordinates
@@ -160,7 +159,6 @@ def calculate_path(
 
         if not path:  
             with Session(engine) as db:
-                user = get_current_user()
                 if user:
                     db_routes = db.exec(
                         select(Route)
@@ -610,12 +608,23 @@ def delete_route(
             select(Route)
             .where(Route.name == route_name, Route.user_id == user.id)
         ).first()
+        
+        if not route:
+
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "success": False,
+                    "message": "Route to be deleted could not be found"
+                }
+            )
+        deleted_route_name = route.name
         db.delete(route)
         db.commit()
 
         return {
             "success": True,
-            "message": f"Successfully deleted the route : {route.name}"
+            "message": f"Successfully deleted the route : {deleted_route_name}"
         }
 
     except HTTPException:
