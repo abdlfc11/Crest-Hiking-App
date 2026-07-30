@@ -6,35 +6,43 @@ import { manualRouteState,
   cumbriaBoundary,
   isPointInPolygon
 } from "../routes/routeState.js";
-import { showError } from "../utils.js";
+
+import {
+  showError
+} from "../utils/ui-utils.js"
 
 export async function calculatePath(startPoint, endPoint) {
   const url = window.appConfig.apiCalculatePathUrl;
   const startArray = startPoint.split(",").map((num) => Number(num.trim()));
   const endArray = endPoint.split(",").map((num) => Number(num.trim()));
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      start_point: startArray,
-      end_point: endArray,
-    }),
-  });
+  try {
 
-  const data = await response.json();
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        start_point: startArray,
+        end_point: endArray,
+      }),
+    });
 
-  if (!response.ok) {
-    showError(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
-    throw new Error(`HTTP error: ${response.status}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
+    };
+
+    if (data.success) {
+      return data;
+    };
+
+    throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.");
   }
-
-  if (data.success) {
-    return data;
-  }
-  showError(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
-  throw new Error(data.message || "Path creation failed");
-}
+  catch(error) {
+    throw error
+  };
+};
 
 window.calculatePath = calculatePath; // To test the calculation of paths i.e how long it takes
 
@@ -136,7 +144,7 @@ export async function addManualPoint(x, y) {
     }
   }
   catch (error) {
-    return {"success": false, "message": "Sorry, we not find a path to that location"};;
+    throw error
   }
 
   // this appends the segment to pathCoords (skips first point to prevent duplication)

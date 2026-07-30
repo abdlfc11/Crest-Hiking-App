@@ -16,10 +16,15 @@ import {
   saveAppSettingsToServer,
   getTheme,
 } from "./settingsState.js";
-import { formatDistance } from "./utils.js";
-import { logout, deleteAccount } from "./auth.js";
+
+import { formatDistance } from "./utils/format-utils.js";
+
+import { logout, deleteAccount } from "./auth/auth.js";
+
 import { applyTheme } from "./ui.js";
+
 import { hasActiveRouteStatsPanel } from "./routes/routeState.js";
+
 import { updateSavedRouteCards } from "./routes/savedRoutesDashboard.js";
 
 /** @type {(() => void) | null} */
@@ -177,9 +182,7 @@ function initAccountManagementButtons() {
   // Logout button 
   const logoutBtn = document.getElementById("settings-logout-button");
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      logout();
-    });
+    logoutBtn.addEventListener("click", logout );
   }
 
   // Delete account 

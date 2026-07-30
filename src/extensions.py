@@ -1,74 +1,108 @@
 #region IMPORTS
 
-from flask import session
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from sqlmodel import Session, select
-from db import engine
+# Standard Library Imports 
 import json
 import traceback
-from typing import Any, Optional
+from datetime import datetime, timedelta, timezone
 from sys import stderr
+from typing import Any, Optional
 
-# Local Files
+
+# Third Party Libraries
+from fastapi import Header, HTTPException, Depends, Cookie, Request, Response
+from sqlmodel import Session, select
+
+# Local Files 
+from src.config import Config
+from src.constants import DEFAULT_CENTRE
+from src.db import get_session, engine
+from src.models import ActionLog, User, SessionTable, Route
 from src.Pathfinding.Nodefinder import NodeFinder
-from config import Config
-from models import ActionLog, User
 
 #endregion
 
-# Initialises the limiter 
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "500 per hour"],
-    storage_uri="memory://",
-)
-
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
 
-def get_current_user():
+async def rate_limit_exceeded_callback(request: Request, response: Response):
     """
-    Retrieves the currently logged-in user from the database based on the session data.
-
-    Checks the active Flask session for a 'username'. If present, it queries the database to find and return the matching User record.
-
-    Returns:
-        Optional[User]: The User model instance if found; None if no session exists or the user is not found in the database.
+    Called by fastapi-limiter when the rate limit is exceeded.
+    Raises a HTTPException with status code 429 
     """
 
-    username = session.get("username")
-    print(username)
-    if not username:
-        print("no username detected")
+    try:
+        with Session(engine) as db:
+
+            session_id = request.cookies.get("session_id")
+            user = get_user_from_session_id(session_id, db)
+
+            if user:
+                db_routes = db.exec(
+                    select(Route).where(Route.user_id==user.id)
+                ).all()
+                available_routes = [route.model_dump() for route in db_routes]
+            else:
+                available_routes = []
+        
+            log_action('Rate Limiting', False, 'Rate limit exceeded', None, 'RATE_LIMIT_HIT')
+    except Exception as error:
+        short_traceback = "".join(traceback.format_exception_only(type(error), error)).strip()
+        log_action('MISC', False, short_traceback, None, 'RATE_LIMIT_HIT')
+        available_routes = []
+    
+    raise HTTPException(
+        status_code=429,
+        detail={
+            "success": False,
+            "map_centre": DEFAULT_CENTRE, # This keeps the front-end Map safe from crashing
+            "available_routes": available_routes, # So does this
+            "message": "Too many requests. Please slow down."
+        }
+    )
+
+def get_user_from_session_id(
+    session_id: Optional[str],
+    db: Session,
+) -> Optional[User]:
+    """
+    returns the user with corresponding to the session ID 
+    """
+    if not session_id:
         return None
-    with Session(engine) as db:
-        return db.exec(select(User).where(User.username == username)).first()
 
-def is_beta_code_validated():
+    session = db.exec(
+        select(SessionTable).where(
+            SessionTable.session_id == session_id,
+            SessionTable.expires_at > datetime.now(timezone.utc),
+        )
+    ).first()
+
+    if session is None:
+        return None
+
+    user = db.exec(
+        select(User).where(User.id == session.user_id)
+    ).first()
+
+    return user
+
+
+def get_current_user(
+    session_id: Optional[str] = Cookie(default=None),
+    db: Session = Depends(get_session),
+) -> Optional[User]:
     """
-    Checks whether a valid beta code session exists for the current user.
-
-    This acts as a quick state check to determine if the user has already 
-    passed beta code validation during their active session.
-
-    Returns:
-        bool: True if a 'beta_code' exists in the session, False otherwise.
+    Silently returns the User if a valid session cookie exists,
+    otherwise returns None. Never raises.
     """
+    return get_user_from_session_id(session_id, db)
 
-    beta_code = session.get("beta_code")
-    print(beta_code)
-    if not beta_code:
-        print("No beta code detected")
-        return False
-    else:
-        return True
 
 def log_action(
     action: str, 
     outcome: bool, 
     info: Optional[Any] = None, 
     duration_ms: Optional[int] = None,
-    code: Optional[str] = None
+    code: Optional[str] = None,
 ) -> None:
     """
     Records an application event or metric into the central ActionLog table.
@@ -77,7 +111,8 @@ def log_action(
     to guarantee that transaction failures in the main application flow do 
     not disrupt or prevent the creation of the event log. 
 
-    Args:
+    Parameters:
+    
         - action (str): The name of the event or endpoint (e.g., 'pathfind_request').
 
         - outcome (bool): True if the operation succeeded, False if it failed.
@@ -97,8 +132,8 @@ def log_action(
         None
 
     Raises:
-        Does not propagate exceptions. Internal failures (e.g., complete database 
-        unreachability) are caught silently and dumped safely to system standard error logs.
+        Does not raise any exceptions 
+        Internal failures (e.g., complete database unreachability) are caught silently and dumped safely to system standard error logs.
     """
     with Session(engine) as log_db:
         try:

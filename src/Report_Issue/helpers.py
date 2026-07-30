@@ -1,4 +1,4 @@
-from models import Issues
+from src.models import Issues
 from sqlmodel import Session
 from db import engine
 from extensions import log_action

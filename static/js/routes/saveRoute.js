@@ -1,4 +1,5 @@
-import { getCurrentMode, 
+import {
+  getCurrentMode, 
   getCurrentPathData, 
   getLastKnownDistanceKm, 
   getLoadedRouteCoordinates, 
@@ -10,10 +11,29 @@ import { getCurrentMode,
   setCurrentPathData, 
   normaliseCoordLength
  } from "./routeState.js";
-import { defaultCentre, homeButtonFunction, updateSaveRouteContainer, showLoginModal } from "../ui.js";
+
+import {
+  defaultCentre,
+  homeButtonFunction,
+  updateSaveRouteContainer,
+  showLoginModal
+} from "../ui.js";
+
 import { getMap } from "../map.js";
+
 import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
-import { createRouteCard, formatDistance, formatElevation, formatETA, removeDOMElement, showError } from "../utils.js";
+
+import {
+  createRouteCard,
+  removeDOMElement,
+  showError
+} from "../utils/ui-utils.js"
+
+import {
+  formatDistance,
+  formatElevation,
+  formatETA
+} from "../utils/format-utils.js"
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
@@ -90,7 +110,6 @@ function handleSaveRoute(e) {
     body: JSON.stringify({
       route_name: routeName,
       coordinates: pathCoordinates,
-      type: "route-generation"
     }),
   })
     .then((response) => {
@@ -124,9 +143,11 @@ function handleSaveRoute(e) {
 
         eta = formatETA(routeInfo.eta_seconds);
         
-        if (noRouteCreateDiv) removeDOMElement(noRouteCreateDiv);        
+        if (noRouteCreateDiv) removeDOMElement(noRouteCreateDiv);   
+        
+        const formattedDistance = formatDistance(rawDistanceKm)
 
-        const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, eta, elevDisplayValue);
+        const routeCard = createRouteCard(routeName, formattedToday, rawDistanceKm, formattedDistance, eta, elevDisplayValue);
 
         if (allRoutesContainer) allRoutesContainer.insertAdjacentHTML("beforeend", routeCard);
         homeButtonFunction();

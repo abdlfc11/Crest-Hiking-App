@@ -4,16 +4,16 @@
     <title>Register</title>
 
     <!-- Global CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/tokens.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base/reset.css') }}">
 
     <!-- Page Specific CSS (auth.css)-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/auth.css') }}">
 
     <!-- Component / Layout CSS-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout/navbar.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/buttons.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/theme-toggle.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/layout/navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/theme-toggle.css') }}">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -110,8 +110,8 @@
         </div>
     </div>
 </body>
-<script type="module" src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script type="module" src="{{ url_for('static', path='js/auth/auth.js') }}"></script>
 <script>
-    const apiRegisterUrl = "{{ url_for('auth_api.registering') }}";
+    const apiRegisterUrl = "/auth/register";
 </script>
 </html>
