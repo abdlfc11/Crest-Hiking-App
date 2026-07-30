@@ -12,9 +12,9 @@ from pyrate_limiter import Duration, Limiter, Rate
 from sqlmodel import Session, select
 
 # Local Modules
-from db import engine
-from extensions import get_current_user_jwt, log_action
-from models import Point, User
+from src.db import engine
+from src.extensions import log_action, get_current_user
+from src.models import Point, User
 from .points_schemas import PointSchema
 
 #endregion
@@ -22,7 +22,7 @@ from .points_schemas import PointSchema
 router = APIRouter()
 
 @router.get('/points/get-saved-points')
-def get_saved_points(user: User | None = Depends(get_current_user_jwt)):
+def get_saved_points(user: User | None = Depends(get_current_user)):
 
     if not user:
         raise HTTPException(
@@ -62,7 +62,7 @@ def get_saved_points(user: User | None = Depends(get_current_user_jwt)):
 )
 def save_point(
     point: PointSchema,
-    user: User | None = Depends(get_current_user_jwt)
+    user: User | None = Depends(get_current_user)
 ):
 
     if not user:
@@ -131,7 +131,7 @@ def save_point(
     dependencies=[Depends(RateLimiter(limiter=Limiter(Rate(110, Duration.MINUTE * 1))))])
 def delete_point(
     point: PointSchema,
-    user: User | None = Depends(get_current_user_jwt)
+    user: User | None = Depends(get_current_user)
 ):
     point_name = point.point_name
 
