@@ -21,48 +21,11 @@ services:
       retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  # FLASK APP
-  web:
-    build: .
-    command: gunicorn -c src/gunicorn.config.py src.app:app ### Use this command for prod 
-    ### command: flask run --host=0.0.0.0 --port=5000 --debug ### Use this command for dev logs --> easier debugging + more info on errors
-    volumes:
-      # this mounts the entire src (backend python flask / FastAPI) folder
-      - ./src:/app/src
-
-      # this mounts other important folders
-      - ./templates:/app/templates
-      - ./static:/app/static
-      - ./migrations:/app/migrations
-      - ./graph_generation:/app/graph_generation
-    environment:
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
-      - GUNICORN_WORKERS=2 
-      - GUNICORN_LOG_LEVEL=info
-      - PYTHONPATH=/app/src
-
-      ### DEBUGGING ENVIRONMENT VARIABLES ###
-      # Uncomment the lines below for local development debugging
-      - FLASK_DEBUG=1
-      - LOAD_GRAPH_ON_IMPORT=0    # 0 stops graph loading on import for fast hot-reloads
-      - FLASK_ENV=development     # this is depreciated, will likely switch to checking FLASK_DEBUG to determine if in prod or not
-    ports:
-      - "5000:5000" # Local access: http://localhost:5000
-    env_file:
-      - path: example.env
-        required: true
-      - path: .env
-        required: false
-    depends_on:
-      db:
-        condition: service_healthy
   
   # FASTAPI APP
   web-fastapi:
     build: .
-    command: uvicorn src.fastapi_app:app --host 0.0.0.0 --port 5001 --reload
+    command: gunicorn -c src/gunicorn.config.py fastapi_app:app
     volumes:
       - ./src:/app/src
       - ./templates:/app/templates
@@ -154,7 +117,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - web
+      - web-fastapi
 
 volumes:
   postgres_data:
