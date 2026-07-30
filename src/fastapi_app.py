@@ -26,12 +26,13 @@ from src.Auth.auth_fastapi import router as auth_router
 from src.Settings.setings_fastapi import router as settings_router
 from src.Routes.routes_fastapi import router as routes_router
 from src.Error_Logging.error_logging import router as error_logging_router
+from src.Search.search_fastapi import router as search_router
 
 #endregion
 
 #region INITIALISATION
 
-# Absolute paths to make the correct path for static and template files 
+# Absolute paths to make the correct path for static and template files no matter current environment 
 BASE_DIR = Path(__file__).resolve().parent.parent   # project root
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -52,6 +53,7 @@ app.include_router(auth_router)
 app.include_router(settings_router)
 app.include_router(routes_router)
 app.include_router(error_logging_router)
+app.include_router(search_router)
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
@@ -116,7 +118,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
     service.load_graph()
 
-# Viewing routes 
+# View endpoints
 @app.get("/")
 def root_url():
     return RedirectResponse(url="/map")
@@ -144,6 +146,8 @@ def register_page(request: Request):
     name='register.html',
         context={'request': request}
     )
+
+# Main Map view endpoint
 
 @app.get('/map', response_class=HTMLResponse)
 def map_view(
