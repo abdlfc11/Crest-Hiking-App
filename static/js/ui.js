@@ -105,7 +105,7 @@ import {
   createSettingsTour
 } from "./tours/tours.js";
 
-import { logout } from "./auth.js";
+import { logout } from "./auth/auth.js";
 
 //#endregion
 
