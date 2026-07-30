@@ -47,15 +47,16 @@ async function getSavedPoints() {
     
     const url = window.appConfig.apiGetSavedPointsUrl;
 
-    const response = await fetch(url)
+    const response = await fetch(url);
+
+    const data = await response.json();
     
     // e.g when FastAPI returns HTTPException, such as if authorisation failed 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail?.message || "Failed to fetch points");
+      throw new Error(data.message || "Failed to fetch points");
     }
 
-    return await response.json();
+    return data
 }
 
 export function loadAndDisplaySavedPoints() {
@@ -101,21 +102,20 @@ export async function saveNewPoint(coordinate, name) {
         }),
       })
       
-      const data = await response.json();
+      const data = await response.json().catch(() => ({})); // .catch used to resolve errors safely, they are then caught later
 
       if (response.status === 401) {
         showLoginModal(true);
         return;
       }
       else if (!response.ok) {
-        throw new Error(data.detail.message || "There was an unexpected error whilst saving your point, try again later.")
-        return;
+        throw new Error(data.message || "There was an unexpected error whilst saving your point, try again later.")
       }
 
       if (data.success) {
           return loadAndDisplaySavedPoints();
         }
-      showError(data.message || "There was an error on our end, please try again later.");
+      showError(data?.message || "There was an error on our end, please try again later.");
       return;
   }
   catch(error) {
