@@ -650,7 +650,7 @@ async function handleRouteImport() {
     }
 
     try {
-      const response = await fetch('/save_route', {
+      const response = await fetch(window.appConfig.apiSaveRouteUrl, {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

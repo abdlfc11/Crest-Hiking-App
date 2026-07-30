@@ -74,7 +74,7 @@ export async function loadRoute(routeName) {
  */
 export async function downloadRoute(routeName, format, DOMElement) {
 
-  const url = window.appConfig.apiDownloadRouteUrl
+  const url = window.appConfig.apiDownloadRouteFileUrl
   DOMElement.classList.add('loading');
 
   const response = await fetch(url, {
