@@ -392,17 +392,22 @@ def save_route(
             "message" : "A route with this name already exists. Please pick a new name."
         }
 
-
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
 
         short_traceback = "".join(traceback.format_exception_only(type(e), e)).strip()
         
-        log_action('Saving Route', True, short_traceback, None, 'SAVE_ROUTE')
+        log_action('Saving Route', False, short_traceback, None, 'SAVE_ROUTE')
 
-        return {"success": False,
-            "message": "There was an error saving your route. "
-        }
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "message": "There was an error saving your route. "
+            }
+        )
 
 #endregion
 
@@ -798,8 +803,11 @@ async def import_route(
 
         # this handles KML file types
         elif ext == "kml":
-            route_file.stream.seek(0)
-            doc = KML.parse(route_file.stream, strict=False)
+
+            # moves file pointer back to the first byte to allow the entire file to be read 
+            await route_file.seek(0)
+
+            doc = KML.parse(route_file.file, strict=False)
             coords = extract_kml_coords(doc)
             
             # logging is commented out as KML imports are not fully supported --> prevents false positives 
