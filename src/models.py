@@ -22,7 +22,7 @@ class User(SQLModel, table=True):
     preferred_name: Optional[str] = Field(max_length=30, default=None)
     password_hashed: str = Field(max_length=200, nullable=False)
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "server_default": func.now(),
@@ -46,7 +46,7 @@ class Route(SQLModel, table=True):
     name: str = Field(max_length=100, nullable=False)
     coordinates: str = Field(sa_column=Column(Text, nullable=False))
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "server_default": func.now(),
@@ -80,7 +80,7 @@ class Point(SQLModel, table=True):
     name: str = Field(max_length=50, nullable=False)
     coordinates: str = Field(max_length=1000, nullable=False)
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "server_default": func.now(),
@@ -140,7 +140,7 @@ class ActionLog(SQLModel, table=True):
     error_code: Optional[str] = Field(default=None, nullable=True, max_length=50) # for easy identification 
     
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "server_default": func.now(),
@@ -160,7 +160,7 @@ class Issues(SQLModel, table=True):
     title: str = Field(nullable=False, max_length=100)
     description: str = Field(nullable=False, max_length=1000)
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "server_default": func.now(),
@@ -175,7 +175,7 @@ class SessionTable(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     session_id: str = Field(unique=True, index=True, nullable=False)
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "server_default": func.now(),
