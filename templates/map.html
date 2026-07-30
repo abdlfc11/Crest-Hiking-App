@@ -228,8 +228,12 @@
                 <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
             </div>
             {% if user is none or not user.preferred_name %}
-                <div id="sidenav-login-button-container">
-                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill">Login</button>
+                <div id="sidenav-login-logout-button-container">
+                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill sidenav-login-logout-button">Log In</button>
+                </div>
+            {% else %}
+                <div id="sidenav-login-logout-button-container">
+                    <button style="margin: .5rem;" id="sidenav-logout-button" class="btn-pill sidenav-login-logout-button">Log Out</button>
                 </div>
             {% endif %}
         </div>
