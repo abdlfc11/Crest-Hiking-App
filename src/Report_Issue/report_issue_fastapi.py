@@ -72,6 +72,8 @@ def report_issue_api(data: ReportIssueData):
             )
 
         return {"success": True, "message": "Issue reported successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         log_action('Report Issue', False, traceback.format_exc(), None, 'REPORT_ISSUE')
 
