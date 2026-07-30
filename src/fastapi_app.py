@@ -188,18 +188,6 @@ def map_view(
             .where(Point.user_id == user.id)
             .order_by(Point.created_at.desc())
         ).all()
-
-        web_mercator_points = []
-        for point in saved_points:
-            try:
-                bng_x, bng_y = json.loads(point.coordinates)
-                web_mercator_x, web_mercator_y = service.convert_bng_to_web_mercator(bng_x, bng_y)
-                web_mercator_points.append({
-                    "name": point.name,
-                    "coordinates": [web_mercator_x, web_mercator_y]
-                })
-            except Exception:
-                continue
         
         return templates.TemplateResponse(
             request=request,
