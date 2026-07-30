@@ -161,7 +161,7 @@ def delete_point(
 
             point_to_delete = db.exec(
                 select(Point)
-                .where(Point.name == point_name, Point.user_id == user.user_id)
+                .where(Point.name == point_name, Point.user_id == user.id)
             ).first()
 
             if not point_to_delete:
