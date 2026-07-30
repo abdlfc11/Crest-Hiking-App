@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 
 # Third Party Libraries
-from fastapi import Header, HTTPException, Depends, Cookie
+from fastapi import Header, HTTPException, Depends, Cookie, Request, Response
 from sqlmodel import Session, select
 
 # Local Files 
@@ -21,6 +21,42 @@ from src.Pathfinding.Nodefinder import NodeFinder
 #endregion
 
 service = NodeFinder(graph_path=Config.GRAPH_PATH)
+
+async def rate_limit_exceeded_callback(request: Request, response: Response):
+    """
+    Called by fastapi-limiter when the rate limit is exceeded.
+    Raises a HTTPException with status code 429 
+    """
+
+    try:
+        with Session(engine) as db:
+
+            session_id = request.cookies.get("session_id")
+            user = get_user_from_session_id(session_id, db)
+
+            if user:
+                db_routes = db.exec(
+                    select(Route).where(Route.user_id==user.id)
+                ).all()
+                available_routes = [route.model_dump() for route in db_routes]
+            else:
+                available_routes = []
+        
+            log_action('Rate Limiting', False, 'Rate limit exceeded', None, 'RATE_LIMIT_HIT')
+    except Exception as error:
+        short_traceback = "".join(traceback.format_exception_only(type(error), error)).strip()
+        log_action('MISC', False, short_traceback, None, 'RATE_LIMIT_HIT')
+        available_routes = []
+    
+    raise HTTPException(
+        status_code=429,
+        detail={
+            "success": False,
+            "map_centre": DEFAULT_CENTRE, # This keeps the front-end Map safe from crashing
+            "available_routes": available_routes, # So does this
+            "message": "Too many requests. Please slow down."
+        }
+    )
 
 def get_user_from_session_id(
     session_id: Optional[str],
