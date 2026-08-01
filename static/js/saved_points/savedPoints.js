@@ -75,8 +75,8 @@ export function loadAndDisplaySavedPoints() {
       .then(createSavedPointsLayer)
       .then(addLayerToMap)
       .catch(err => {
-        logError("Getting Saved Points", error.message, null, "GET_SAVED_POINT")
-        showError("Sorry, there was an unexpected error whilst displaying saved points.");
+        logError("Getting Saved Points", err.message, null, "GET_SAVED_POINT")
+        showError(err.message || "Sorry, there was an unexpected error whilst displaying saved points.");
       })
 }
 
@@ -123,7 +123,7 @@ export async function saveNewPoint(coordinate, name) {
       return;
   }
   catch(error) {
-    showError("There was an unexpected error whilst saving your point, try again later.");
+    showError(error.message || "There was an unexpected error whilst saving your point, try again later.");
     return false;
   }
 }
