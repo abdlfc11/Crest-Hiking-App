@@ -35,6 +35,7 @@ import {
   getRouteLayer,
   getPathColour,
   setRouteLayer,
+  routeLayerHasFeatures
 } from "./map.js";
 
 import {
@@ -211,6 +212,11 @@ const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 let clickMode = null;
 let manualRouteLayer = null;
 let selectedPoint = null;
+
+// Start and End points 
+
+let interactivePointLayerInteraction = null; // holds the OpenLayer interaction for the start and end points 
+let interactivePointLayer = null; // stores the vector layer which holds the point features 
 
 //#endregion
 
@@ -470,10 +476,20 @@ export function mapClickHandler(event) {
 
   if (clickMode === "setStart") {
     setCoordEntry(startCoordEntry, event);
+
+    // adding start point
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("Start", "#074df0"), "start", "Start");
+    addStartEndPoint(pointFeature, interactivePointLayer, "start");
+    setUpPointInteraction([interactivePointLayer]);
     return;
   }
   if (clickMode === "setEnd") {
     setCoordEntry(endCoordEntry, event);
+
+    // adding end point 
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#074df0"), "end", "End")
+    addStartEndPoint(pointFeature, interactivePointLayer, "end");
+    setUpPointInteraction();
     return;
   }
 
@@ -865,39 +881,44 @@ export function clearAutoRoute() {
   if (!map) return;
 
   clearPathState();
-
-  const routeLayer = getRouteLayer();
-  if (routeLayer) routeLayer.getSource().clear();
-
-  if (getCurrentMode() === "manual") {
-    clearManualRoute();
-  }
-
-  map
-    .getLayers()
-    .getArray()
-    .slice()
-    .forEach((layer) => {
-      if (
-        layer instanceof ol.layer.Vector &&
-        layer !== getSavedPointsLayer() &&
-        layer !== routeLayer
-      ) {
-        layer.getSource()?.clear();
-      }
-    });
-
-  document.getElementById("route-stats")?.remove();
-
   clearLastAutoRouteStats();
 
+  // this clears the permanent route layer
+  getRouteLayer()?.getSource()?.clear();
+
+  // this clears start / end markers from the interactive layer
+  if (interactivePointLayer) {
+    const source = interactivePointLayer.getSource();
+    source.getFeatures()
+      .filter(f => f.get("type") === "start" || f.get("type") === "end")
+      .forEach(f => source.removeFeature(f));
+  }
+
+  // this clears any other temporary vector layers (but leaves saved-points + interactive + route alone)
+  map.getLayers().getArray().slice().forEach((layer) => {
+    if (
+      layer instanceof ol.layer.Vector &&
+      layer !== getSavedPointsLayer() &&
+      layer !== getRouteLayer() &&
+      layer !== interactivePointLayer
+    ) {
+      layer.getSource()?.clear();
+    }
+  });
+
+  // this cleans up the UI
+  document.getElementById("route-stats")?.remove();
   if (startCoordEntry) startCoordEntry.value = "";
   if (endCoordEntry) endCoordEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveContainer) saveContainer.style.display = "none";
   updateSaveRouteContainer();
-  
-};
+
+  // this also wipes the manual route if the user is in manual mode 
+  if (getCurrentMode() === "manual") {
+    clearManualRoute();
+  }
+}
 
 export function clearManualRoute() {
   const map = getMap();
@@ -905,77 +926,73 @@ export function clearManualRoute() {
 
   clearManualRouteState();
 
+  // this removes the temporary manual route layer
   if (manualRouteLayer) {
     map.removeLayer(manualRouteLayer);
     manualRouteLayer = null;
   }
 
-  document.getElementById("route-stats")?.remove();
+  // this also clears the permanent route layer (in case anything was drawn there)
+  getRouteLayer()?.getSource()?.clear();
 
+  document.getElementById("route-stats")?.remove();
   if (saveContainer) saveContainer.style.display = "none";
   updateSaveRouteContainer();
-
-  clearPathState();
-  getRouteLayer()?.getSource().clear();
   resetElevationChart();
-  
-};
+}
 
 export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
 
+  // this resets the coordinate input UI state
   if (startCoordEntry) {
-    startCoordEntry.classList.remove('input-error');
-    startCoordEntry.classList.remove('is-active');
+    startCoordEntry.classList.remove("input-error", "is-active");
     startCoordEntry.placeholder = "Coordinates";
+    startCoordEntry.value = "";
   }
-
   if (endCoordEntry) {
-    endCoordEntry.classList.remove('input-error');
-    endCoordEntry.classList.remove('is-active');
+    endCoordEntry.classList.remove("input-error", "is-active");
     endCoordEntry.placeholder = "Coordinates";
+    endCoordEntry.value = "";
   }
 
   clickMode = null;
   generatePathButton?.classList.remove("loading");
 
+  // this wipes all route-related state
   clearManualRoute();
   clearAutoRoute();
   clearLastLoadedRouteStats();
-  updateSaveRouteContainer()
+  clearPathState();
 
-  const layersToRemove = [];
-  map.getLayers().forEach((layer) => {
-    if (layer instanceof ol.layer.Vector) layersToRemove.push(layer);
+  // Remove only temporary vector layers.
+  // Keep: routeLayer, interactivePointLayer, saved-points layer
+  map.getLayers().getArray().slice().forEach((layer) => {
+    if (
+      layer instanceof ol.layer.Vector &&
+      layer !== getRouteLayer() &&
+      layer !== interactivePointLayer &&
+      layer !== getSavedPointsLayer()
+    ) {
+      map.removeLayer(layer);
+    }
   });
-  layersToRemove.forEach((layer) => map.removeLayer(layer));
 
-  setRouteLayer(
-    new ol.layer.Vector({
-      source: new ol.source.Vector(),
-      style: new ol.style.Style({
-        stroke: new ol.style.Stroke(getRouteStrokeStyle()),
-      }),
-      zIndex: 999,
-    }),
-  );
-  map.addLayer(getRouteLayer());
-
+  // this cleans up the UI
   document.getElementById("route-stats")?.remove();
-
-  moveMapToPosition(map)
-  if (startCoordEntry) startCoordEntry.value = "";
-  if (endCoordEntry) endCoordEntry.value = "";
   if (searchEntry) searchEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
-
-  clearPathState();
   if (saveContainer) saveContainer.style.display = "none";
-  
+  updateSaveRouteContainer();
+
+  // this resets the map view and re-shows saved points
   loadAndDisplaySavedPoints();
+  map.renderSync(); // this is to ensure that the map renders the deletion of the routeLayer features before the moving of the map view 
+
+  moveMapToPosition(map);
   updateCursor();
-};
+}
 
 //#endregion
 
@@ -1037,7 +1054,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
   const startPoint = start || startCoordEntry?.value || "";
   const endPoint = end || endCoordEntry?.value || "";
 
-
   if (validateInputCoords(startPoint, endPoint) !== true) return;
 
   generatePathButton.disabled = true;
@@ -1052,14 +1068,17 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     displayAutoRouteStats(getLastAutoRouteStats());
-
+    
+    resetElevationChart();
     initChartToggleListener();
     createElevationProfile(response.coordinates);
 
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
+    throw new Error(error.message || "Sorry, there was an unexpected error when calculating your route, please try again later.");
+    showError("Sorry, there was an unexpected error when calculating your route, please try again later.");
+    return;
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;   
@@ -1067,22 +1086,30 @@ async function handleAutoRouteGeneration(start=null, end=null) {
 };
 
 function displayPath(data) {
+
+  try { 
   const map = getMap();
   const routeLayer = getRouteLayer();
   if (!map || !routeLayer) return null;
 
-  const source = routeLayer.getSource();
-  source.clear();
+  const routeLayerSource = routeLayer.getSource();
+  const interactivePointLayerSource = interactivePointLayer.getSource();
+
+  routeLayerSource.clear();
+  
+  interactivePointLayerSource.getFeatures()
+  .filter(feature => feature.get('type') === 'start' || feature.get('type') === 'end')
+  .forEach(feature => interactivePointLayerSource.removeFeature(feature))
 
   // this clears the hovered point feature to prevent the preserving of stale OL point features
   setHoverPointFeature(null);
 
-  const feature = new ol.format.GeoJSON().readFeature(data.pathGeoJSON, {
+  const pathFeature = new ol.format.GeoJSON().readFeature(data.pathGeoJSON, {
     dataProjection: "EPSG:3857",
     featureProjection: "EPSG:3857",
   });
 
-  source.addFeature(feature);
+  routeLayerSource.addFeature(pathFeature);
 
   const coordinates = data.coordinates;
 
@@ -1091,18 +1118,12 @@ function displayPath(data) {
     const startCoord = coordinates[0];
     const endCoord = coordinates[coordinates.length - 1];
 
-    const startPointFeature = new ol.Feature({
-      geometry: new ol.geom.Point([startCoord[0], startCoord[1]])
-    });
-    startPointFeature.setStyle(createManualPointStyle("Start", "#8145d4"));
+    // this creates and then displays (by adding them to the interactivePointLayerSource) the start and end point features
+    const startPointFeature = createPoint([startCoord[0], startCoord[1]], getSavedPointStyle("Start", "#074df0"), "start", "Start")
+    const endPointFeature = createPoint([endCoord[0], endCoord[1]], getSavedPointStyle("End", "#074df0"), "end", "End")
 
-    const endPointFeature = new ol.Feature({
-      geometry: new ol.geom.Point([endCoord[0], endCoord[1]])
-    });
-    endPointFeature.setStyle(createManualPointStyle("End", "#8145d4"));
-
-    source.addFeature(startPointFeature);
-    source.addFeature(endPointFeature);
+    interactivePointLayerSource.addFeature(startPointFeature)
+    interactivePointLayerSource.addFeature(endPointFeature)
 
   }
 
@@ -1110,14 +1131,19 @@ function displayPath(data) {
 
 
   setTimeout(() => {
-    map.getView().fit(source.getExtent(), {
-      padding: [50, 100, 100, 430],
+    map.getView().fit(routeLayerSource.getExtent(), {
+      padding: [300, 300, 300, 430],
       duration: 1200,
     });
     map.render();
   }, 100);
 
   return data.route_stats;
+  } 
+  catch(error) {
+    console.log(error.message);
+    showError('Sorry, there was an unexpected error when calculating your route, please try again later.')
+  }
 };
 
 function displayAutoRouteStats(routeStats) {
@@ -1389,6 +1415,103 @@ export function handleInitialTour() {
 
 //#endregion
 
+//#region POINT INTERACTION
+
+/**
+ * Adds a start/end point feature to a vector layer, removing any existing feature of the same type first
+ *
+ * @param {ol.Feature} pointFeature The point feature to add
+ * @param {ol.layer.Vector} vectorLayer The vector layer that will contain the feature
+ * @param {string} type Feature type identifier (e.g. `"start"` or `"end"`)
+ * @returns {void}
+ */
+function addStartEndPoint(pointFeature, vectorLayer, type) {
+  const vectorLayerSource = vectorLayer.getSource();
+
+  // this removes any existing features which are of the same type 
+  vectorLayerSource.getFeatures()
+  .filter(feature => feature.get('type') === type)
+  .forEach(feature => vectorLayerSource.removeFeature(feature))
+
+  vectorLayerSource.addFeature(pointFeature)
+}
+
+/**
+ * Creates an OpenLayers point feature.
+ *
+ * @param {Array<number>} coordinates Coordinates in EPSG:3857.
+ * @param {ol.style.Style} style Style to apply to the feature.
+ * @param {string} type Logical point type (e.g. "start", "end", "waypoint").
+ * @param {string} [label] Display label for the point.
+ * @returns {ol.Feature}
+ */
+export function createPoint(coordinates, style, type, label) {
+
+    const point = new ol.Feature({
+        geometry: new ol.geom.Point(coordinates)
+    });
+
+    point.set("type", type);
+    point.set("label", label);
+    point.setStyle(style);
+
+    return point;
+}
+
+/**
+ * Adds a translate interaction to start / end OpenLayers points
+ * 
+ * @param {Array} layers The layers that the interaction is to be applied upon 
+ * @returns {void}
+ */
+export function setUpPointInteraction(layers) {
+  const map = getMap();
+  if (!map || !layers) return;
+
+  const interactivePointLayerSource = interactivePointLayer.getSource();
+
+  // this removes any previous interaction
+  if (interactivePointLayerInteraction) {
+    map.removeInteraction(interactivePointLayerInteraction);
+  }
+
+  // this makes the OpenLayers interaction
+  interactivePointLayerInteraction = new ol.interaction.Translate({
+    layers: layers,
+    filter: (feature) => feature.getGeometry() instanceof ol.geom.Point // (only accounts for points)
+  });
+  
+  map.addInteraction(interactivePointLayerInteraction); 
+
+  interactivePointLayerInteraction.on('translateend', (event) => {
+    const movedFeature = event.features.item(0);
+    if (!movedFeature) return;
+
+    const newCoordinates = movedFeature.getGeometry().getCoordinates();
+    const pointType = movedFeature.get("type");
+    const rounded = roundCoords(newCoordinates, 0);
+    const coordString = `${rounded[0]}, ${rounded[1]}`;
+
+    // this updates the correct input
+    if (pointType === "start") {
+      startCoordEntry.value = coordString;
+    } else if (pointType === "end") {
+      endCoordEntry.value = coordString;
+    }
+
+    const startVal = startCoordEntry?.value?.trim();
+    const endVal = endCoordEntry?.value?.trim();
+
+    // this ensures routes are only recalculated if both points are present
+    if (startVal && endVal) {
+      handleAutoRouteGeneration(startVal, endVal);
+    }
+
+  });
+}
+
+//#endregion
+
 //#region DELETING POINTS
 
 function deselectSelectedPoint() {
@@ -1399,28 +1522,6 @@ function deselectSelectedPoint() {
   }
   return
 };
-
-function initPointDeleteHandlers() {
-  if (!deletePointModal) return;
-
-  // for hiding if clicking anywhere outside the modal
-  deletePointModal.addEventListener("click", (e) => {
-    dismissDeletePointModal(e);
-  });
-
-  // for deselecting the currently-selected point when the modal is closed 
-  deletePointModal.addEventListener("close", deselectSelectedPoint);
-
-  // for when the user clicks the 'exit' button on the modal
-  deletePointModalExitButton?.addEventListener("click", () => {
-    showDeletePointModal(false)
-  });
-
-  // for when the user clicks 'delete point' on the modal
-  deletePointModalDeleteButton?.addEventListener("click", () => {
-    deleteSavedPoint(selectedPoint)
-  });
-}
 
 //#endregion
 
@@ -1528,7 +1629,38 @@ function handleKeyboardShortcuts(e) {
 //#endregion
 
 
-//#region EVENT LISTENERS
+//#region EVENT LISTENERS / INIT
+
+function initInteractivePointLayer(map) {
+  interactivePointLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    zIndex: 1000 // above the route layer 
+  });
+
+  map.addLayer(interactivePointLayer);
+}
+
+function initPointDeleteHandlers() {
+  if (!deletePointModal) return;
+
+  // for hiding if clicking anywhere outside the modal
+  deletePointModal.addEventListener("click", (e) => {
+    dismissDeletePointModal(e);
+  });
+
+  // for deselecting the currently-selected point when the modal is closed 
+  deletePointModal.addEventListener("close", deselectSelectedPoint);
+
+  // for when the user clicks the 'exit' button on the modal
+  deletePointModalExitButton?.addEventListener("click", () => {
+    showDeletePointModal(false)
+  });
+
+  // for when the user clicks 'delete point' on the modal
+  deletePointModalDeleteButton?.addEventListener("click", () => {
+    deleteSavedPoint(selectedPoint)
+  });
+}
 
 export function initUi() {
   const map = getMap();
@@ -1540,6 +1672,8 @@ export function initUi() {
 
   initSaveRoute();
   initPointDeleteHandlers();
+
+  initInteractivePointLayer(map);
 
 
   // initial tour (automatic routing and saving the first route)
