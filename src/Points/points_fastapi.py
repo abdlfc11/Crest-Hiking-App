@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi_limiter.depends import RateLimiter
 from pyrate_limiter import Duration, Limiter, Rate
 from sqlmodel import Session, select
+from sqlalchemy.exc import IntegrityError
 
 # Local Modules
 from src.db import engine
@@ -94,6 +95,18 @@ def save_point(
             log_action('Saving Point', True, None, None, 'SAVING_POINT')
 
         return {"success": True, "message": 'Successfully saved the point'}
+    
+    except IntegrityError as exception:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "success": False,
+                "message": "A point already exists with that name, use a different name."
+            }
+        ) from exception
+
+    except HTTPException:
+        raise
     
     # if float() fails
     except ValueError as e:

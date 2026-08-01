@@ -20,6 +20,11 @@ export function getRouteLayer() {
   return routeLayer;
 }
 
+export function routeLayerHasFeatures() {
+  const source = getRouteLayer()?.getSource();
+  return Boolean(source && source.getFeatures().length > 0);
+}
+
 export function getTileLayer() {
   return tileLayer;
 }

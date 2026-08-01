@@ -31,7 +31,8 @@ function convertPointsToFeatures(data) {
 function createSavedPointsLayer(features) {
     return new ol.layer.Vector({
         source: new ol.source.Vector({ features }),
-        style: f => getSavedPointStyle(f.get("name"))
+        style: f => getSavedPointStyle(f.get("name")),
+        zIndex: 1000
     });
 };
 
@@ -75,7 +76,7 @@ export function loadAndDisplaySavedPoints() {
       .then(createSavedPointsLayer)
       .then(addLayerToMap)
       .catch(err => {
-        logError("Getting Saved Points", error.message, null, "GET_SAVED_POINT")
+        logError("Getting Saved Points", err.message, null, "GET_SAVED_POINT")
         showError("Sorry, there was an unexpected error whilst displaying saved points.");
       })
 }
@@ -123,7 +124,7 @@ export async function saveNewPoint(coordinate, name) {
       return;
   }
   catch(error) {
-    showError("There was an unexpected error whilst saving your point, try again later.");
+    showError(error.message || "There was an unexpected error whilst saving your point, try again later.");
     return false;
   }
 }
