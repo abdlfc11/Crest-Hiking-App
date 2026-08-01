@@ -1,6 +1,6 @@
 /**
  * This file is intended to hold all UI related helper functions
- * As of July 2026 this file hold the following functions:
+ * As of August 2026 this file hold the following functions:
  *      
  *      - moveMapToPosition(map, position = null, duration = 1200, zoom = 10.5)
  *      - showError(message, colour = "#ff4d4f")
@@ -9,11 +9,34 @@
  *      - createRouteCard(routeName, formattedDate, distanceInKm, ETA, elevDisplayValue)
  *      - createNoRouteCard()
  *      - createStatsPanel(distanceDisplay, etaDisplay, elevationGain)
+ *      - parseCoordString(value)
  */      
 
 
 
 // GENERAL 
+
+/**
+ * Parses a coordinate string in the form "X, Y" (or "X,Y").
+ * Returns [x, y] as numbers or null if the format is invalid.
+ * Never throws.
+ */
+export function parseCoordString(value) {
+  if (typeof value !== "string") return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const parts = trimmed.split(/\s*,\s*/);
+  if (parts.length !== 2) return null;
+
+  const x = Number(parts[0]);
+  const y = Number(parts[1]);
+
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+  return [x, y];
+}
 
 /**
  * Function to move the map to a specific coordinate or the centre of the map via an animation
