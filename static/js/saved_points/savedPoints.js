@@ -31,7 +31,8 @@ function convertPointsToFeatures(data) {
 function createSavedPointsLayer(features) {
     return new ol.layer.Vector({
         source: new ol.source.Vector({ features }),
-        style: f => getSavedPointStyle(f.get("name"))
+        style: f => getSavedPointStyle(f.get("name")),
+        zIndex: 1000
     });
 };
 
