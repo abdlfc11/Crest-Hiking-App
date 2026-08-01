@@ -71,11 +71,11 @@ export function isLonLat(coordinate) {
   };
 
   // this ensures that both lat and lon variables are numbers and can be used in the conditional checks to ensure they are valid WGS84 coordinates 
-  if (!typeof lat === 'number' || !Number.isFinite(lat)) {
+  if (typeof lat !== 'number' || !Number.isFinite(lat)) {
     console.warn('isLonLat(coord) : variable lat is either not a number or is infinite')
   }; 
 
-  if (!typeof lon === 'number' || !Number.isFinite(lon)) {
+  if (typeof lon !== 'number' || !Number.isFinite(lon)) {
     console.warn('isLonLat(coord) : variable lon is either not a number or is infinite')
   }; 
 
