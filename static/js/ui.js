@@ -1438,7 +1438,7 @@ function toWebMercator(coords) {
 
   if (isLonLat(coords)) {
     // OpenLayers expects [longitude, latitude]
-    return ol.proj.fromLonLat(coords);
+    return ol.proj.fromLonLat([coords[1], coords[0]]);
   }
 
   // Already projected (EPSG:3857)
