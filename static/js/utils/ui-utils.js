@@ -33,6 +33,7 @@ export function parseCoordString(value) {
   const x = Number(parts[0]);
   const y = Number(parts[1]);
 
+  if (!x || !y) return null;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
 
   return [x, y];

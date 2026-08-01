@@ -96,14 +96,14 @@ def save_point(
 
         return {"success": True, "message": 'Successfully saved the point'}
     
-    except IntegrityError:
+    except IntegrityError as exception:
         raise HTTPException(
             status_code=409,
             detail={
                 "success": False,
                 "message": "A point already exists with that name, use a different name."
             }
-        )
+        ) from exception
 
     except HTTPException:
         raise

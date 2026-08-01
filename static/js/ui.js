@@ -496,7 +496,7 @@ export function mapClickHandler(event) {
     // adding end point 
     const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#074df0"), "end", "End")
     addStartEndPoint(pointFeature, interactivePointLayer, "end");
-    setUpPointInteraction();
+    setUpPointInteraction([interactivePointLayer]);
 
     if (interactivePointLayer.getSource().getFeatures().length > 1) {
       handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
@@ -1088,7 +1088,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    throw new Error(error.message || "Sorry, there was an unexpected error when calculating your route, please try again later.");
     showError("Sorry, there was an unexpected error when calculating your route, please try again later.");
     return;
   } finally {
@@ -1430,18 +1429,16 @@ export function handleInitialTour() {
 //#region POINT INTERACTION
 
 /**
- * Ensures the coordinate is in EPSG:3857 (Web Mercator).
- * Uses the existing isLonLat helper.
+ * Ensures the coordinate is in EPSG:3857 (Web Mercator)
  */
 function toWebMercator(coords) {
   if (!coords) return null;
 
   if (isLonLat(coords)) {
-    // OpenLayers expects [longitude, latitude]
+    // reversed coords as OpenLayers expects [longitude, latitude]
     return ol.proj.fromLonLat([coords[1], coords[0]]);
   }
 
-  // Already projected (EPSG:3857)
   return coords;
 }
 
@@ -1452,10 +1449,10 @@ function handleCoordEntryChange(entry, type) {
   const raw = entry?.value?.trim() ?? "";
   const parsed = parseCoordString(raw);
 
-  // Invalid format → silent return
+  // this returns if the string is in an invalid format
   if (!parsed) return;
 
-  // Convert to Web Mercator when the value is lon/lat
+  // this converts coords to Web Mercator when the value is lon/lat
   const mercatorCoords = toWebMercator(parsed);
   if (!mercatorCoords) return;
 
@@ -1463,6 +1460,10 @@ function handleCoordEntryChange(entry, type) {
     type === "start" ? "Start" : "End",
     "#074df0"
   );
+
+  if (!isPointInPolygon(ol.proj.toLonLat(mercatorCoords))) {
+    return;
+  }
 
   const pointFeature = createPoint(
     mercatorCoords,

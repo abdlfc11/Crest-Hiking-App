@@ -77,7 +77,7 @@ export function loadAndDisplaySavedPoints() {
       .then(addLayerToMap)
       .catch(err => {
         logError("Getting Saved Points", err.message, null, "GET_SAVED_POINT")
-        showError(err.message || "Sorry, there was an unexpected error whilst displaying saved points.");
+        showError("Sorry, there was an unexpected error whilst displaying saved points.");
       })
 }
 
