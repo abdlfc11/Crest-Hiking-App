@@ -23,7 +23,8 @@ import {
   showError,
   addClickListener,
   removeDOMElement,
-  createStatsPanel
+  createStatsPanel,
+  parseCoordString
 } from "./utils/ui-utils.js";
 
 import { calculatePath, addManualPoint } from "./routing/routing.js";
@@ -123,6 +124,9 @@ const manualModeOption = document.getElementById("manual-mode-option");
 const setStartCoordButton = document.getElementById("set-start-coord-button");
 const setEndCoordButton = document.getElementById("set-end-coord-button");
 
+const startCoordEntry = document.getElementById("start-point-entry");
+const endCoordEntry = document.getElementById("end-point-entry");
+
 const autoOpenNavButton = document.getElementById("auto-open-nav-button");
 const manualOpenNavButton = document.getElementById("manual-open-nav-button");
 const closeNavButton = document.getElementById("close-nav-button");
@@ -142,8 +146,6 @@ const searchEntry = document.getElementById("search-entry");
 const searchForAreaButton = document.getElementById("search-for-area-button");
 
 const mapElement = document.getElementById("map");
-const startCoordEntry = document.getElementById("start-point-entry");
-const endCoordEntry = document.getElementById("end-point-entry");
 
 const navBar = document.getElementById("the-sidenav");
 const loginNavBarButton = document.getElementById('sidenav-login-button');
@@ -481,6 +483,11 @@ export function mapClickHandler(event) {
     const pointFeature = createPoint(event.coordinate, getSavedPointStyle("Start", "#074df0"), "start", "Start");
     addStartEndPoint(pointFeature, interactivePointLayer, "start");
     setUpPointInteraction([interactivePointLayer]);
+
+    if (interactivePointLayer.getSource().getFeatures().length > 1) {
+      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
+    };
+
     return;
   }
   if (clickMode === "setEnd") {
@@ -490,6 +497,11 @@ export function mapClickHandler(event) {
     const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#074df0"), "end", "End")
     addStartEndPoint(pointFeature, interactivePointLayer, "end");
     setUpPointInteraction();
+
+    if (interactivePointLayer.getSource().getFeatures().length > 1) {
+      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
+    };
+
     return;
   }
 
@@ -1418,6 +1430,65 @@ export function handleInitialTour() {
 //#region POINT INTERACTION
 
 /**
+ * Ensures the coordinate is in EPSG:3857 (Web Mercator).
+ * Uses the existing isLonLat helper.
+ */
+function toWebMercator(coords) {
+  if (!coords) return null;
+
+  if (isLonLat(coords)) {
+    // OpenLayers expects [longitude, latitude]
+    return ol.proj.fromLonLat(coords);
+  }
+
+  // Already projected (EPSG:3857)
+  return coords;
+}
+
+/**
+ * Handles a change on either the start or end coordinate input.
+ */
+function handleCoordEntryChange(entry, type) {
+  const raw = entry?.value?.trim() ?? "";
+  const parsed = parseCoordString(raw);
+
+  // Invalid format → silent return
+  if (!parsed) return;
+
+  // Convert to Web Mercator when the value is lon/lat
+  const mercatorCoords = toWebMercator(parsed);
+  if (!mercatorCoords) return;
+
+  const style = getSavedPointStyle(
+    type === "start" ? "Start" : "End",
+    "#074df0"
+  );
+
+  const pointFeature = createPoint(
+    mercatorCoords,
+    style,
+    type,
+    type === "start" ? "Start" : "End"
+  );
+
+  addStartEndPoint(pointFeature, interactivePointLayer, type);
+  setUpPointInteraction([interactivePointLayer]);
+
+  const map = getMap();
+  map.renderSync();
+
+  const startVal = startCoordEntry?.value?.trim();
+  const endVal = endCoordEntry?.value?.trim();
+
+  if (startVal && endVal) {
+    handleAutoRouteGeneration(startVal, endVal);
+  }
+  else {
+    moveMapToPosition(map, mercatorCoords, 1200, 12);
+  }
+}
+
+/**
  * Adds a start/end point feature to a vector layer, removing any existing feature of the same type first
  *
  * @param {ol.Feature} pointFeature The point feature to add
@@ -1720,6 +1791,8 @@ export function initUi() {
   addClickListener(searchForAreaButton, searchArea, "click");
   addClickListener(setStartCoordButton, setStartCoord, "click");
   addClickListener(setEndCoordButton, setEndCoord, "click");
+  addClickListener(startCoordEntry, () => handleCoordEntryChange(startCoordEntry, "start"), 'change')
+  addClickListener(endCoordEntry, () => handleCoordEntryChange(endCoordEntry, "end"), 'change')
 
   // These event listeners are for manual route creation.
   addClickListener(clearManualRouteButton, clearManualRoute, "click");
