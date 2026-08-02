@@ -148,6 +148,7 @@ const searchForAreaButton = document.getElementById("search-for-area-button");
 const mapElement = document.getElementById("map");
 
 const navBar = document.getElementById("the-sidenav");
+const reportIssueOpenButton = document.getElementById('report-issues-open-button')
 const loginNavBarButton = document.getElementById('sidenav-login-button');
 const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
@@ -174,6 +175,15 @@ const loginModal = document.getElementById('login-dialog');
 const loginModalLoginButton = document.getElementById('login-dialog-login');
 const loginModalExitButton = document.getElementById('login-dialog-exit');
 const loginModalContent = loginModal.querySelector('.modal-content');
+
+// report issue modal
+const reportIssueModal = document.getElementById('report-issue-dialog');
+const reportIssueModalSubmit = document.getElementById('report-issue-dialog-submit');
+const reportIssueModalExit = document.getElementById('report-issue-dialog-exit');
+const reportIssueModalContent = reportIssueModal.querySelector('.modal-content');
+const reportIssueResultLabel = document.getElementById('report-issue-result-label');
+const reportIssueTitleInput = document.getElementById("report-issue-title");
+const reportIssueTextAreaInput = document.getElementById("report-issue-description");
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -273,17 +283,16 @@ function noRouteCreateFunction() {
  * @returns {void}
  */
 export function showLoginModal(show, actionName = 'perform this action') {
-  const dialog = document.getElementById('login-dialog');
-  const messageElement = dialog.querySelector('.modal-body p');
+  const messageElement = loginModal.querySelector('.modal-body p');
 
   if (show) {
 
     // This updates the message dynamically
     messageElement.textContent = `An account is required to ${actionName}.`;
-    dialog.showModal();
+    loginModal.showModal();
   } 
   else {
-    dialog.close();
+    loginModal.close();
   }
 };
 
@@ -331,6 +340,119 @@ function dismissDeletePointModal(e) {
       showDeletePointModal(false);
     }
 };
+
+//#endregion
+
+//#region REPORT ISSUE MODAL
+
+/**
+ * Opens the modal if the input is truthy and closes the modal if the input is falsy
+ * 
+ * @param {Boolean} show True to show the modal, false to hide the modal
+ */
+function showReportIssueModal(show) {
+  if (!reportIssueModal) return;
+  if (show) {
+    reportIssueModal.showModal();
+    closeNav();
+  } else {
+    reportIssueModal.close();
+  }
+}
+
+/**
+ * Closes the report issue modal if it registers a click outside of the modal
+ * @returns {void}
+ */
+function dismissReportIssueModal(e) {
+  if (reportIssueModalContent && !reportIssueModalContent.contains(e.target)) {
+      showReportIssueModal(false);
+    }
+};
+
+/**
+ * This function validates the input fields for the report issue form.
+ * @param {string} title 
+ * @param {string} description 
+ * @returns {boolean} Returns true if the input is valid, false otherwise.
+ */
+function validateReportIssueInput(title, description) {
+    if (!title || !description) {
+        showError("Please fill in both the title and description fields.");
+        return false;
+    }
+
+    if (title.length > 100) {
+        showError("Title cannot exceed 100 characters.");
+        return false;
+    }
+
+    if (description.length > 1000) {
+        showError("Description cannot exceed 1000 characters.");
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * 
+ * Handles the submission of the report issue form.
+ * It validates the input fields and sends a POST request to the server with the title and description of the issue. 
+ * 
+ * @param {string} title
+ * @param {string} description
+ * @returns {void}
+ */
+export async function handleReportIssueSubmission(title, description) {
+
+    if (!validateReportIssueInput(title, description)) {
+        return;
+    }
+
+    // This disables the submit button to prevent multiple submissions
+    reportIssueModalSubmit.disabled = true;
+
+    try {
+      const response = await fetch(window.appConfig.apiReportIssueUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title: title,
+          description: description
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+          throw new Error("There was an unexpected error whilst submitting the issue report.")
+          return;
+      }
+
+      if (!data.success) {
+          throw new Error("There was an unexpected error whilst submitting the issue report.");
+          return;
+      }
+
+      // TOAST feedback to be added after it is redesigned 
+      
+      // UI cleanup
+      reportIssueTitleInput.value = '';
+      reportIssueTextAreaInput.value = '';
+      showReportIssueModal(false);
+
+    } catch (error) {
+      showError("There was an unexpected error whilst submitting the issue report.");
+    } finally {
+      // This re-enables the submit button + closes the modal
+      reportIssueModalSubmit.disabled = false;
+      showReportIssueModal(false);
+    }
+}
+
 
 //#endregion
 
@@ -1761,16 +1883,23 @@ export function initUi() {
   // These event listeners are for navigation panels.
   addClickListener(autoOpenNavButton, openNav, "click");
   addClickListener(manualOpenNavButton, openNav, "click");
+
   addClickListener(closeNavButton, closeNav, "click");
+
   addClickListener(openSavedRoutesDashButton, openSavedRoutesDash, "click");
   addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click");
+
   addClickListener(settingOpenButton, openSettings, "click");
   addClickListener(settingCloseButton, closeSettings, "click");
+
   addClickListener(importRouteOpenButton, openImportRoute, "click");
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(importRouteCancelButton, cancelRouteImport, "click");
+
   addClickListener(loginNavBarButton, () => window.location.href = "https://app.crestr.co.uk/login-page", 'click')
   addClickListener(logoutNavBarButton, logout, 'click')
+
+  addClickListener(reportIssueOpenButton, () => showReportIssueModal(true), "click");
 
 
   // These event listeners are for route import.
@@ -1811,6 +1940,10 @@ export function initUi() {
   addClickListener(loginModalExitButton, () => showLoginModal(false), 'click');
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
   addClickListener(loginModal, dismissLoginModal, 'click');
+
+  // These event listeners are for the login modal
+  addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click")
+  addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);

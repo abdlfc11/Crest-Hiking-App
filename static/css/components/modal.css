@@ -73,7 +73,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.1s ease-in-out;
   border: none;
 }
 
@@ -92,6 +92,7 @@
 
 .modal-btn-secondary:hover {
   background-color: var(--secondary-bg-hover);
+  transform: translateY(-1.5px);
 }
 
 /* this is meant for high-risk
@@ -103,6 +104,7 @@
 }
 
 .modal-btn-danger:hover {
+  transform: translateY(-1.5px);
   background-color: #dc2626;
 }
 
@@ -115,4 +117,5 @@
 
 .modal-btn-normal:hover {
     background-color: var(--blue-dark);
+    transform: translateY(-1.5px);
 }
