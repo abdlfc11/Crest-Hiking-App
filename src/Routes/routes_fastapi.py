@@ -818,7 +818,7 @@ async def import_route(
             # extract_kml_coords returns [lat, lon, ele] (KML native)
             # this normalises to the app's [lon, lat, ele] format.
             coords = [
-                [c[1], c[0], c[2]] if len(c) >= 3 else [c[1], c[0]]
+                [c[1], c[0], c[2]] if len(c) >= 3 else [c[1], c[0], 0]
                 for c in kml_coords
             ]
             
