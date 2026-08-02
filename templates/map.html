@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/tooltip.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/form-fields.css') }}">
 
     <!-- Layout CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/layout/nav-menu.css') }}">
@@ -175,6 +176,33 @@
             <button id="remove-point-button">remove</button>
         </div>
 
+        <!-- ##### REPORT ISSUE MODAL ##### -->
+        <dialog id="report-issue-dialog" class="modal-overlay">
+            <div class="modal-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Report an Issue</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field">
+                            <label for="report-issue-title" class="field-label">Title</label>
+                            <input type="text" id="report-issue-title" name="issue-title" class="field-input" aria-label="Input to add issue title" placeholder="A short summary of the issue" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="report-issue-description" class="field-label">Describe the issue</label>
+                            <textarea id="report-issue-description" name="issue-description" class="field-textarea" aria-label="Input to add issue description" rows="5" placeholder="What happened? What did you expect instead?" required></textarea>
+                        </div>
+
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="report-issue-dialog-exit" class="modal-btn modal-btn-secondary">Close</button>
+                        <button id="report-issue-dialog-submit" class="modal-btn modal-btn-normal">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
         <!-- ##### LOGIN MODAL ##### -->
         <dialog id="login-dialog" class="modal-overlay">
             <div class="modal-wrapper">
@@ -224,7 +252,7 @@
                 <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
                 <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
                 <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
-                <a id="report-issues-button" href="/report-an-issue"><i data-lucide="bug"></i>Report Issues</a>
+                <a id="report-issues-open-button"><i data-lucide="bug"></i>Report Issues</a>
                 <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
             </div>
             {% if user is none or not user.preferred_name %}
@@ -540,6 +568,7 @@
     <!-- ##### AppConfig to access API Enpoint URLS ##### -->
     <script>
         window.appConfig = {
+            // initial state
             loggedIn: {{ logged_in }},
             mapInitialCentre: {{ map_centre | tojson }},
             mapInitialZoom: {{ map_zoom | default(10) }},
@@ -551,24 +580,37 @@
                     {% endfor %}
                 {% endif %}
             },
+
+            // auth API endpoints
             apiLoginUrl: "/auth/login",
             apiLogoutUrl: "/auth/logout",
             apiRegisterUrl: "/auth/register",
             apiDeleteAccountUrl: "/auth/delete-account",
+
+            // routing API endpoints
             apiCalculatePathUrl: "/routing/calculate-path",
+            apiSaveRouteUrl: "/routing/save-route",
+            apiLoadRouteUrl: "/routing/load-route",
+            apiDeleteRouteUrl: "/routing/delete-route",
+            apiDownloadRouteFileUrl: "/routing/download-route",
+            apiImportRouteUrl: "/routing/import-route-file",
+
+            // points + search API endpoints
             apiSearchAreaUrl: "/search/search-area",
             apiSavePointUrl: "/points/save-point",
             apiGetSavedPointsUrl: "/points/get-saved-points",
             apiDeletePointUrl: "/points/delete-point",
-            apiDeleteRouteUrl: "/routing/delete-route",
-            apiSaveRouteUrl: "/routing/save-route",
-            apiLoadRouteUrl: "/routing/load-route",
-            mapPageUrl: "/map",
-            apiDownloadRouteFileUrl: "/routing/download-route",
-            apiSaveSettings: "/settings/save-settings",
+
+            // settings API endpoints
             apiGetSettings: "/settings/get-settings",
-            apiImportRouteUrl: "/routing/import-route-file",
-            apiLogErrorUrl: '/api/log-error'
+            apiSaveSettings: "/settings/save-settings",
+
+            // navigation API endpoint 
+            mapPageUrl: "/map",
+
+            // utility and error logging endpoints 
+            apiLogErrorUrl: '/api/log-error',
+            apiReportIssueUrl: '/api/report-issue'
         };
     </script>
 
