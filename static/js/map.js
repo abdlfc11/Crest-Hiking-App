@@ -42,9 +42,10 @@ export function initMap() {
 }
 
 function createMap() {
-  const initialCenter = Array.isArray(window.appConfig?.mapInitialCenter)
-    ? window.appConfig.mapInitialCenter
-    : [-211507, 7118524];
+  const initialCentreLatLon = Array.isArray(window.appConfig?.mapInitialCentre)
+    ? window.appConfig.mapInitialCentre
+    : [-3.198308, 54.465458];
+  const initialCentre = ol.proj.fromLonLat(initialCentreLatLon);
   const initialZoom = window.appConfig?.mapInitialZoom ?? 10.5;
 
   map = new ol.Map({
@@ -59,7 +60,7 @@ function createMap() {
       projection: "EPSG:3857",
       maxZoom: 17,
       minZoom: 0,
-      center: initialCenter,
+      center: initialCentre,
       zoom: initialZoom,
     }),
   });

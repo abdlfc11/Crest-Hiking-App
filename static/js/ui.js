@@ -1,10 +1,9 @@
 //#region IMPORTS
 
 import {
-  roundCoords,
   calculateEta,
   calculateTotalDistance,
-  isLonLat
+  formatLatLon
 } from "./utils/routing-utils.js";
 
 import {
@@ -27,7 +26,7 @@ import {
   parseCoordString
 } from "./utils/ui-utils.js";
 
-import { calculatePath, addManualPoint } from "./routing/routing.js";
+import { calculatePath, addManualPoint } from "./routing/index.js";
 
 import {
   getMap,
@@ -114,9 +113,9 @@ import { logError } from "./utils/logError-utils.js";
 
 //#region VAR / CONST DECLARATIONS
 
-export const defaultCentre = Array.isArray(window.appConfig?.mapInitialCenter)
-  ? window.appConfig.mapInitialCenter
-  : [-211507, 7118524];
+export const defaultCentre = Array.isArray(window.appConfig?.mapInitialCentre)
+  ? window.appConfig.mapInitialCentre
+  : [-3.198308, 54.465458];
 
 const autoModeOption = document.getElementById("auto-mode-option");
 const manualModeOption = document.getElementById("manual-mode-option");
@@ -380,43 +379,31 @@ function validateInputCoords(startPoint, endPoint) {
 
   // This ensures there are two coordinates
   if (startParts.length < 2 || endParts.length < 2) {
-    showError("Invalid coordinate format. Please Use X, Y");
+    showError("Invalid coordinate format. Please Use Lat, Lon");
     return false;
   }
 
-  // This parses the full string into numbers 
-  const startX = parseFloat(startParts[0].trim());
-  const startY = parseFloat(startParts[1].trim());
-  const endX = parseFloat(endParts[0].trim());
-  const endY = parseFloat(endParts[1].trim());
+  // this parses the full string into numbers
+  const startLat = parseFloat(startParts[0].trim());
+  const startLon = parseFloat(startParts[1].trim());
+  const endLat = parseFloat(endParts[0].trim());
+  const endLon = parseFloat(endParts[1].trim());
 
-  let startLonLat
-  let endLonLat
-
-  // conditional logic to ensure that if values are already in lon lat they are not incorrectly passed into ol.proj.toLonLat()
-  if (isLonLat([startX, startY]) && isLonLat([endX, endY])) {
-    startLonLat = [startX, startY];
-    endLonLat = [endX, endY];
-    
-    console.log('LonLat detected ')
-    console.log(startLonLat)
-  }
-  else {
-    startLonLat = ol.proj.toLonLat([startX, startY]);
-    endLonLat = ol.proj.toLonLat([endX, endY]);
-  }
+  // this re-orders coordinates to [lon, lat] for the Cumbria ray-casting check (array of Cumbria boundary has coords in [lon, lat] format)
+  const startLonLat = [startLon, startLat];
+  const endLonLat = [endLon, endLat];
 
   if ( !isPointInPolygon(startLonLat)) {
-    showError("Please enter start coordinates within Cumbria.")
+    showError("Please select a starting location within Cumbria.")
     startCoordEntry.value = '';
-    showCoordInputError(startCoordEntry, "Please enter start coordinates within Cumbria.");
+    showCoordInputError(startCoordEntry, "Please select a starting location within Cumbria.");
     return false
   }
 
   if (!isPointInPolygon(endLonLat)) {
-    showError("Please enter end/destination coordinates within Cumbria.");
+    showError("Please select a destination within Cumbria.");
     endCoordEntry.value = ''
-    showCoordInputError(endCoordEntry, "Please enter end/destination coordinates within Cumbria.");
+    showCoordInputError(endCoordEntry, "Please select a destination within Cumbria.");
     return false;
   }
 
@@ -457,9 +444,10 @@ function setEndCoord() {
 }
 
 function setCoordEntry(entry, event) {
-  const coordinate = event.coordinate;
-  const rounded = roundCoords(coordinate, 0);
-  entry.value = `${rounded[0]}, ${rounded[1]}`;
+  // event.coordinate is in Web Mercator
+  // this means conversion to lat/lon is required for display
+  const lonLat = ol.proj.toLonLat(event.coordinate);
+  entry.value = formatLatLon(lonLat, 6);
   entry.placeholder = "Coordinates";
   entry.classList.remove("input-error");
   setCoordInputActiveState(startCoordEntry, false);
@@ -533,13 +521,16 @@ export function mapClickHandler(event) {
     selectedPoint.setStyle(getSelectedPointStyle(pointName));
     deletePointModalNameDisplay.textContent = pointName;
     showDeletePointModal(true);
-  } else if (!featureClicked) {
+  } 
+  else if (!featureClicked) {
     const coordinate = event.coordinate;
-    const [lon, lat] = ol.proj.toLonLat(coordinate);
-    const roundedLatLon = roundCoords([lat, lon], 6);
+    const lonLat = ol.proj.toLonLat(coordinate);
+
+    // TO BE CHANGED TO CUSTOM MODAL 
     const pointName = prompt(
-      `Do you want to save this coordinate: ${roundedLatLon[0]}, ${roundedLatLon[1]}? \nEnter a name to save it:`,
+      `Do you want to save this coordinate: ${formatLatLon(lonLat, 6)}? \nEnter a name to save it:`,
     );
+
     if (pointName) saveNewPoint(coordinate, pointName);
   }
 }
@@ -1033,19 +1024,22 @@ function searchArea() {
       if (!data.success) return;
 
       const view = map.getView();
+
+      // this converts the received coordinates into web mercator (as search API sends coords in [lon, lat] format)
+      const searchCenter = ol.proj.fromLonLat(data.coordinates);
       if (view.getZoom() >= 7) {
         view.animate(
           { center: view.getCenter(), duration: 1000, zoom: 10 },
           () =>
             view.animate({
-              center: data.coordinates,
+              center: searchCenter,
               duration: 1000,
               zoom: 14,
             }),
         );
       } else {
         view.animate({
-          center: data.coordinates,
+          center: searchCenter,
           duration: 1000,
           zoom: 14,
         });
@@ -1116,7 +1110,7 @@ function displayPath(data) {
   setHoverPointFeature(null);
 
   const pathFeature = new ol.format.GeoJSON().readFeature(data.pathGeoJSON, {
-    dataProjection: "EPSG:3857",
+    dataProjection: "EPSG:4326",
     featureProjection: "EPSG:3857",
   });
 
@@ -1129,16 +1123,20 @@ function displayPath(data) {
     const startCoord = coordinates[0];
     const endCoord = coordinates[coordinates.length - 1];
 
+    // this converts coordinates into Web Mercator format, as the backend sends the path back in [Lon, Lat] format (Web Mercator is the OpenLayers map projection)
+    const startMercatorCoord = ol.proj.fromLonLat([startCoord[0], startCoord[1]]);
+    const endMercatorCoord = ol.proj.fromLonLat([endCoord[0], endCoord[1]]);
+
     // this creates and then displays (by adding them to the interactivePointLayerSource) the start and end point features
-    const startPointFeature = createPoint([startCoord[0], startCoord[1]], getSavedPointStyle("Start", "#074df0"), "start", "Start")
-    const endPointFeature = createPoint([endCoord[0], endCoord[1]], getSavedPointStyle("End", "#074df0"), "end", "End")
+    const startPointFeature = createPoint(startMercatorCoord, getSavedPointStyle("Start", "#074df0"), "start", "Start")
+    const endPointFeature = createPoint(endMercatorCoord, getSavedPointStyle("End", "#074df0"), "end", "End")
 
     interactivePointLayerSource.addFeature(startPointFeature)
     interactivePointLayerSource.addFeature(endPointFeature)
 
   }
 
-  setCurrentPathData(data.coordinates); // data.coordinates may be either 2 elements (x and y) or 3 elements (x, y and elevation)
+  setCurrentPathData(data.coordinates); // data.coordinates are [lon, lat, elev] (EPSG:4326)
 
 
   setTimeout(() => {
@@ -1399,7 +1397,7 @@ export function updateSaveRouteContainer() {
 //#region DRIVER.JS
 
 async function handleSaveRouteTour() {
-  await handleAutoRouteGeneration('-363769, 7256750', '-357507, 7256649');
+  await handleAutoRouteGeneration('54.454722, -3.267793', '54.454195, -3.211540');
 
   setTimeout(() => {
     savingRoutesTourDriver = createSavingRoutesTour(homeButtonFunction);
@@ -1429,17 +1427,17 @@ export function handleInitialTour() {
 //#region POINT INTERACTION
 
 /**
- * Ensures the coordinate is in EPSG:3857 (Web Mercator)
+ * Converts a human-entered [latitude, longitude] pair into Web Mercator (EPSG: 3857)
+ * coordinates for OpenLayers.
+ *
+ * @param {[number, number]} latLon - An array containing latitude and longitude as [lat, lon].
+ * @returns {ol.coordinate.Coordinate | null} The converted Web Mercator coordinate [x, y], or null if invalid.
  */
-function toWebMercator(coords) {
-  if (!coords) return null;
+function toWebMercator(latLon) {
+  if (!latLon || latLon.length < 2) return null;
 
-  if (isLonLat(coords)) {
-    // reversed coords as OpenLayers expects [longitude, latitude]
-    return ol.proj.fromLonLat([coords[1], coords[0]]);
-  }
-
-  return coords;
+  // OpenLayers expects [longitude, latitude]
+  return ol.proj.fromLonLat([latLon[1], latLon[0]]);
 }
 
 /**
@@ -1461,10 +1459,13 @@ function handleCoordEntryChange(entry, type) {
     "#074df0"
   );
 
+  // returning prematurely if the point is not in Cumbria 
   if (!isPointInPolygon(ol.proj.toLonLat(mercatorCoords))) {
+    showError("Please choose a point within Cumbria.")
     return;
   }
 
+  // this creates the point feature 
   const pointFeature = createPoint(
     mercatorCoords,
     style,
@@ -1472,6 +1473,7 @@ function handleCoordEntryChange(entry, type) {
     type === "start" ? "Start" : "End"
   );
 
+  // this adds the point feature and adds the OpenLayers interaction to it
   addStartEndPoint(pointFeature, interactivePointLayer, type);
   setUpPointInteraction([interactivePointLayer]);
 
@@ -1485,7 +1487,7 @@ function handleCoordEntryChange(entry, type) {
     handleAutoRouteGeneration(startVal, endVal);
   }
   else {
-    moveMapToPosition(map, mercatorCoords, 1200, 12);
+    moveMapToPosition(map, [parsed[1], parsed[0]], 1200, 12); // reversed order as moveMap expects coords in [Lon, Lat format], whereas parsed is in [Lat, Lon] format
   }
 }
 
@@ -1561,14 +1563,14 @@ export function setUpPointInteraction(layers) {
 
     const newCoordinates = movedFeature.getGeometry().getCoordinates();
     const pointType = movedFeature.get("type");
-    const rounded = roundCoords(newCoordinates, 0);
-    const coordString = `${rounded[0]}, ${rounded[1]}`;
+    const newLonLatCoordinate = ol.proj.toLonLat(newCoordinates);
+    const coordinateString = formatLatLon(newLonLatCoordinate, 6);
 
     // this updates the correct input
     if (pointType === "start") {
-      startCoordEntry.value = coordString;
+      startCoordEntry.value = coordinateString;
     } else if (pointType === "end") {
-      endCoordEntry.value = coordString;
+      endCoordEntry.value = coordinateString;
     }
 
     const startVal = startCoordEntry?.value?.trim();
@@ -1706,7 +1708,7 @@ function handleKeyboardShortcuts(e) {
 function initInteractivePointLayer(map) {
   interactivePointLayer = new ol.layer.Vector({
     source: new ol.source.Vector(),
-    zIndex: 1000 // above the route layer 
+    zIndex: 1100 // above the route layer + saved points layer 
   });
 
   map.addLayer(interactivePointLayer);

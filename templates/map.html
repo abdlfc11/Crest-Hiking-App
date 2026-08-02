@@ -541,7 +541,7 @@
     <script>
         window.appConfig = {
             loggedIn: {{ logged_in }},
-            mapInitialCenter: {{ map_centre | tojson }},
+            mapInitialCentre: {{ map_centre | tojson }},
             mapInitialZoom: {{ map_zoom | default(10) }},
             initialCurrentPath: {% if current_path %}{{ current_path | tojson }}{% else %}null{% endif %},
             initialSavedPointsLookup: {

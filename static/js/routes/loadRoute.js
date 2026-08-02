@@ -45,7 +45,7 @@ export function displayLoadedRouteOnMap(data) {
 
   const format = new ol.format.GeoJSON();
   const features = format.readFeatures(data.pathGeoJSON, {
-    dataProjection: "EPSG:3857",
+    dataProjection: "EPSG:4326",
     featureProjection: "EPSG:3857",
   });
 
@@ -63,14 +63,17 @@ export function displayLoadedRouteOnMap(data) {
   const startCoord = coordinates[0];
   const endCoord = coordinates[coordinates.length - 1]
 
+  // converts lon lat to Web Mercator to display features on OpenLayer map (which has Web Mercator projection) 
+  const startMercator = ol.proj.fromLonLat([startCoord[0], startCoord[1]]);
+  const endMercator = ol.proj.fromLonLat([endCoord[0], endCoord[1]]);
 
   const startFeature = new ol.Feature({
-    geometry: new ol.geom.Point([startCoord[0], startCoord[1]])
+    geometry: new ol.geom.Point(startMercator)
   });
   startFeature.setStyle(createManualPointStyle("Start", "#8145d4"));
 
   const endFeature = new ol.Feature({
-    geometry: new ol.geom.Point([endCoord[0], endCoord[1]])
+    geometry: new ol.geom.Point(endMercator)
   });
   endFeature.setStyle(createManualPointStyle("End", "#8145d4"));
 
