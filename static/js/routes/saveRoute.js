@@ -80,6 +80,14 @@ function handleSaveRoute(e) {
       pathCoordinates = getCurrentPathData() || getLoadedRouteCoordinates() || []; // coords in these arrays may now have elevation data
     }
 
+    // manually plotted points converted to lon lat as they are stored in web mercator (auto / loaded routes aren't)
+    if (mode === "manual" && manualRouteState.pathCoords.length > 0) {
+      pathCoordinates = pathCoordinates.map(coord => {
+        const lonLat = ol.proj.toLonLat([coord[0], coord[1]]);
+        return coord.length >= 3 ? [lonLat[0], lonLat[1], coord[2]] : lonLat;
+      });
+    }
+
     pathCoordinates = normaliseCoordLength(pathCoordinates);
 
     if (pathCoordinates.length === 0) {

@@ -21,8 +21,11 @@ function clearOldSavedPointsLayer() {
 
 function convertPointsToFeatures(data) {
     return data.points.map(point => {
+
+        // converts to Web Mercator (API sends coords in [Lon, Lat] format)
+        const mercatorCoords = ol.proj.fromLonLat(point.coordinates);
         return new ol.Feature({
-            geometry: new ol.geom.Point(point.coordinates),
+            geometry: new ol.geom.Point(mercatorCoords),
             name: point.name
         });
     });
@@ -90,8 +93,12 @@ export async function saveNewPoint(coordinate, name) {
   }
 
   const url = window.appConfig.apiSavePointUrl;
-  const x = coordinate[0];
-  const y = coordinate[1];
+
+  // converts coordinates to lon lat if they aren't already in that projection
+  const lonLat =
+    Math.abs(coordinate[0]) <= 180 && Math.abs(coordinate[1]) <= 90
+      ? [coordinate[0], coordinate[1]]
+      : ol.proj.toLonLat([coordinate[0], coordinate[1]]);
 
   try {
 
@@ -102,8 +109,8 @@ export async function saveNewPoint(coordinate, name) {
         },
         body: JSON.stringify({
           point_name: name,
-          web_mercator_x: x,
-          web_mercator_y: y,
+          lon: lonLat[0],
+          lat: lonLat[1],
         }),
       })
       

@@ -23,9 +23,9 @@ def isRoughlyInCumbria(x: float, y: float) -> bool:
 
     return x >= MIN_X and x <= MAX_X and y >= MIN_Y and y <= MAX_Y 
 
-def haversine(x1: float, y1: float, x2: float, y2: float):
+def haversine(x1: float, y1: float, x2: float, y2: float) -> float:
 
-    # NOTE : coords need to be in lon/lat, make sure to convert coords
+    # NOTE : coords need to be in lon/lat 
 
     R = 6371000
 
@@ -40,25 +40,23 @@ def haversine(x1: float, y1: float, x2: float, y2: float):
 
     return R * c
 
-def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5):
-    """
-    This function converts raw route geometry into metrics e.g ETA and elevation data (if present)
+def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
+    """Converts raw route geometry into metrics like ETA and elevation data.
+
+    Parameters:
+
+        - coordinates (list): A nested list of points, e.g., [[Lat, Lon, elev], ...]
+
+        - avg_speed_kmh (float): The average speed used for ETA calculations, defaults to 4.5 (average hiking speed)
+
+    Returns:
+        dict: Information associated with the path, including ETA, elevation gain, and distance.
     """
 
     converted_coords = []
 
     if not coordinates or len(coordinates) < 2:
         return({"success": False, "message": "Route is too small"})
-    
-    start_coord = coordinates[0]
-
-    
-    # this checks the first coord to check if it is in lat/lon format, if not it converts coords to lat/lon format
-    if not (abs(start_coord[0]) <= 180 and abs(start_coord[1]) <= 90):
-        print("DEBUG STATEMENT\nFUNCTION : normalise_route()\nDetected projection that is NOT Lat/Lon for start point. Converting to Lat/Lon")
-        for coord in coordinates:
-            converted_coord = service.convert_web_mercator_to_wgs84(coord[0], coord[1])
-            converted_coords.append(converted_coord)
 
     total_distance_m = 0.0
     total_elevation_gain_m = 0.0
@@ -70,10 +68,10 @@ def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5):
         x2, y2 = coordinates[i + 1][0], coordinates[i + 1][1]
 
         # distance calculation
-        if not converted_coords or converted_coords == []:
-            total_distance_m += haversine(x1, y1, x2, y2)
-        else:
+        if converted_coords and converted_coords != []:
             total_distance_m += haversine(converted_coords[i][0], converted_coords[i][1], converted_coords[i + 1][0], converted_coords[i + 1][1])
+        else:
+            total_distance_m += haversine(x1, y1, x2, y2)
 
         # elevation gain (only if available)
         if has_elevation:
@@ -104,14 +102,18 @@ def get_xy(coord: list):
         return coord[0], coord[1]
     return coord
 
-# if a coord is over 180 degrees then it is definitely not wgs84 (181 used as buffer for edge cases)
-# this helper thus returns true if a coord is web mercator and false if it isn't (and thus is wgs84)
-def check_web_mercator(coord: list):
+def check_web_mercator(coord: list) -> bool:
+    """
+    Returns True if the inputted coordinate is in Web Mercator and false otherwise  
+    """
     if coord is None:
         return False
     return abs(coord[0]) > 181 or abs(coord[1]) > 181
 
-def parse_elevation(elevation_string: str):
+def parse_elevation(elevation_string: str) -> float | None:
+    """
+    Converts an elevation value in string format into a float value to be used in calculations 
+    """
     if not elevation_string:
         return None
     try:
@@ -119,8 +121,10 @@ def parse_elevation(elevation_string: str):
     except Exception:
         return None
 
-# helper function used in creation of gpx / geojson files which converts hrs and minutes to seconds 
-def parse_eta_to_seconds(eta_string: str):
+def parse_eta_to_seconds(eta_string: str) -> float | None:
+    """
+    Converts ETA string (of hours and minutes) into a float value to be used in calculations
+    """
     if not eta_string:
         return None
     try:
@@ -138,7 +142,10 @@ def parse_eta_to_seconds(eta_string: str):
 
 #region GEOSPATIAL FILE PROCESSING HELPER FUNCTIONS
 
-def generate_geojson(route: object):
+def generate_geojson(route: object) -> str:
+    """
+    Generates a GeoJSON file content using the given route, which includes elevation
+    """
 
     raw_coordinates_str = route.coordinates
 
@@ -153,16 +160,28 @@ def generate_geojson(route: object):
     corrected_coords = []
     
     has_elevation = check_elevation(raw_coords)
+
+    # if the stored coords are Web Mercator (legacy), convert to lat/lon
+    is_legacy_mercator = check_web_mercator(raw_coords[0]) if raw_coords else False
         
     for coord in raw_coords:
+
         if has_elevation:
             x, y, elevation = coord
-            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-            corrected_coords.append([lon, lat, elevation])
         else:
             x, y = coord
+            elevation = None
+
+        # coords stored as lat/lon going forward; legacy mercator rows are converted on the fly
+        if is_legacy_mercator:
             lon, lat = service.convert_web_mercator_to_wgs84(x, y)
-            corrected_coords.append([x, y])
+        else:
+            lon, lat = x, y
+
+        if elevation is not None:
+            corrected_coords.append([lon, lat, elevation])
+        else:
+            corrected_coords.append([lon, lat])
 
         
     # constructs the geojson dict
@@ -182,7 +201,11 @@ def generate_geojson(route: object):
     # returns as JSON string
     return json.dumps(geojson_feature)
 
-def generate_gpx(route: object):
+def generate_gpx(route: object) -> str:
+    """
+    Generates a GPX file content using the given route, which includes elevation
+    """
+
     gpx = gpxpy.gpx.GPX() # initialises container
     track = gpxpy.gpx.GPXTrack(name=route.name) # creates a track (the entire route) and adds it to the container (next line)
     gpx.tracks.append(track) 
@@ -193,18 +216,30 @@ def generate_gpx(route: object):
 
     has_elevation = check_elevation(coords)
 
+    # if the stored coords are Web Mercator (legacy), convert to lat/lon
+    is_legacy_mercator = check_web_mercator(coords[0]) if coords else False
+
     for coord in coords: # loops through each coord in one sub array in the coords array
+
         if has_elevation:
             x, y, elevation = coord
-            lon, lat = service.convert_web_mercator_to_wgs84(x, y) # converts to lat and lon (needed for gpx)
+        else:
+            x, y = coord
+            elevation = None
+
+        # coords stored as lat/lon going forward; legacy mercator rows are converted on the fly
+        if is_legacy_mercator:
+            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+        else:
+            lon, lat = x, y
+
+        if elevation is not None:
             segment.points.append(gpxpy.gpx.GPXTrackPoint(
                 latitude=lat,
                 longitude=lon,
                 elevation=elevation
             ))
         else:
-            x, y = coord
-            lon, lat = service.convert_web_mercator_to_wgs84(x, y)
             segment.points.append(gpxpy.gpx.GPXTrackPoint(
                 latitude=lat,
                 longitude=lon

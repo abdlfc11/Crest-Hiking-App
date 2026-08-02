@@ -42,8 +42,11 @@ export function parseCoordString(value) {
 /**
  * Function to move the map to a specific coordinate or the centre of the map via an animation
  * 
- * @param {} map OL map instance 
- * @param {Array} position The specific coordinate to move the map to, if not entered it defaults to the map centre  
+ * Position is expected in EPSG:4326 ( [Lon, Lat] )
+ * It is converted to Web Mercator before animating the map movement (OpenLayers map is in a Web Mercator projection)
+ * 
+ * @param {ol.Map} map OL map instance 
+ * @param {Array} position The specific coordinate to move the map to in [Lon, Lat] format, if not entered it defaults to the map centre  
  * @param {number} duration How long the animation to move the map takes
  * @param {number} zoom Zoom level used by open layers 
  * @returns {void}
@@ -54,9 +57,12 @@ export function moveMapToPosition(map, position = null, duration = 1200, zoom = 
     return;
   }
 
-  const targetPosition = Array.isArray(position) && position.length === 2
+  const targetLatLon = Array.isArray(position) && position.length === 2
     ? position
-    : (Array.isArray(window.appConfig?.mapInitialCenter) ? window.appConfig.mapInitialCenter : [-211507, 7118524]);
+    : (Array.isArray(window.appConfig?.mapInitialCentre) ? window.appConfig.mapInitialCentre : [-3.198308, 54.465458]);
+
+  // this converts [Lon, Lat] coordinates into Web Mercator coordinates that the OpenLayers map can use 
+  const targetPosition = ol.proj.fromLonLat(targetLatLon);
 
   map.getView().animate({
     center: targetPosition,
@@ -66,7 +72,7 @@ export function moveMapToPosition(map, position = null, duration = 1200, zoom = 
 };
 
 /**
- * Function used to show an error popup containing the passed in string 
+ * Shows an error popup containing the passed in string 
  * 
  * @param {string} message The error message to be shown 
  * @param {*} colour The colour of the error popup, defaults to red 
