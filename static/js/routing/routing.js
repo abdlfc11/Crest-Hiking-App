@@ -84,6 +84,7 @@ export async function getPathSegment(start, end) {
   });
 
   if (!response.ok) {
+    logError("Calculating Path", response, null, "NO_PATH_FOUND")
     throw new Error("Sorry, there was an unexpected error whilst calculating the path.");
   }
 
@@ -92,6 +93,7 @@ export async function getPathSegment(start, end) {
   if (data.success) {
     return data;
   }
+  // no logging needed as the backend already logs errors if data.success if False 
   throw new Error("Sorry, there was an unexpected error whilst calculating the path.");
 }
 
