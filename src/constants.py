@@ -1,4 +1,4 @@
-# Default map centre (EPSG:4326 lat/lon).
+# Default map centre (EPSG:4326 lon/lat).
 DEFAULT_CENTRE = [-3.198308, 54.465458]
 
 # Default map centre in Web Mercator (EPSG:3857).

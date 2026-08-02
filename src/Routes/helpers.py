@@ -45,7 +45,7 @@ def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
 
     Parameters:
 
-        - coordinates (list): A nested list of points, e.g., [[Lat, Lon, elev], ...]
+        - coordinates (list): A nested list of points, e.g., [[Lon, Lat, elev], ...]
 
         - avg_speed_kmh (float): The average speed used for ETA calculations, defaults to 4.5 (average hiking speed)
 
