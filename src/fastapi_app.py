@@ -125,14 +125,6 @@ if os.getenv("LOAD_GRAPH_ON_IMPORT", "1").lower() not in ("0", "false", "no"):
 def root_url():
     return RedirectResponse(url="/map")
 
-@app.get("/report-an-issue", response_class=HTMLResponse)
-def report_issue(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="report-issue.html",
-        context={"request": request},
-    )
-
 @app.get("/login-page", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse(
