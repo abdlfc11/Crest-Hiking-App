@@ -83,7 +83,7 @@ export function createTileLayer() {
     source: new ol.source.XYZ({
       url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
       attributions: `
-      <a href="https://docs.crestr.co.uk/privacy-policy/privacy_policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+      <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
       |
       Map data: © <a href="https://www.openstreetmap.org/copyright/">OpenStreetMap</a>,
       SRTM
