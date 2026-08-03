@@ -196,7 +196,7 @@ def register(
                 status_code=422,
                 detail={
                     "success": False,
-                    "message": "Passwords must have at least 12 characters"
+                    "message": "Passwords must have at least 11 characters"
                 }
             )
         

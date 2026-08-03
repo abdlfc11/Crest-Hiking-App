@@ -19,7 +19,7 @@ import {
 
 import {
   moveMapToPosition,
-  showError,
+  showToast,
   addClickListener,
   removeDOMElement,
   createStatsPanel,
@@ -371,17 +371,17 @@ function dismissReportIssueModal(e) {
  */
 function validateReportIssueInput(title, description) {
     if (!title || !description) {
-        showError("Please fill in both the title and description fields.");
+        showToast("Please fill in both the title and description fields.", "error", reportIssueModal);
         return false;
     }
 
     if (title.length > 100) {
-        showError("Title cannot exceed 100 characters.");
+        showToast("Title cannot exceed 100 characters.", "error", reportIssueModal);
         return false;
     }
 
     if (description.length > 1000) {
-        showError("Description cannot exceed 1000 characters.");
+        showToast("Description cannot exceed 1000 characters.", "error", reportIssueModal);
         return false;
     }
 
@@ -430,7 +430,7 @@ export async function handleReportIssueSubmission(title, description) {
           return;
       }
 
-      // TOAST feedback to be added after it is redesigned 
+      showToast("Thank you, the issue was reported successfully. ", "success")
       
       // UI cleanup
       reportIssueTitleInput.value = '';
@@ -438,11 +438,9 @@ export async function handleReportIssueSubmission(title, description) {
       showReportIssueModal(false);
 
     } catch (error) {
-      showError("There was an unexpected error whilst submitting the issue report.");
+      showToast("There was an unexpected error whilst submitting the issue report.", "error", reportIssueModal);
     } finally {
-      // This re-enables the submit button + closes the modal
       reportIssueModalSubmit.disabled = false;
-      showReportIssueModal(false);
     }
 }
 
@@ -495,7 +493,7 @@ function validateInputCoords(startPoint, endPoint) {
 
   // This ensures there are two coordinates
   if (startParts.length < 2 || endParts.length < 2) {
-    showError("Invalid coordinate format. Please Use Lat, Lon");
+    showToast("Invalid coordinate format. Please Use Lat, Lon");
     return false;
   }
 
@@ -510,14 +508,14 @@ function validateInputCoords(startPoint, endPoint) {
   const endLonLat = [endLon, endLat];
 
   if ( !isPointInPolygon(startLonLat)) {
-    showError("Please select a starting location within Cumbria.")
+    showToast("Please select a starting location within Cumbria.")
     startCoordEntry.value = '';
     showCoordInputError(startCoordEntry, "Please select a starting location within Cumbria.");
     return false
   }
 
   if (!isPointInPolygon(endLonLat)) {
-    showError("Please select a destination within Cumbria.");
+    showToast("Please select a destination within Cumbria.");
     endCoordEntry.value = ''
     showCoordInputError(endCoordEntry, "Please select a destination within Cumbria.");
     return false;
@@ -779,7 +777,7 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showError(data || "There was an error on our end. Please try again later.");
+        showToast(data || "There was an error on our end. Please try again later.");
         return false;
       }
 
@@ -799,7 +797,7 @@ async function handleRouteImport() {
       };
     }
     catch (error) {
-      showError("There was an error on our end. Please try again later.")
+      showToast("There was an error on our end. Please try again later.")
       console.error(`ERROR whilst importing route : ${error}`)
     }
 
@@ -815,13 +813,13 @@ async function handleRouteImport() {
       });
 
       if (!response.ok) {
-        showError("There was an error on our end. Please try again later.");
+        showToast("There was an error on our end. Please try again later.");
         return false;
       }
 
       const result = await response.json(); 
       if (!result.success) {
-        showError(result.message || "Failed to save route.");
+        showToast(result.message || "Failed to save route.");
         return false;
       }
 
@@ -831,7 +829,7 @@ async function handleRouteImport() {
       return true;
 
     } catch (err) {
-      showError("There was an error on our end. Please try again later.");
+      showToast("There was an error on our end. Please try again later.");
       console.error(`Error whilst trying to save imported route: ${err}`)
       return false;
     }
@@ -840,7 +838,7 @@ async function handleRouteImport() {
     const url = importRouteURLInput.value.trim();
 
     if (!URL.canParse(url)) {
-      showError("Please enter a valid URL to import.");
+      showToast("Please enter a valid URL to import.");
       return false;
     }
 
@@ -858,25 +856,25 @@ function validateFileInput(file) {
 
     // this checks if a file is selected
     if (!file) {
-        showError("Please select a file to import.");
+        showToast("Please select a file to import.");
         return false;
     }
 
     // this checks if the file is of the correct type
     if (!allowedFileTypes.some(type => file.name.endsWith(type))) {
-        showError("Please select a valid file to import.");
+        showToast("Please select a valid file to import.");
         return false;
     }
 
     // this checks if the file size is too large (greater than 5MB)
     if (file.size > 5 * 1024 * 1024) {
-        showError("File size is too large. Please select a file smaller than 5MB.");
+        showToast("File size is too large. Please select a file smaller than 5MB.");
         return false;
     }
 
     // this checks if the file is empty or not
     if (file.size === 0) {
-      showError("The selected file is empty.")
+      showToast("The selected file is empty.")
       return false;
     }
 
@@ -1125,7 +1123,7 @@ export function homeButtonFunction() {
 function searchArea() {
 
   if (!searchEntry) {
-    showError("Search entry not found.");
+    showToast("Search entry not found.");
     return;
   }
 
@@ -1167,7 +1165,7 @@ function searchArea() {
         });
       }
     })
-    .catch((error) => showError("There was an unexpected error, please try again later."));
+    .catch((error) => showToast("There was an unexpected error, please try again later."));
 };
 //#endregion
 
@@ -1204,7 +1202,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    showError("Sorry, there was an unexpected error when calculating your route, please try again later.");
+    showToast("Sorry, there was an unexpected error when calculating your route, please try again later.");
     return;
   } finally {
     generatePathButton.classList.remove("loading");
@@ -1273,7 +1271,7 @@ function displayPath(data) {
   } 
   catch(error) {
     console.log(error.message);
-    showError('Sorry, there was an unexpected error when calculating your route, please try again later.')
+    showToast('Sorry, there was an unexpected error when calculating your route, please try again later.')
   }
 };
 
@@ -1494,7 +1492,7 @@ async function manualRouteClickHandler(event) {
       throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
     }
   } catch (error) {
-    showError("Sorry, there was an error whilst creating the path.");
+    showToast("Sorry, there was an error whilst creating the path.");
     logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
     return;
   }
@@ -1583,7 +1581,7 @@ function handleCoordEntryChange(entry, type) {
 
   // returning prematurely if the point is not in Cumbria 
   if (!isPointInPolygon(ol.proj.toLonLat(mercatorCoords))) {
-    showError("Please choose a point within Cumbria.")
+    showToast("Please choose a point within Cumbria.")
     return;
   }
 

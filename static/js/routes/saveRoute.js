@@ -26,7 +26,7 @@ import { initSavedRoutesDashboard } from "./savedRoutesDashboard.js";
 import {
   createRouteCard,
   removeDOMElement,
-  showError
+  showToast
 } from "../utils/ui-utils.js"
 
 import {
@@ -92,7 +92,7 @@ function handleSaveRoute(e) {
 
     if (pathCoordinates.length === 0) {
       console.error("No coordinates found in pathCoords array")
-      showError("There was an error saving your route. Please try again later.");
+      showToast("There was an error saving your route. Please try again later.");
       return false;
     }
 
@@ -100,13 +100,13 @@ function handleSaveRoute(e) {
 
     if (rawDistanceKm === null || isNaN(rawDistanceKm)) {
       console.error("No valid route distance to save");
-      showError("There was an error saving your route. Please try again later.");
+      showToast("There was an error saving your route. Please try again later.");
       return false;
     }
   }
   catch (e) {
     console.error(`Error whilst saving route: ${e}`)
-    showError("There was an error saving your route. Please try again later.");
+    showToast("There was an error saving your route. Please try again later.");
     return false;
   }
 
@@ -122,7 +122,7 @@ function handleSaveRoute(e) {
   })
     .then((response) => {
       if (!response.ok) {
-        showError("There was an error saving your route. Please try again later.")
+        showToast("There was an error saving your route. Please try again later.")
         return response.json().then((errorData) => {
           throw new Error(
             errorData.message ||
@@ -161,12 +161,12 @@ function handleSaveRoute(e) {
         homeButtonFunction();
         updateSaveRouteContainer();
       } else {
-        showError( data.message || "There was an error saving your route. Please try again later.")
+        showToast( data.message || "There was an error saving your route. Please try again later.")
         return false;
       }
     })
     .catch((error) => {
-      showError("There was an error saving your route. Please try again later.")
+      showToast("There was an error saving your route. Please try again later.")
       console.error("Error saving route:", error);
       return false;
     })

@@ -13,27 +13,183 @@
   flex-direction: column;
   gap: 10px;
   z-index: 9999;
+  max-width: 360px;
 }
 
-.error-toast {
-  background: var(--error-accent);
-  color: white;
-  padding: 12px 18px;
-  border-radius: 999px;
-  font-size: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+/* modal-scoped toast container (created dynamically by showToast() in utils/ui-utils.js ) */
+.toast-container--modal {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2100;
+  max-width: 360px;
   pointer-events: none;
 }
 
-.error-toast.show {
-  opacity: 1;
-  transform: translateY(0);
+/* Toast Card */
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: var(--toast-padding);
+  border-radius: var(--toast-radius);
+  background: var(--toast-bg);
+  backdrop-filter: blur(var(--toast-blur));
+  -webkit-backdrop-filter: blur(var(--toast-blur));
+  border: 1px solid var(--toast-border);
+  box-shadow: var(--toast-shadow);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--toast-text-primary);
+  overflow: hidden;
+  pointer-events: auto;
+
+  /* this defines the entry animation i.e slide in from the right + fade in */
+  opacity: 0;
+  transform: translateX(100%);
+  transition:
+    opacity var(--toast-transition-speed) ease,
+    transform var(--toast-transition-speed) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.error-toast.hide {
+.toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast.hide {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateX(100%);
+}
+
+/* Status icon */
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+/* this defines the status colours per type */
+.toast[data-type="error"] .toast-icon {
+  background: color-mix(in srgb, var(--toast-error) 18%, transparent);
+  color: var(--toast-error);
+}
+
+.toast[data-type="success"] .toast-icon {
+  background: color-mix(in srgb, var(--toast-success) 18%, transparent);
+  color: var(--toast-success);
+}
+
+.toast[data-type="warning"] .toast-icon {
+  background: color-mix(in srgb, var(--toast-warning) 18%, transparent);
+  color: var(--toast-warning);
+}
+
+.toast[data-type="info"] .toast-icon {
+  background: color-mix(in srgb, var(--toast-info) 18%, transparent);
+  color: var(--toast-info);
+}
+
+/* Content (title + message) */
+
+.toast-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--toast-text-primary);
+  line-height: 1.3;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: var(--toast-text-secondary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Dismiss (×) button */
+
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--toast-text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-top: -1px;
+  border-radius: 4px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.toast-close:hover {
+  color: var(--toast-error);
+  background-color: color-mix(in srgb, var(--toast-error) 10%, transparent);
+}
+
+.toast-close:focus-visible {
+  outline: 2px solid var(--toast-info);
+  outline-offset: 2px;
+}
+
+/* Auto-dismiss progress bar */
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(1);
+}
+
+/* this defines the progress bar colour per type */
+.toast[data-type="error"] .toast-progress {
+  background: var(--toast-error);
+}
+.toast[data-type="success"] .toast-progress {
+  background: var(--toast-success);
+}
+.toast[data-type="warning"] .toast-progress {
+  background: var(--toast-warning);
+}
+.toast[data-type="info"] .toast-progress {
+  background: var(--toast-info);
+}
+
+/* this shrinks the bar from 100% to 0 over 3s */
+.toast.show .toast-progress {
+  animation: toast-progress-shrink 3s linear forwards;
+}
+
+@keyframes toast-progress-shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }

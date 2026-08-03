@@ -1,6 +1,6 @@
 
 import {
-    showError,
+    showToast,
     addClickListener,
     createRouteCard
 } from "./utils/ui-utils.js";
@@ -27,12 +27,12 @@ export async function processImportedRouteFile(file) {
         body: form
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        showError(response.message || "There was an error on our end, try again later");
+        showToast(data.message || "There was an error on our end, try again later");
         throw new Error(`HTTP Error: ${response.status}`);
     }
-
-    const data = await response.json();
 
     if (data.success) {
         return data;

@@ -3,7 +3,7 @@
  * As of August 2026 this file hold the following functions:
  *      
  *      - moveMapToPosition(map, position = null, duration = 1200, zoom = 10.5)
- *      - showError(message, colour = "#ff4d4f")
+ *      - showToast(message, type = "error", modal = null)
  *      - addClickListener(element, func, type)
  *      - removeDOMElement(element)
  *      - createRouteCard(routeName, formattedDate, distanceInKm, ETA, elevDisplayValue)
@@ -72,35 +72,129 @@ export function moveMapToPosition(map, position = null, duration = 1200, zoom = 
 };
 
 /**
- * Shows an error popup containing the passed in string 
- * 
- * @param {string} message The error message to be shown 
- * @param {*} colour The colour of the error popup, defaults to red 
+ * Shows a toast notification 
+ *
+ * @param {string} message The message to be shown in the toast body
+ * @param {("error"|"success"|"warning"|"info")} [type="error"] The toast type, controls the status icon and accent colour
+ * @param {HTMLDialogElement|boolean|null} [modal=null] If a dialog element is passed, the toast is rendered inside it, otherwise, if `null`/`false`, the main app toast container is used.
+ * @returns {void}
  */
-export function showError(message, colour = "#ff4d4f") {
-    const container = document.getElementById("error-toast-container");
+export function showToast(message, type = "error", modal = null) {
 
+    // this defines the status icons
+    const icons = {
+        error: "!",
+        success: "\u2713",
+        warning: "!",
+        info: "i",
+    };
+
+    // this defines the titles per toast type 
+    const titles = {
+        error: "Error",
+        success: "Success",
+        warning: "Warning",
+        info: "Info",
+    };
+
+    // this retrieves the modal element (if any) 
+    let modalElement = null;
+
+     if (modal instanceof HTMLElement) {
+        modalElement = modal;
+    }
+
+    // this determines the container i.e within a modal or the main app
+    let container;
+
+    if (modalElement) {
+        // this finds or creates the container 
+        container = modalElement.querySelector(".toast-container--modal");
+
+        if (!container) {
+            container = document.createElement("div");
+            container.className = "toast-container--modal";
+            modalElement.appendChild(container);
+        }
+    } else {
+        container = document.getElementById("error-toast-container");
+    }
+
+    if (!container) {
+        console.warn("showToast: no toast container found");
+        return;
+    }
+
+    // this builds the toast element 
     const toast = document.createElement("div");
-    toast.className = "error-toast";
-    toast.textContent = message;
-    toast.style.background = colour;
+    toast.className = "toast";
+    toast.setAttribute("data-type", type);
+    toast.setAttribute("role", "alert");
+    toast.setAttribute("aria-live", "assertive");
 
+    // this defines the status icon
+    const icon = document.createElement("span");
+    icon.className = "toast-icon";
+    icon.textContent = icons[type] || icons.error;
+    icon.setAttribute("aria-hidden", "true");
+
+    // this defines the content (title + message)
+    const content = document.createElement("div");
+    content.className = "toast-content";
+
+    const titleElement = document.createElement("span");
+    titleElement.className = "toast-title";
+    titleElement.textContent = titles[type] || titles.error;
+
+    const messageElement = document.createElement("span");
+    messageElement.className = "toast-message";
+    messageElement.textContent = message;
+
+    content.appendChild(titleElement);
+    content.appendChild(messageElement);
+
+    // this defines the dismisses (X) button
+    const closeButton = document.createElement("button");
+    closeButton.className = "toast-close";
+    closeButton.type = "button";
+    closeButton.setAttribute("aria-label", "Dismiss notification");
+    closeButton.innerHTML = "&times;";
+
+    // this defines the auto-dismiss progress bar
+    const progress = document.createElement("div");
+    progress.className = "toast-progress";
+
+    toast.appendChild(icon);
+    toast.appendChild(content);
+    toast.appendChild(closeButton);
+    toast.appendChild(progress);
     container.appendChild(toast);
 
-    // this triggers the slide in animation of the error popup
+    // this makes the popup hide after 3s
+    const hideTimeout = setTimeout(removeToast, 3000);
+
+    // Helper to remove the toast (used by both the timeout and the close button)
+    function removeToast() {
+        clearTimeout(hideTimeout);
+        toast.classList.add("hide");
+        toast.classList.remove("show");
+
+        // this removes it from the DOM once the hide animation is done
+        setTimeout(() => {
+            toast.remove();
+            // this cleans up a modal-scoped container if it is empty
+            if (container.classList.contains("toast-container--modal") && container.childElementCount === 0) {
+                container.remove();
+            }
+        }, 300);
+    } 
+
+    // this triggers the slide-in animation of the toast
     requestAnimationFrame(() => {
         toast.classList.add("show");
     });
 
-    // this makes the popup hide after 3s
-    setTimeout(() => {
-        toast.classList.add("hide");
-
-        // this removes it from the DOM once time is up
-        setTimeout(() => {
-            toast.remove();
-        }, 250);
-    }, 3000);
+    closeButton.addEventListener("click", removeToast);
 }
 
 // DOM RELATED 
