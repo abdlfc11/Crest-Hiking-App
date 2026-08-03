@@ -3,22 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Crestr: Privacy Policy</title>
-
+    <title>Privacy Policy | Crestr</title>
+    <!-- Page-specific CSS (self-contained) -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/pages/privacy-policy.css') }}">
+    <!-- Favicon -->
     <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
 </head>
 <body>
-
     <!-- Navbar -->
     <nav class="pp-navbar">
         <div class="pp-brand">
-            <a href="https://crestr.co.uk"><img src="https://images.crestr.co.uk/Crest-Logo.png" alt="Crestr logo"></a>
+            <img src="https://images.crestr.co.uk/Crest-Logo.png" alt="Crestr logo">
             <span class="pp-brand-name">Crestr</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-
             <!-- Theme toggle -->
             <button id="pp-theme-toggle" class="pp-theme-toggle" aria-label="Toggle theme">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -27,7 +25,6 @@
                 </svg>
                 <span id="pp-theme-label">System</span>
             </button>
-
             <!-- Back link with left arrow -->
             <a href="https://crestr.co.uk" class="pp-back-link" aria-label="Back to Crestr">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -35,7 +32,6 @@
                 </svg>
                 back to Crestr
             </a>
-
         </div>
     </nav>
 
@@ -55,12 +51,17 @@
 
         <section class="pp-section">
             <h2>2. Information Collection and Processing</h2>
-            <p>We process two categories of data:</p>
+            <p>We process the following categories of data:</p>
             <ul>
                 <li>
                     <b>Authentication Credentials:</b> The Application utilises a localised authentication system rather than third-party OAuth providers.
                     To establish an account, <b>we collect a username and password</b>.
-                    Passwords are encrypted using secure cryptographic hashing algorithms and are utilised solely to authenticate your identity upon login.
+                    Passwords are hashed with a secure password-hashing algorithm and are utilised solely to authenticate your identity upon login.
+                </li>
+                <li>
+                    <b>Preferred Name:</b> During registration we also collect a preferred name.
+                    This is stored on your user record and is used solely to personalise the greeting shown on the saved-routes page.
+                    It is retained for as long as your account remains active and is permanently deleted when you request account deletion.
                 </li>
                 <li>
                     <b>Aggregated Operational Telemetry:</b> We utilise Umami, a privacy-focused, open-source web analytics platform, to monitor general application usage.
@@ -95,7 +96,7 @@
             <p>We process your data under the following legal frameworks:</p>
             <ul>
                 <li>
-                    <b>Contractual Necessity:</b> Processing account credentials is required to provide the core account management services you request.
+                    <b>Contractual Necessity:</b> Processing account credentials and preferred name is required to provide the core account management and personalisation services you request.
                 </li>
                 <li>
                     <b>Legitimate Interests:</b> Processing anonymous diagnostics allows us to monitor infrastructure health, debug routing algorithms,
@@ -111,8 +112,8 @@
                     <b>Third-Party Transfers:</b> We do not sell, lease, or distribute user data to third-party commercial entities, marketing networks, or data brokers.
                 </li>
                 <li>
-                    <b>Data Retention:</b> Authentication data is retained indefinitely to maintain your account access.
-                    You may execute a data deletion request at any time to permanently purge your credentials from our active databases.
+                    <b>Data Retention:</b> Authentication data and preferred name are retained indefinitely to maintain your account access and personalisation.
+                    You may execute a data deletion request at any time to permanently purge your credentials and preferred name from our active databases.
                 </li>
             </ul>
         </section>
