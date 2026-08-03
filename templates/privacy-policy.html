@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Crestr: Privacy Policy</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/privacy-policy.css') }}">
+    <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="pp-navbar">
+        <div class="pp-brand">
+            <a href="https://crestr.co.uk"><img src="https://images.crestr.co.uk/Crest-Logo.png" alt="Crestr logo"></a>
+            <span class="pp-brand-name">Crestr</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+
+            <!-- Theme toggle -->
+            <button id="pp-theme-toggle" class="pp-theme-toggle" aria-label="Toggle theme">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                </svg>
+                <span id="pp-theme-label">System</span>
+            </button>
+
+            <!-- Back link with left arrow -->
+            <a href="https://crestr.co.uk" class="pp-back-link" aria-label="Back to Crestr">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+                back to Crestr
+            </a>
+
+        </div>
+    </nav>
+
+    <!-- Privacy policy content -->
+    <main class="pp-content">
+        <h1 class="pp-title">Privacy Policy</h1>
+        <p class="pp-last-updated">Last updated: 3 August 2026</p>
+
+        <section class="pp-section">
+            <h2>1. Introduction</h2>
+            <p>
+                This Privacy Policy governs the data collection and privacy practices of Crestr, an open-source hiking route planner for Cumbria.
+                We are committed to maintaining robust privacy protections for our users.
+                Our data collection is strictly limited to the minimum telemetry necessary to authenticate users and optimise application performance.
+            </p>
+        </section>
+
+        <section class="pp-section">
+            <h2>2. Information Collection and Processing</h2>
+            <p>We process two categories of data:</p>
+            <ul>
+                <li>
+                    <b>Authentication Credentials:</b> The Application utilises a localised authentication system rather than third-party OAuth providers.
+                    To establish an account, <b>we collect a username and password</b>.
+                    Passwords are encrypted using secure cryptographic hashing algorithms and are utilised solely to authenticate your identity upon login.
+                </li>
+                <li>
+                    <b>Aggregated Operational Telemetry:</b> We utilise Umami, a privacy-focused, open-source web analytics platform, to monitor general application usage.
+                    Additionally, we generate custom server-side action logs to monitor critical performance indicators,
+                    such as pathfinding latency (e.g., generation time in milliseconds) and route distances.
+                </li>
+            </ul>
+            <div class="disclaimer-notice">
+                <strong>Data Isolation Notice:</strong> All operational telemetry and performance metrics are processed in a completely anonymised state. We do not collect, store, or associate real-world geographic coordinates, device identifiers, or network metadata with your account credentials.
+            </div>
+        </section>
+
+        <section class="pp-section">
+            <h2>3. Cookies</h2>
+            <p>
+                Crestr uses only <strong>strictly necessary cookies</strong> required for authentication and to keep you logged in.
+                These cookies are essential for the core functionality of the service and cannot be disabled.
+            </p>
+            <ul>
+                <li>
+                    <b>Authentication / Session Cookies:</b> Used solely to maintain your logged-in state after you sign in. They contain no personal data beyond what is required to identify your authenticated session.
+                </li>
+            </ul>
+            <p>
+                We do <strong>not</strong> use advertising cookies, tracking cookies, analytics cookies, or any third-party cookies.
+                No non-essential cookies are set.
+            </p>
+        </section>
+
+        <section class="pp-section">
+            <h2>4. Legal Basis and Purpose of Processing</h2>
+            <p>We process your data under the following legal frameworks:</p>
+            <ul>
+                <li>
+                    <b>Contractual Necessity:</b> Processing account credentials is required to provide the core account management services you request.
+                </li>
+                <li>
+                    <b>Legitimate Interests:</b> Processing anonymous diagnostics allows us to monitor infrastructure health, debug routing algorithms,
+                    and improve application stability.
+                </li>
+            </ul>
+        </section>
+
+        <section class="pp-section">
+            <h2>5. Data Retention and Third-Party Disclosure</h2>
+            <ul>
+                <li>
+                    <b>Third-Party Transfers:</b> We do not sell, lease, or distribute user data to third-party commercial entities, marketing networks, or data brokers.
+                </li>
+                <li>
+                    <b>Data Retention:</b> Authentication data is retained indefinitely to maintain your account access.
+                    You may execute a data deletion request at any time to permanently purge your credentials from our active databases.
+                </li>
+            </ul>
+        </section>
+
+        <section class="pp-section">
+            <h2>6. Your Rights</h2>
+            <p>
+                You have the right to access, correct, or delete your personal data. You may
+                also request a copy of your data or withdraw consent for data processing at
+                any time by contacting us.
+            </p>
+        </section>
+
+        <section class="pp-section">
+            <h2>7. Contact Us</h2>
+            <p>
+                If you have any questions about this Privacy Policy, please contact us
+                through the in-app report issue feature or email
+                <a class="pp-link" href="mailto:dev@crestr.co.uk">support@crestr.co.uk</a>.
+            </p>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="pp-footer">
+        &copy; 2026 Crestr. All rights reserved.
+    </footer>
+
+    <!-- Self-contained theme controller -->
+    <script src="{{ url_for('static', path='js/privacy-policy.js') }}"></script>
+</body>
+</html>

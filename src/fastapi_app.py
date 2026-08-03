@@ -137,7 +137,15 @@ def login_page(request: Request):
 def register_page(request: Request):
     return templates.TemplateResponse(
         request=request,
-    name='register.html',
+        name='register.html',
+        context={'request': request}
+    )
+
+@app.get('/privacy-policy', response_class=HTMLResponse)
+def privacy_policy(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name='privacy-policy.html',
         context={'request': request}
     )
 
