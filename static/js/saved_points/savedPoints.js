@@ -178,6 +178,6 @@ export async function deleteSavedPoint(selectedPoint) {
   }
   catch(error) {
     logError("Deleting Point", error.message, null, "DELETE_POINT")
-    showToast("There was an unexpected error whilst saving your point, try again later.")
+    showToast("There was an unexpected error whilst deleting your point, try again later.")
   }
 }

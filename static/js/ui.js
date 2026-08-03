@@ -440,9 +440,7 @@ export async function handleReportIssueSubmission(title, description) {
     } catch (error) {
       showToast("There was an unexpected error whilst submitting the issue report.", "error", reportIssueModal);
     } finally {
-      // This re-enables the submit button + closes the modal
       reportIssueModalSubmit.disabled = false;
-      showReportIssueModal(false);
     }
 }
 
