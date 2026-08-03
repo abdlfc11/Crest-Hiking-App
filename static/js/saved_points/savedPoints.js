@@ -1,7 +1,7 @@
 import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
 import { showLoginModal, showDeletePointModal } from "../ui.js";
-import { showError } from "../utils/ui-utils.js";
+import { showToast } from "../utils/ui-utils.js";
 import { logError } from "../utils/logError-utils.js";
 
 let savedPointsLayer = null;
@@ -80,7 +80,7 @@ export function loadAndDisplaySavedPoints() {
       .then(addLayerToMap)
       .catch(err => {
         logError("Getting Saved Points", err.message, null, "GET_SAVED_POINT")
-        showError("Sorry, there was an unexpected error whilst displaying saved points.");
+        showToast("Sorry, there was an unexpected error whilst displaying saved points.");
       })
 }
 
@@ -131,7 +131,7 @@ export async function saveNewPoint(coordinate, name) {
       return;
   }
   catch(error) {
-    showError(error.message || "There was an unexpected error whilst saving your point, try again later.");
+    showToast(error.message || "There was an unexpected error whilst saving your point, try again later.");
     return false;
   }
 }
@@ -178,6 +178,6 @@ export async function deleteSavedPoint(selectedPoint) {
   }
   catch(error) {
     logError("Deleting Point", error.message, null, "DELETE_POINT")
-    showError("There was an unexpected error whilst saving your point, try again later.")
+    showToast("There was an unexpected error whilst saving your point, try again later.")
   }
 }
