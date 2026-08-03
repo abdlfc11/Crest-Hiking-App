@@ -1,6 +1,6 @@
 //#region IMPORTS
 
-import { showError } from "../utils/ui-utils.js";
+import { showToast } from "../utils/ui-utils.js";
 import { 
   validatePassword,
   validateRegisterInput,
@@ -49,7 +49,7 @@ function switchToLoginFromRegister() {
 }
 
 export function switchToRegistering() {
-  window.location.href = "/register";
+  window.location.href = "/register-page";
 }
 
 
@@ -62,11 +62,7 @@ async function register() {
   const message = validateRegisterInput(username, password1, password2);
 
   if (message !== true) {
-    registerValidationLabel.innerText = message;
-    registerValidationLabel.style.opacity = "1";
-    setTimeout(() => {
-      registerValidationLabel.style.opacity = "0";
-    }, 3000);
+    showToast(message, "error", null);
     return;
   };
 
@@ -90,20 +86,19 @@ async function register() {
     const data = await response.json();
 
     if (!response.ok) {
-      userFeedback(registerValidationLabel, data.message, false);
+      showToast(data.message, "error", null);
       return;
     };
 
     if (data.success) {
       clearRegisterEntries(registerUsernameEntry, registerPasswordEntry1, registerPasswordEntry2);
       window.location.href = 'https://crestr.co.uk';
-      userFeedback(loginValidationLabel, data.message, true);
     } else {
-      userFeedback(registerValidationLabel, data.message, false);
+      showToast(data.message, "error", null);
     }
 } catch (error) {
     console.log(`ERROR: ${error}`);
-    userFeedback(registerValidationLabel, error.message, false);
+    showToast(error.message, "error", null);
 };
 
 };
@@ -132,7 +127,7 @@ export async function login() {
     const data = await response.json();
 
     if (!response.ok) {
-      userFeedback(loginValidationLabel, data.message, false);
+      showToast(data.message, "error", null);
       return;
     };
 
@@ -141,12 +136,12 @@ export async function login() {
       loginPasswordEntry.value = "";
       window.location.href = "/map"
     } else {
-      userFeedback(loginValidationLabel, data.message, false);
+      showToast(data.message, "error", null);
     }
   } 
   catch(error) {
     console.error("ERROR: ", error);
-    showError(error.message || "Sorry, there was an unexpected error whilst logging in, try again later.")
+    showToast(error.message || "Sorry, there was an unexpected error whilst logging in, try again later.")
   }
 
 }
@@ -198,12 +193,12 @@ export async function deleteAccount(skipConfirm = false) {
     const data = await response.json();
 
     if (!response.ok) {
-      showError("There was an unexpected error whilst deleting your account.")
+      showToast("There was an unexpected error whilst deleting your account.")
       return;
     };
 
     if (!data.success) {
-      showError("There was an unexpected error whilst deleting your account.")
+      showToast("There was an unexpected error whilst deleting your account.")
       return;
     };
 
@@ -211,7 +206,7 @@ export async function deleteAccount(skipConfirm = false) {
     window.location.href = 'https://crestr.co.uk'
   } catch(error) {
     console.log(`ERROR : ${error.message}`)
-    showError("There was an unexpected error whilst deleting your account.")
+    showToast("There was an unexpected error whilst deleting your account.")
     return;
   };
 }

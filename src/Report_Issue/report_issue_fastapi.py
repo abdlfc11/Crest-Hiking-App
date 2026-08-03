@@ -30,14 +30,14 @@ router = APIRouter()
 )
 def report_issue_api(data: ReportIssueData):
     """
-    Submit a detailed issue report or bug to the support team.
+    Submits a detailed issue report or bug 
 
     
     Rate Limited
         - 5 requests per minute per client. Exceeding this returns a `429 Too Many Requests` error.
 
     Request Body
-        - Must conform to the `ReportIssueData` schema (requires issue title + description, likely to add more in the future)
+        - Must conform to the `ReportIssueData` schema (requires issue title + description)
 
     Errors
         - 400 Bad Request: Invalid payload or missing required fields.

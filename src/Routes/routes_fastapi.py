@@ -223,7 +223,20 @@ def calculate_path(
         
         start_coords = web_mercator_coordinates[0]
         end_coords = web_mercator_coordinates[-1]
-        
+
+        # builds the coordinate array of [lon, lat, elev] points
+        # this is what is returned when the API is called 
+        wgs84_coordinates = [] 
+        for coord in web_mercator_coordinates:
+            lon, lat = service.convert_web_mercator_to_wgs84(coord[0], coord[1])
+            if len(coord) >= 3:
+                wgs84_coordinates.append([lon, lat, coord[2]])
+            else:
+                wgs84_coordinates.append([lon, lat])
+
+        start_coords = wgs84_coordinates[0]
+        end_coords = wgs84_coordinates[-1]
+
         # This calculates distance and eta statistics
         total_distance = service.calculate_route_distance(path)
         total_distance_km = total_distance / 1000
@@ -234,12 +247,14 @@ def calculate_path(
 
         path_geojson = {
             "type": "Feature",
-            "geometry": {"type": "LineString", "coordinates": web_mercator_coordinates},
+            "geometry": {"type": "LineString", "coordinates": wgs84_coordinates},
             "properties": {"color": "#2563eb"}
         } 
         
-        # This calculates optimal map centre and zoom
-        map_centre, map_zoom = service.calculate_map_center_and_zoom(web_mercator_coordinates)
+        # calculates optimal map centre + zoom using internal Web Mercator
+        # then converts centre to lat/lon to send to the frontend
+        map_centre_mercator, map_zoom = service.calculate_map_center_and_zoom(web_mercator_coordinates)
+        map_centre = list(service.convert_web_mercator_to_wgs84(map_centre_mercator[0], map_centre_mercator[1]))
 
         route_stats = {
             "start_elevation": start_elevation,
@@ -270,7 +285,7 @@ def calculate_path(
             "map_centre": map_centre,
             "map_zoom": map_zoom,
             "route_stats": route_stats,
-            "coordinates": web_mercator_coordinates,
+            "coordinates": wgs84_coordinates,
             "startCoord": start_coords,
             "endCoord": end_coords
         }
@@ -326,7 +341,7 @@ def save_route(
             )
 
         route_name = data.route_name
-        coordinates = data.coordinates
+        coordinates = data.coordinates # these are in Lon, Lat format
 
         if not route_name or not route_name.strip():
 
@@ -455,7 +470,7 @@ def load_route(
 
     route = db.exec(
         select(Route)
-        .where( (Route.name == route_name) & (Route.user_id==user.id))
+        .where(Route.name == route_name, Route.user_id==user.id)
     ).first()
 
     if not route:
@@ -470,35 +485,29 @@ def load_route(
     
     json_coords = json.loads(route.coordinates)
 
-    
-    # success, coordinates, file_type = db_manager.load_route(route_name)
     coordinates = json_coords
 
     has_elevation = check_elevation(coordinates)
     
     try:
-        # converts wgs84 coordinates to web mercator for display
-        web_mercator_coordinates = []
+        wgs84_coordinates = []
 
+        # routes saved prior to switch to Lat/Lon projection for storing routes will have coordinates stored in Web Mercator projection
+        # this checks these coordinates and converts them to Lon/Lat if Web Mercator coordinates are found
         if check_web_mercator(coordinates[0]):
-            # already in web mercator so this block just normalises the lengths
             for coord in coordinates:
                 x, y = coord[0], coord[1]
                 z = coord[2] if len(coord) >= 3 else 0   # default elevation = 0
-                web_mercator_coordinates.append([x, y, z])
+                lon, lat = service.convert_web_mercator_to_wgs84(x, y)
+                wgs84_coordinates.append([lon, lat, z])
         else:
-            # this block converts wgs84 to web mercator
+            # already lat/lon: normalise lengths
             for coord in coordinates:
-                if has_elevation and len(coord) >= 3:
-                    lon, lat, elevation = coord[:3]
-                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
-                    web_mercator_coordinates.append([web_x, web_y, elevation])
-                else:
-                    lon, lat = coord[:2]
-                    web_x, web_y = service.convert_wgs84_to_web_mercator(lon, lat)
-                    web_mercator_coordinates.append([web_x, web_y, 0])
+                x, y = coord[0], coord[1]
+                z = coord[2] if len(coord) >= 3 else 0
+                wgs84_coordinates.append([x, y, z])
 
-        if not web_mercator_coordinates:
+        if not wgs84_coordinates:
 
             log_action('Loading Route', False, "No coordinates found in the route", None, 'LOAD_ROUTE')
 
@@ -515,14 +524,14 @@ def load_route(
             "type": "FeatureCollection",
             "features": [{
                 "type": "Feature",
-                "geometry": {"type": "LineString", "coordinates": web_mercator_coordinates},
+                "geometry": {"type": "LineString", "coordinates": wgs84_coordinates},
                 "properties": {"color": "#2563eb"}
             }]
         }
         
         
         # calculates midpoint for map centring
-        midpoint = web_mercator_coordinates[len(web_mercator_coordinates)//2] if web_mercator_coordinates else DEFAULT_CENTRE
+        midpoint = wgs84_coordinates[len(wgs84_coordinates)//2] if wgs84_coordinates else DEFAULT_CENTRE
 
         # data collected directly from database values
         eta_seconds = route.eta_seconds
@@ -543,7 +552,7 @@ def load_route(
             "message": f"Route '{route_name}' loaded successfully",
             "pathGeoJSON": path_geojson,
             "map_centre": midpoint,
-            "coordinates": web_mercator_coordinates,
+            "coordinates": wgs84_coordinates,
             "route_stats": route_stats
         }
 
@@ -755,9 +764,7 @@ async def import_route(
                 
                 lat, lon, ele = point[0], point[1], point[2]
 
-                web_mercator_coords = service.convert_wgs84_to_web_mercator(lon, lat)
-
-                converted_points.append([web_mercator_coords[0], web_mercator_coords[1], ele])
+                converted_points.append([lon, lat, ele])
 
             log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
 
@@ -790,9 +797,7 @@ async def import_route(
                 
                 lat, lon = coord[0], coord[1]
 
-                web_mercator_coords = service.convert_wgs84_to_web_mercator(lon, lat)
-
-                converted_coords.append([web_mercator_coords[0], web_mercator_coords[1]])
+                converted_coords.append([lon, lat])
 
             log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
 
@@ -808,7 +813,14 @@ async def import_route(
             await route_file.seek(0)
 
             doc = KML.parse(route_file.file, strict=False)
-            coords = extract_kml_coords(doc)
+            kml_coords = extract_kml_coords(doc)
+
+            # extract_kml_coords returns [lat, lon, ele] (KML native)
+            # this normalises to the app's [lon, lat, ele] format.
+            coords = [
+                [c[1], c[0], c[2]] if len(c) >= 3 else [c[1], c[0], 0]
+                for c in kml_coords
+            ]
             
             # logging is commented out as KML imports are not fully supported --> prevents false positives 
             # log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
@@ -886,8 +898,7 @@ async def import_route(
                         lat = coord[1]
                         ele = coord[2] if len(coord) > 2 else 0
 
-                        web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(lon, lat)
-                        coords.append([web_mercator_x, web_mercator_y, ele])
+                        coords.append([lon, lat, ele])
             
             log_action('Importing Route', True, ext, None, 'IMPORT_ROUTE')
 
