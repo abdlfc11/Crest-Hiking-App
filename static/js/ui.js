@@ -267,12 +267,6 @@ function checkIfMobile() {
 
 //#endregion
 
-// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
-function noRouteCreateFunction() {
-  closeNav()
-  closeSavedRoutesDash()
-}
-
 //#region LOGIN MODAL
 
 /**
@@ -590,7 +584,7 @@ export function mapClickHandler(event) {
     setCoordEntry(startCoordEntry, event);
 
     // adding start point
-    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("Start", "#074df0"), "start", "Start");
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("Start", "#00A86B"), "start", "Start");
     addStartEndPoint(pointFeature, interactivePointLayer, "start");
     setUpPointInteraction([interactivePointLayer]);
 
@@ -604,7 +598,7 @@ export function mapClickHandler(event) {
     setCoordEntry(endCoordEntry, event);
 
     // adding end point 
-    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#074df0"), "end", "End")
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#D32F2F"), "end", "End")
     addStartEndPoint(pointFeature, interactivePointLayer, "end");
     setUpPointInteraction([interactivePointLayer]);
 
@@ -667,6 +661,12 @@ function openNav() {
 
 export function closeNav() {
   navBar.style.width = "0";
+}
+
+// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
+function noRouteCreateFunction() {
+  closeNav()
+  closeSavedRoutesDash()
 }
 
 function openSavedRoutesDash() {
@@ -1250,8 +1250,8 @@ function displayPath(data) {
     const endMercatorCoord = ol.proj.fromLonLat([endCoord[0], endCoord[1]]);
 
     // this creates and then displays (by adding them to the interactivePointLayerSource) the start and end point features
-    const startPointFeature = createPoint(startMercatorCoord, getSavedPointStyle("Start", "#074df0"), "start", "Start")
-    const endPointFeature = createPoint(endMercatorCoord, getSavedPointStyle("End", "#074df0"), "end", "End")
+    const startPointFeature = createPoint(startMercatorCoord, getSavedPointStyle("Start", "#00A86B"), "start", "Start")
+    const endPointFeature = createPoint(endMercatorCoord, getSavedPointStyle("End", "#D32F2F"), "end", "End")
 
     interactivePointLayerSource.addFeature(startPointFeature)
     interactivePointLayerSource.addFeature(endPointFeature)
@@ -1373,11 +1373,11 @@ export function updateManualRoute() {
         const isEnd = index === userClicks.length - 1;
 
         if (isSnappedToEnd) {
-          if (isStart) return createManualPointStyle("Start/End", "#8145d4");
-          if (isEnd) return createManualPointStyle("", "#8145d4", 0);
+          if (isStart) return getSavedPointStyle("Start/End", "#00A86B");
+          if (isEnd) return getSavedPointStyle("", "#00A86B");
         }
-        if (isStart) return createManualPointStyle("Start", "#8145d4");
-        if (isEnd) return createManualPointStyle("End", "#8145d4");
+        if (isStart) return getSavedPointStyle("Start", "#00A86B");
+        if (isEnd) return getSavedPointStyle("End", "#D32F2F");
         return createManualPointStyle("", "#000", 6.5);
       }
       return new ol.style.Style({

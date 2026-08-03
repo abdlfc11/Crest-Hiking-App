@@ -20,6 +20,7 @@ import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData,
 import { deleteRoute, loadRoute } from "./routeApi.js";
 
 import { initChartToggleListener } from "../elevationChart.js";
+import { getSavedPointStyle } from "../saved_points/style.js";
 
 
 let routeList = null;
@@ -70,12 +71,12 @@ export function displayLoadedRouteOnMap(data) {
   const startFeature = new ol.Feature({
     geometry: new ol.geom.Point(startMercator)
   });
-  startFeature.setStyle(createManualPointStyle("Start", "#8145d4"));
+  startFeature.setStyle(getSavedPointStyle("Start", "#00A86B"));
 
   const endFeature = new ol.Feature({
     geometry: new ol.geom.Point(endMercator)
   });
-  endFeature.setStyle(createManualPointStyle("End", "#8145d4"));
+  endFeature.setStyle(getSavedPointStyle("End", "#D32F2F"));
 
 
 
