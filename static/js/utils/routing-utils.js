@@ -1,9 +1,11 @@
 /**
  * This file all route-associated helper functions 
- * As of July 2026 it has the following functions:
+ * As of August 2026 it has the following functions:
  * 
  *      - roundCoords(coordArray, decimals)
  *      - isLonLat(coordinate)
+ *      - isMercatorCoord(coordinate)
+ *      - formatLatLon(lonLat)
  *      - calculateTotalDistance(points)
  *      - CalculateEta(distanceKm)
  */
@@ -35,7 +37,7 @@ export function roundCoords (coordArray, decimals) {
 /**
  * Validates whether the input is a valid WGS84 (lat / lon) coordinate 
  * 
- * @param {LatLonObject | [number, number] | null | undefined} coord - The coordinate data to validate NOTE it is in lon lat format 
+ * @param {LatLonObject | [number, number] | null | undefined} coord The coordinate data to validate NOTE it is in lon lat format 
  * @returns {boolean} True if the input represents a valid latitude and longitude, false otherwise.
  * 
  * @example
@@ -71,16 +73,42 @@ export function isLonLat(coordinate) {
   };
 
   // this ensures that both lat and lon variables are numbers and can be used in the conditional checks to ensure they are valid WGS84 coordinates 
-  if (!typeof lat === 'number' || !Number.isFinite(lat)) {
+  if (typeof lat !== 'number' || !Number.isFinite(lat)) {
     console.warn('isLonLat(coord) : variable lat is either not a number or is infinite')
   }; 
 
-  if (!typeof lon === 'number' || !Number.isFinite(lon)) {
+  if (typeof lon !== 'number' || !Number.isFinite(lon)) {
     console.warn('isLonLat(coord) : variable lon is either not a number or is infinite')
   }; 
 
   // this returns true if lat is between -90 and 90 and if lon is between -180 and 180, and returns false otherwise
   return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
+
+/**
+ * Detects whether a coordinate is in Web Mercator (EPSG:3857) based on magnitude
+ * Lat/lon values are always within [-180, 180] / [-90, 90]
+ * 
+ * @param {Array<number>} coordinate A coordinate as [x, y]
+ * @returns {boolean} True if the coordinate is Web Mercator
+ */
+export function isMercatorCoord(coordinate) {
+  if (!Array.isArray(coordinate) || coordinate.length < 2) return false;
+  return Math.abs(coordinate[0]) > 181 || Math.abs(coordinate[1]) > 181;
+}
+
+/**
+ * Formats a [lon, lat] coordinate into a user-friendly "lat, lon" string
+ * 
+ * @param {Array<number>} lonLat Coordinate as [longitude, latitude]
+ * @param {number} decimals Number of decimal places (default 6)
+ * @returns {string} Formatted "lat, lon" string
+ */
+export function formatLatLon(lonLat, decimals = 6) {
+  if (!Array.isArray(lonLat) || lonLat.length < 2) return "";
+  const [lon, lat] = lonLat;
+  const round = (value) => Number(value).toFixed(decimals);
+  return `${round(lat)}, ${round(lon)}`;
 }
 
 /**

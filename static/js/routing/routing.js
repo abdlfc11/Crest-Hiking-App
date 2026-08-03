@@ -8,13 +8,32 @@ import { manualRouteState,
 } from "../routes/routeState.js";
 
 import {
-  showError
+  showToast
 } from "../utils/ui-utils.js"
 
+import {
+  updateManualRoute
+} from '../ui.js'
+import { logError } from "../utils/logError-utils.js";
+
+/**
+ * Function used to calculate and return a path (and associated information) between two given points in projection EPSG: 4326 (Lon, Lat)
+ * Specific to automatic routing
+ * 
+ * @param {String} startPoint Coordinate in the form "Lat, Lon"
+ * @param {String} endPoint Coordinate in the form "Lat, Lon"
+ * @returns 
+ */
 export async function calculatePath(startPoint, endPoint) {
   const url = window.appConfig.apiCalculatePathUrl;
-  const startArray = startPoint.split(",").map((num) => Number(num.trim()));
-  const endArray = endPoint.split(",").map((num) => Number(num.trim()));
+
+  // forms an array of the first and end coordinate in the format [Lat, Lon]
+  const rawStart = startPoint.split(",").map((num) => Number(num.trim()));
+  const rawEnd = endPoint.split(",").map((num) => Number(num.trim()));
+
+  // API expects [Lon, Lat] but coordinate is in [Lat, Lon]
+  const startArray = [rawStart[1], rawStart[0]];
+  const endArray = [rawEnd[1], rawEnd[0]];
 
   try {
 
@@ -40,12 +59,18 @@ export async function calculatePath(startPoint, endPoint) {
     throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.");
   }
   catch(error) {
-    throw error
+    logError("Calculating Path", error.message, null, "NO_PATH_FOUND");
+    throw error;
   };
 };
 
-window.calculatePath = calculatePath; // To test the calculation of paths i.e how long it takes
-
+/**
+ * Calculates and returns information associated with a path between two given points (specific to manual routing)
+ * 
+ * @param {Number} start Coordinate in the format [Lon, Lat]
+ * @param {Number} end Coordinate in the format [Lon, Lat]
+ * @returns {Object} Information of and information associated with the path that is calculated
+ */
 export async function getPathSegment(start, end) {
   const url = window.appConfig.apiCalculatePathUrl;
 
@@ -59,7 +84,8 @@ export async function getPathSegment(start, end) {
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
+    logError("Calculating Path", response, null, "NO_PATH_FOUND")
+    throw new Error("Sorry, there was an unexpected error whilst calculating the path.");
   }
 
   const data = await response.json();
@@ -67,9 +93,17 @@ export async function getPathSegment(start, end) {
   if (data.success) {
     return data;
   }
-  throw new Error(data.message || "Error whilst calculating manual path segment");
+  // no logging needed as the backend already logs errors if data.success if False 
+  throw new Error("Sorry, there was an unexpected error whilst calculating the path.");
 }
 
+/**
+ * Adds the entered point into the appropriate data structures and updates the UI
+ * 
+ * @param {Number} x X coordinate of clicked-on point in Web Mercator (as this is retrieved directly from a click on the map, and map's projection is Web Mercator)
+ * @param {Number} y Y coordinate of clicked-on point in Web Mercator
+ * @returns {Object} Object formed of success and message keys (message only if failed)
+ */
 export async function addManualPoint(x, y) {
   const { userClicks, pathCoords, segmentCache } = manualRouteState;
   const currentClick = [x, y];
@@ -84,10 +118,10 @@ export async function addManualPoint(x, y) {
   // this restores the redo stack
   manualRouteState.redoStack = [];
 
+  // returns prematurely after adding coord to the relevant arrays and updating manual route state if coord is the first one
   if (userClicks.length === 0) {
     userClicks.push(currentClick);
     pathCoords.push(currentClick);
-    const { updateManualRoute } = await import("../ui.js");
     updateManualRoute();
     return {"success": true};
   }
@@ -100,11 +134,12 @@ export async function addManualPoint(x, y) {
   if (userClicks.length >= 3) {
     const thresholdDistance = 50;
 
+    // lon lat used to calculate distance (Web Mercator projection has distortion risk over long distances)
     const startLonLat = ol.proj.toLonLat(start);
     const endLonLat = ol.proj.toLonLat(end);
-
     const distance = ol.sphere.getDistance(startLonLat, endLonLat);
 
+    // if points are close enough snap the final point to the first point
     if (distance < thresholdDistance) {
       finalClick = start;
     }
@@ -123,17 +158,31 @@ export async function addManualPoint(x, y) {
 
   try {
 
-    if (segmentCache[key]) { // this checks if the segment already exists in cache 
-      segment = segmentCache[key];
+    if (segmentCache[key]) { // this checks if the segment already exists in cache
+      segment = segmentCache[key]; // if yes, it just retrieves it
     }
+    // otherwise, it calculates it and adds it to the cache 
     else {
-      const data = await getPathSegment(lastClickedPoint, finalClick);
+      // conversion to lon lat as the API expects coordinates in the form [Lon, Lat]
+      const lastLonLat = ol.proj.toLonLat(lastClickedPoint);
+      const finalLonLat = ol.proj.toLonLat(finalClick);
+      const data = await getPathSegment(lastLonLat, finalLonLat);
 
       if (!data.success) {
-        return {"success": false, "message": "Sorry, we not find a path to that location"};;
-      }
+        return {
+          "success": false,
+          "message": "Sorry, we could not find a path to that location."
+        };
+      };
 
       segment = data.coordinates;
+
+      // conversion to Web Mercator as the API sends coords in the form: [Lon, Lat], whereas OpenLayers map is in Web Mercator projection
+      segment = segment.map(coord =>
+        coord.length >= 3
+          ? [...ol.proj.fromLonLat([coord[0], coord[1]]), coord[2]]
+          : ol.proj.fromLonLat([coord[0], coord[1]])
+      );
 
       // this stores the segment in cache 
       segmentCache[key] = segment;
@@ -144,7 +193,8 @@ export async function addManualPoint(x, y) {
     }
   }
   catch (error) {
-    throw error
+    logError("Calculating Path", error.message, null, "NO_PATH_FOUND");
+    throw error;
   }
 
   // this appends the segment to pathCoords (skips first point to prevent duplication)
@@ -153,8 +203,6 @@ export async function addManualPoint(x, y) {
   userClicks.push(finalClick);
   manualRouteState.isSnapped = true;
 
-  // this updates the UI
-  const { updateManualRoute } = await import("../ui.js");
   updateManualRoute();
 
   return {"success": true};

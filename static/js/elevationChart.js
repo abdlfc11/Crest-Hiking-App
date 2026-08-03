@@ -1,9 +1,18 @@
-import { getDistance } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/sphere.js';
-import { toLonLat } from 'https://cdn.jsdelivr.net/npm/ol@v10.3.1/proj.js';
 import { normaliseCoordLength, getCurrentPathData } from './routes/routeState.js';
 import { getRouteLayer } from './map.js';
 import { getTheme, getDistanceUnit } from './settingsState.js';
 import { createManualPointStyle } from './utils/style-utils.js';
+
+/**
+ * Returns true if the coord is in EPSG:4326 projection and false otherwise
+ * 
+ * @param {Array} coord The coordinate array in format [X, Y] or [Lon, Lat]
+ * @returns {bool} True if the coordinate is in EPSG:4326 projection and false otherwise 
+ */
+function isLonLatCoord(coord) {
+  return Array.isArray(coord) && coord.length >= 2 &&
+    Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90;
+}
 
 let elevationChart = null;
 let currentCoordinates = null;
@@ -34,7 +43,11 @@ function updateMapHoverPoint(coordinate) {
   if (!routeLayer) return;
   const source = routeLayer.getSource();
 
-  const coord = [coordinate[0], coordinate[1]];
+  // converts coordinates into web mercator to display the point feature on the map (which has projection of Web Mercator)
+  let coord = [coordinate[0], coordinate[1]];
+  if (isLonLatCoord(coord)) {
+    coord = ol.proj.fromLonLat(coord);
+  }
 
   if (!hoverPointFeature) {
     hoverPointFeature = new ol.Feature({
@@ -113,10 +126,15 @@ export function createElevationProfile(coordinates) {
 
     currentCoordinates = coordinates;
 
-    // this transforms all coordinates from EPSG:3857 (Web Mercator) to standard Lat/Lon (wgs84)
+    // converts manually plotted coordinates to lon lat (auto routing uses lat lon already) 
     const geoCoordinates = coordinates.map(coord => {
-        const lonLat = toLonLat([coord[0], coord[1]]);
-        return [lonLat[0], lonLat[1], coord[2] || 0]; // Keep elevation at index 2
+        let lonLat;
+        if (isLonLatCoord(coord)) {
+          lonLat = [coord[0], coord[1]];
+        } else {
+          lonLat = ol.proj.toLonLat([coord[0], coord[1]]);
+        }
+        return [lonLat[0], lonLat[1], coord[2] || 0];
     });
 
     const chartData = []; // {x: distance, y: elevation}
@@ -132,7 +150,7 @@ export function createElevationProfile(coordinates) {
         const p2 = geoCoordinates[i];
 
          
-        const segmentMeters = getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
+        const segmentMeters = ol.sphere.getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
         const segmentKm = segmentMeters / 1000;
 
         if (distanceUnit === "miles") {

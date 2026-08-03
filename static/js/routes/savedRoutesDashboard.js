@@ -16,7 +16,7 @@ import { createElevationProfile, initChartToggleListener } from "../elevationCha
 import {
   addClickListener,
   createNoRouteCard,
-  showError
+  showToast
 } from "../utils/ui-utils.js"
 
 import { formatDistance } from "../utils/format-utils.js";
@@ -106,7 +106,7 @@ async function onDeleteClick(event) {
     }
   } catch (error) {
 
-    showError("Sorry, there was an unexpected error, try again later. ")
+    showToast("Sorry, there was an unexpected error, try again later. ")
   }
 
   event.preventDefault();
@@ -165,7 +165,7 @@ async function onDownloadClick(event, format, DOMElement) {
   
     logError("Downloading Route", error.message, null, "DOWNLOAD_ROUTE")
 
-    showError("Sorry, there was an unexpected error, try again later. ")
+    showToast("Sorry, there was an unexpected error, try again later. ")
   }
   finally {
     DOMElement.disabled = false;

@@ -1,10 +1,9 @@
 //#region IMPORTS
 
 import {
-  roundCoords,
   calculateEta,
   calculateTotalDistance,
-  isLonLat
+  formatLatLon
 } from "./utils/routing-utils.js";
 
 import {
@@ -20,13 +19,14 @@ import {
 
 import {
   moveMapToPosition,
-  showError,
+  showToast,
   addClickListener,
   removeDOMElement,
-  createStatsPanel
+  createStatsPanel,
+  parseCoordString
 } from "./utils/ui-utils.js";
 
-import { calculatePath, addManualPoint } from "./routing/routing.js";
+import { calculatePath, addManualPoint } from "./routing/index.js";
 
 import {
   getMap,
@@ -35,6 +35,7 @@ import {
   getRouteLayer,
   getPathColour,
   setRouteLayer,
+  routeLayerHasFeatures
 } from "./map.js";
 
 import {
@@ -112,15 +113,18 @@ import { logError } from "./utils/logError-utils.js";
 
 //#region VAR / CONST DECLARATIONS
 
-export const defaultCentre = Array.isArray(window.appConfig?.mapInitialCenter)
-  ? window.appConfig.mapInitialCenter
-  : [-211507, 7118524];
+export const defaultCentre = Array.isArray(window.appConfig?.mapInitialCentre)
+  ? window.appConfig.mapInitialCentre
+  : [-3.198308, 54.465458];
 
 const autoModeOption = document.getElementById("auto-mode-option");
 const manualModeOption = document.getElementById("manual-mode-option");
 
 const setStartCoordButton = document.getElementById("set-start-coord-button");
 const setEndCoordButton = document.getElementById("set-end-coord-button");
+
+const startCoordEntry = document.getElementById("start-point-entry");
+const endCoordEntry = document.getElementById("end-point-entry");
 
 const autoOpenNavButton = document.getElementById("auto-open-nav-button");
 const manualOpenNavButton = document.getElementById("manual-open-nav-button");
@@ -141,10 +145,9 @@ const searchEntry = document.getElementById("search-entry");
 const searchForAreaButton = document.getElementById("search-for-area-button");
 
 const mapElement = document.getElementById("map");
-const startCoordEntry = document.getElementById("start-point-entry");
-const endCoordEntry = document.getElementById("end-point-entry");
 
 const navBar = document.getElementById("the-sidenav");
+const reportIssueOpenButton = document.getElementById('report-issues-open-button')
 const loginNavBarButton = document.getElementById('sidenav-login-button');
 const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
@@ -171,6 +174,15 @@ const loginModal = document.getElementById('login-dialog');
 const loginModalLoginButton = document.getElementById('login-dialog-login');
 const loginModalExitButton = document.getElementById('login-dialog-exit');
 const loginModalContent = loginModal.querySelector('.modal-content');
+
+// report issue modal
+const reportIssueModal = document.getElementById('report-issue-dialog');
+const reportIssueModalSubmit = document.getElementById('report-issue-dialog-submit');
+const reportIssueModalExit = document.getElementById('report-issue-dialog-exit');
+const reportIssueModalContent = reportIssueModal.querySelector('.modal-content');
+const reportIssueResultLabel = document.getElementById('report-issue-result-label');
+const reportIssueTitleInput = document.getElementById("report-issue-title");
+const reportIssueTextAreaInput = document.getElementById("report-issue-description");
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -212,6 +224,11 @@ let clickMode = null;
 let manualRouteLayer = null;
 let selectedPoint = null;
 
+// Start and End points 
+
+let interactivePointLayerInteraction = null; // holds the OpenLayer interaction for the start and end points 
+let interactivePointLayer = null; // stores the vector layer which holds the point features 
+
 //#endregion
 
 // hides save route button + panel if there is no route
@@ -250,12 +267,6 @@ function checkIfMobile() {
 
 //#endregion
 
-// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
-function noRouteCreateFunction() {
-  closeNav()
-  closeSavedRoutesDash()
-}
-
 //#region LOGIN MODAL
 
 /**
@@ -265,17 +276,16 @@ function noRouteCreateFunction() {
  * @returns {void}
  */
 export function showLoginModal(show, actionName = 'perform this action') {
-  const dialog = document.getElementById('login-dialog');
-  const messageElement = dialog.querySelector('.modal-body p');
+  const messageElement = loginModal.querySelector('.modal-body p');
 
   if (show) {
 
     // This updates the message dynamically
     messageElement.textContent = `An account is required to ${actionName}.`;
-    dialog.showModal();
+    loginModal.showModal();
   } 
   else {
-    dialog.close();
+    loginModal.close();
   }
 };
 
@@ -326,6 +336,117 @@ function dismissDeletePointModal(e) {
 
 //#endregion
 
+//#region REPORT ISSUE MODAL
+
+/**
+ * Opens the modal if the input is truthy and closes the modal if the input is falsy
+ * 
+ * @param {Boolean} show True to show the modal, false to hide the modal
+ */
+function showReportIssueModal(show) {
+  if (!reportIssueModal) return;
+  if (show) {
+    reportIssueModal.showModal();
+    closeNav();
+  } else {
+    reportIssueModal.close();
+  }
+}
+
+/**
+ * Closes the report issue modal if it registers a click outside of the modal
+ * @returns {void}
+ */
+function dismissReportIssueModal(e) {
+  if (reportIssueModalContent && !reportIssueModalContent.contains(e.target)) {
+      showReportIssueModal(false);
+    }
+};
+
+/**
+ * This function validates the input fields for the report issue form.
+ * @param {string} title 
+ * @param {string} description 
+ * @returns {boolean} Returns true if the input is valid, false otherwise.
+ */
+function validateReportIssueInput(title, description) {
+    if (!title || !description) {
+        showToast("Please fill in both the title and description fields.", "error", reportIssueModal);
+        return false;
+    }
+
+    if (title.length > 100) {
+        showToast("Title cannot exceed 100 characters.", "error", reportIssueModal);
+        return false;
+    }
+
+    if (description.length > 1000) {
+        showToast("Description cannot exceed 1000 characters.", "error", reportIssueModal);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * 
+ * Handles the submission of the report issue form.
+ * It validates the input fields and sends a POST request to the server with the title and description of the issue. 
+ * 
+ * @param {string} title
+ * @param {string} description
+ * @returns {void}
+ */
+export async function handleReportIssueSubmission(title, description) {
+
+    if (!validateReportIssueInput(title, description)) {
+        return;
+    }
+
+    // This disables the submit button to prevent multiple submissions
+    reportIssueModalSubmit.disabled = true;
+
+    try {
+      const response = await fetch(window.appConfig.apiReportIssueUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title: title,
+          description: description
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+          throw new Error("There was an unexpected error whilst submitting the issue report.")
+          return;
+      }
+
+      if (!data.success) {
+          throw new Error("There was an unexpected error whilst submitting the issue report.");
+          return;
+      }
+
+      showToast("Thank you, the issue was reported successfully. ", "success")
+      
+      // UI cleanup
+      reportIssueTitleInput.value = '';
+      reportIssueTextAreaInput.value = '';
+      showReportIssueModal(false);
+
+    } catch (error) {
+      showToast("There was an unexpected error whilst submitting the issue report.", "error", reportIssueModal);
+    } finally {
+      reportIssueModalSubmit.disabled = false;
+    }
+}
+
+
+//#endregion
+
 //#region COORDINATE INPUT FUNCTIONS
 
 /**
@@ -372,43 +493,31 @@ function validateInputCoords(startPoint, endPoint) {
 
   // This ensures there are two coordinates
   if (startParts.length < 2 || endParts.length < 2) {
-    showError("Invalid coordinate format. Please Use X, Y");
+    showToast("Invalid coordinate format. Please Use Lat, Lon");
     return false;
   }
 
-  // This parses the full string into numbers 
-  const startX = parseFloat(startParts[0].trim());
-  const startY = parseFloat(startParts[1].trim());
-  const endX = parseFloat(endParts[0].trim());
-  const endY = parseFloat(endParts[1].trim());
+  // this parses the full string into numbers
+  const startLat = parseFloat(startParts[0].trim());
+  const startLon = parseFloat(startParts[1].trim());
+  const endLat = parseFloat(endParts[0].trim());
+  const endLon = parseFloat(endParts[1].trim());
 
-  let startLonLat
-  let endLonLat
-
-  // conditional logic to ensure that if values are already in lon lat they are not incorrectly passed into ol.proj.toLonLat()
-  if (isLonLat([startX, startY]) && isLonLat([endX, endY])) {
-    startLonLat = [startX, startY];
-    endLonLat = [endX, endY];
-    
-    console.log('LonLat detected ')
-    console.log(startLonLat)
-  }
-  else {
-    startLonLat = ol.proj.toLonLat([startX, startY]);
-    endLonLat = ol.proj.toLonLat([endX, endY]);
-  }
+  // this re-orders coordinates to [lon, lat] for the Cumbria ray-casting check (array of Cumbria boundary has coords in [lon, lat] format)
+  const startLonLat = [startLon, startLat];
+  const endLonLat = [endLon, endLat];
 
   if ( !isPointInPolygon(startLonLat)) {
-    showError("Please enter start coordinates within Cumbria.")
+    showToast("Please select a starting location within Cumbria.")
     startCoordEntry.value = '';
-    showCoordInputError(startCoordEntry, "Please enter start coordinates within Cumbria.");
+    showCoordInputError(startCoordEntry, "Please select a starting location within Cumbria.");
     return false
   }
 
   if (!isPointInPolygon(endLonLat)) {
-    showError("Please enter end/destination coordinates within Cumbria.");
+    showToast("Please select a destination within Cumbria.");
     endCoordEntry.value = ''
-    showCoordInputError(endCoordEntry, "Please enter end/destination coordinates within Cumbria.");
+    showCoordInputError(endCoordEntry, "Please select a destination within Cumbria.");
     return false;
   }
 
@@ -449,9 +558,10 @@ function setEndCoord() {
 }
 
 function setCoordEntry(entry, event) {
-  const coordinate = event.coordinate;
-  const rounded = roundCoords(coordinate, 0);
-  entry.value = `${rounded[0]}, ${rounded[1]}`;
+  // event.coordinate is in Web Mercator
+  // this means conversion to lat/lon is required for display
+  const lonLat = ol.proj.toLonLat(event.coordinate);
+  entry.value = formatLatLon(lonLat, 6);
   entry.placeholder = "Coordinates";
   entry.classList.remove("input-error");
   setCoordInputActiveState(startCoordEntry, false);
@@ -470,10 +580,30 @@ export function mapClickHandler(event) {
 
   if (clickMode === "setStart") {
     setCoordEntry(startCoordEntry, event);
+
+    // adding start point
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("Start", "#00A86B"), "start", "Start");
+    addStartEndPoint(pointFeature, interactivePointLayer, "start");
+    setUpPointInteraction([interactivePointLayer]);
+
+    if (interactivePointLayer.getSource().getFeatures().length > 1) {
+      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
+    };
+
     return;
   }
   if (clickMode === "setEnd") {
     setCoordEntry(endCoordEntry, event);
+
+    // adding end point 
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#D32F2F"), "end", "End")
+    addStartEndPoint(pointFeature, interactivePointLayer, "end");
+    setUpPointInteraction([interactivePointLayer]);
+
+    if (interactivePointLayer.getSource().getFeatures().length > 1) {
+      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
+    };
+
     return;
   }
 
@@ -505,13 +635,16 @@ export function mapClickHandler(event) {
     selectedPoint.setStyle(getSelectedPointStyle(pointName));
     deletePointModalNameDisplay.textContent = pointName;
     showDeletePointModal(true);
-  } else if (!featureClicked) {
+  } 
+  else if (!featureClicked) {
     const coordinate = event.coordinate;
-    const [lon, lat] = ol.proj.toLonLat(coordinate);
-    const roundedLatLon = roundCoords([lat, lon], 6);
+    const lonLat = ol.proj.toLonLat(coordinate);
+
+    // TO BE CHANGED TO CUSTOM MODAL 
     const pointName = prompt(
-      `Do you want to save this coordinate: ${roundedLatLon[0]}, ${roundedLatLon[1]}? \nEnter a name to save it:`,
+      `Do you want to save this coordinate: ${formatLatLon(lonLat, 6)}? \nEnter a name to save it:`,
     );
+
     if (pointName) saveNewPoint(coordinate, pointName);
   }
 }
@@ -526,6 +659,12 @@ function openNav() {
 
 export function closeNav() {
   navBar.style.width = "0";
+}
+
+// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
+function noRouteCreateFunction() {
+  closeNav()
+  closeSavedRoutesDash()
 }
 
 function openSavedRoutesDash() {
@@ -638,7 +777,7 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showError(data || "There was an error on our end. Please try again later.");
+        showToast(data || "There was an error on our end. Please try again later.");
         return false;
       }
 
@@ -658,7 +797,7 @@ async function handleRouteImport() {
       };
     }
     catch (error) {
-      showError("There was an error on our end. Please try again later.")
+      showToast("There was an error on our end. Please try again later.")
       console.error(`ERROR whilst importing route : ${error}`)
     }
 
@@ -674,13 +813,13 @@ async function handleRouteImport() {
       });
 
       if (!response.ok) {
-        showError("There was an error on our end. Please try again later.");
+        showToast("There was an error on our end. Please try again later.");
         return false;
       }
 
       const result = await response.json(); 
       if (!result.success) {
-        showError(result.message || "Failed to save route.");
+        showToast(result.message || "Failed to save route.");
         return false;
       }
 
@@ -690,7 +829,7 @@ async function handleRouteImport() {
       return true;
 
     } catch (err) {
-      showError("There was an error on our end. Please try again later.");
+      showToast("There was an error on our end. Please try again later.");
       console.error(`Error whilst trying to save imported route: ${err}`)
       return false;
     }
@@ -699,7 +838,7 @@ async function handleRouteImport() {
     const url = importRouteURLInput.value.trim();
 
     if (!URL.canParse(url)) {
-      showError("Please enter a valid URL to import.");
+      showToast("Please enter a valid URL to import.");
       return false;
     }
 
@@ -717,25 +856,25 @@ function validateFileInput(file) {
 
     // this checks if a file is selected
     if (!file) {
-        showError("Please select a file to import.");
+        showToast("Please select a file to import.");
         return false;
     }
 
     // this checks if the file is of the correct type
     if (!allowedFileTypes.some(type => file.name.endsWith(type))) {
-        showError("Please select a valid file to import.");
+        showToast("Please select a valid file to import.");
         return false;
     }
 
     // this checks if the file size is too large (greater than 5MB)
     if (file.size > 5 * 1024 * 1024) {
-        showError("File size is too large. Please select a file smaller than 5MB.");
+        showToast("File size is too large. Please select a file smaller than 5MB.");
         return false;
     }
 
     // this checks if the file is empty or not
     if (file.size === 0) {
-      showError("The selected file is empty.")
+      showToast("The selected file is empty.")
       return false;
     }
 
@@ -865,39 +1004,44 @@ export function clearAutoRoute() {
   if (!map) return;
 
   clearPathState();
-
-  const routeLayer = getRouteLayer();
-  if (routeLayer) routeLayer.getSource().clear();
-
-  if (getCurrentMode() === "manual") {
-    clearManualRoute();
-  }
-
-  map
-    .getLayers()
-    .getArray()
-    .slice()
-    .forEach((layer) => {
-      if (
-        layer instanceof ol.layer.Vector &&
-        layer !== getSavedPointsLayer() &&
-        layer !== routeLayer
-      ) {
-        layer.getSource()?.clear();
-      }
-    });
-
-  document.getElementById("route-stats")?.remove();
-
   clearLastAutoRouteStats();
 
+  // this clears the permanent route layer
+  getRouteLayer()?.getSource()?.clear();
+
+  // this clears start / end markers from the interactive layer
+  if (interactivePointLayer) {
+    const source = interactivePointLayer.getSource();
+    source.getFeatures()
+      .filter(f => f.get("type") === "start" || f.get("type") === "end")
+      .forEach(f => source.removeFeature(f));
+  }
+
+  // this clears any other temporary vector layers (but leaves saved-points + interactive + route alone)
+  map.getLayers().getArray().slice().forEach((layer) => {
+    if (
+      layer instanceof ol.layer.Vector &&
+      layer !== getSavedPointsLayer() &&
+      layer !== getRouteLayer() &&
+      layer !== interactivePointLayer
+    ) {
+      layer.getSource()?.clear();
+    }
+  });
+
+  // this cleans up the UI
+  document.getElementById("route-stats")?.remove();
   if (startCoordEntry) startCoordEntry.value = "";
   if (endCoordEntry) endCoordEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
   if (saveContainer) saveContainer.style.display = "none";
   updateSaveRouteContainer();
-  
-};
+
+  // this also wipes the manual route if the user is in manual mode 
+  if (getCurrentMode() === "manual") {
+    clearManualRoute();
+  }
+}
 
 export function clearManualRoute() {
   const map = getMap();
@@ -905,77 +1049,73 @@ export function clearManualRoute() {
 
   clearManualRouteState();
 
+  // this removes the temporary manual route layer
   if (manualRouteLayer) {
     map.removeLayer(manualRouteLayer);
     manualRouteLayer = null;
   }
 
-  document.getElementById("route-stats")?.remove();
+  // this also clears the permanent route layer (in case anything was drawn there)
+  getRouteLayer()?.getSource()?.clear();
 
+  document.getElementById("route-stats")?.remove();
   if (saveContainer) saveContainer.style.display = "none";
   updateSaveRouteContainer();
-
-  clearPathState();
-  getRouteLayer()?.getSource().clear();
   resetElevationChart();
-  
-};
+}
 
 export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
 
+  // this resets the coordinate input UI state
   if (startCoordEntry) {
-    startCoordEntry.classList.remove('input-error');
-    startCoordEntry.classList.remove('is-active');
+    startCoordEntry.classList.remove("input-error", "is-active");
     startCoordEntry.placeholder = "Coordinates";
+    startCoordEntry.value = "";
   }
-
   if (endCoordEntry) {
-    endCoordEntry.classList.remove('input-error');
-    endCoordEntry.classList.remove('is-active');
+    endCoordEntry.classList.remove("input-error", "is-active");
     endCoordEntry.placeholder = "Coordinates";
+    endCoordEntry.value = "";
   }
 
   clickMode = null;
   generatePathButton?.classList.remove("loading");
 
+  // this wipes all route-related state
   clearManualRoute();
   clearAutoRoute();
   clearLastLoadedRouteStats();
-  updateSaveRouteContainer()
+  clearPathState();
 
-  const layersToRemove = [];
-  map.getLayers().forEach((layer) => {
-    if (layer instanceof ol.layer.Vector) layersToRemove.push(layer);
+  // Remove only temporary vector layers.
+  // Keep: routeLayer, interactivePointLayer, saved-points layer
+  map.getLayers().getArray().slice().forEach((layer) => {
+    if (
+      layer instanceof ol.layer.Vector &&
+      layer !== getRouteLayer() &&
+      layer !== interactivePointLayer &&
+      layer !== getSavedPointsLayer()
+    ) {
+      map.removeLayer(layer);
+    }
   });
-  layersToRemove.forEach((layer) => map.removeLayer(layer));
 
-  setRouteLayer(
-    new ol.layer.Vector({
-      source: new ol.source.Vector(),
-      style: new ol.style.Style({
-        stroke: new ol.style.Stroke(getRouteStrokeStyle()),
-      }),
-      zIndex: 999,
-    }),
-  );
-  map.addLayer(getRouteLayer());
-
+  // this cleans up the UI
   document.getElementById("route-stats")?.remove();
-
-  moveMapToPosition(map)
-  if (startCoordEntry) startCoordEntry.value = "";
-  if (endCoordEntry) endCoordEntry.value = "";
   if (searchEntry) searchEntry.value = "";
   if (routeNameEntry) routeNameEntry.value = "";
-
-  clearPathState();
   if (saveContainer) saveContainer.style.display = "none";
-  
+  updateSaveRouteContainer();
+
+  // this resets the map view and re-shows saved points
   loadAndDisplaySavedPoints();
+  map.renderSync(); // this is to ensure that the map renders the deletion of the routeLayer features before the moving of the map view 
+
+  moveMapToPosition(map);
   updateCursor();
-};
+}
 
 //#endregion
 
@@ -983,7 +1123,7 @@ export function homeButtonFunction() {
 function searchArea() {
 
   if (!searchEntry) {
-    showError("Search entry not found.");
+    showToast("Search entry not found.");
     return;
   }
 
@@ -1004,25 +1144,28 @@ function searchArea() {
       if (!data.success) return;
 
       const view = map.getView();
+
+      // this converts the received coordinates into web mercator (as search API sends coords in [lon, lat] format)
+      const searchCenter = ol.proj.fromLonLat(data.coordinates);
       if (view.getZoom() >= 7) {
         view.animate(
           { center: view.getCenter(), duration: 1000, zoom: 10 },
           () =>
             view.animate({
-              center: data.coordinates,
+              center: searchCenter,
               duration: 1000,
               zoom: 14,
             }),
         );
       } else {
         view.animate({
-          center: data.coordinates,
+          center: searchCenter,
           duration: 1000,
           zoom: 14,
         });
       }
     })
-    .catch((error) => showError("There was an unexpected error, please try again later."));
+    .catch((error) => showToast("There was an unexpected error, please try again later."));
 };
 //#endregion
 
@@ -1036,7 +1179,6 @@ async function mapRenderComplete() {
 async function handleAutoRouteGeneration(start=null, end=null) {
   const startPoint = start || startCoordEntry?.value || "";
   const endPoint = end || endCoordEntry?.value || "";
-
 
   if (validateInputCoords(startPoint, endPoint) !== true) return;
 
@@ -1052,14 +1194,16 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     displayAutoRouteStats(getLastAutoRouteStats());
-
+    
+    resetElevationChart();
     initChartToggleListener();
     createElevationProfile(response.coordinates);
 
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
+    showToast("Sorry, there was an unexpected error when calculating your route, please try again later.");
+    return;
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;   
@@ -1067,22 +1211,30 @@ async function handleAutoRouteGeneration(start=null, end=null) {
 };
 
 function displayPath(data) {
+
+  try { 
   const map = getMap();
   const routeLayer = getRouteLayer();
   if (!map || !routeLayer) return null;
 
-  const source = routeLayer.getSource();
-  source.clear();
+  const routeLayerSource = routeLayer.getSource();
+  const interactivePointLayerSource = interactivePointLayer.getSource();
+
+  routeLayerSource.clear();
+  
+  interactivePointLayerSource.getFeatures()
+  .filter(feature => feature.get('type') === 'start' || feature.get('type') === 'end')
+  .forEach(feature => interactivePointLayerSource.removeFeature(feature))
 
   // this clears the hovered point feature to prevent the preserving of stale OL point features
   setHoverPointFeature(null);
 
-  const feature = new ol.format.GeoJSON().readFeature(data.pathGeoJSON, {
-    dataProjection: "EPSG:3857",
+  const pathFeature = new ol.format.GeoJSON().readFeature(data.pathGeoJSON, {
+    dataProjection: "EPSG:4326",
     featureProjection: "EPSG:3857",
   });
 
-  source.addFeature(feature);
+  routeLayerSource.addFeature(pathFeature);
 
   const coordinates = data.coordinates;
 
@@ -1091,33 +1243,36 @@ function displayPath(data) {
     const startCoord = coordinates[0];
     const endCoord = coordinates[coordinates.length - 1];
 
-    const startPointFeature = new ol.Feature({
-      geometry: new ol.geom.Point([startCoord[0], startCoord[1]])
-    });
-    startPointFeature.setStyle(createManualPointStyle("Start", "#8145d4"));
+    // this converts coordinates into Web Mercator format, as the backend sends the path back in [Lon, Lat] format (Web Mercator is the OpenLayers map projection)
+    const startMercatorCoord = ol.proj.fromLonLat([startCoord[0], startCoord[1]]);
+    const endMercatorCoord = ol.proj.fromLonLat([endCoord[0], endCoord[1]]);
 
-    const endPointFeature = new ol.Feature({
-      geometry: new ol.geom.Point([endCoord[0], endCoord[1]])
-    });
-    endPointFeature.setStyle(createManualPointStyle("End", "#8145d4"));
+    // this creates and then displays (by adding them to the interactivePointLayerSource) the start and end point features
+    const startPointFeature = createPoint(startMercatorCoord, getSavedPointStyle("Start", "#00A86B"), "start", "Start")
+    const endPointFeature = createPoint(endMercatorCoord, getSavedPointStyle("End", "#D32F2F"), "end", "End")
 
-    source.addFeature(startPointFeature);
-    source.addFeature(endPointFeature);
+    interactivePointLayerSource.addFeature(startPointFeature)
+    interactivePointLayerSource.addFeature(endPointFeature)
 
   }
 
-  setCurrentPathData(data.coordinates); // data.coordinates may be either 2 elements (x and y) or 3 elements (x, y and elevation)
+  setCurrentPathData(data.coordinates); // data.coordinates are [lon, lat, elev] (EPSG:4326)
 
 
   setTimeout(() => {
-    map.getView().fit(source.getExtent(), {
-      padding: [50, 100, 100, 430],
+    map.getView().fit(routeLayerSource.getExtent(), {
+      padding: [300, 300, 300, 430],
       duration: 1200,
     });
     map.render();
   }, 100);
 
   return data.route_stats;
+  } 
+  catch(error) {
+    console.log(error.message);
+    showToast('Sorry, there was an unexpected error when calculating your route, please try again later.')
+  }
 };
 
 function displayAutoRouteStats(routeStats) {
@@ -1216,11 +1371,11 @@ export function updateManualRoute() {
         const isEnd = index === userClicks.length - 1;
 
         if (isSnappedToEnd) {
-          if (isStart) return createManualPointStyle("Start/End", "#8145d4");
-          if (isEnd) return createManualPointStyle("", "#8145d4", 0);
+          if (isStart) return getSavedPointStyle("Start/End", "#00A86B");
+          if (isEnd) return getSavedPointStyle("", "#00A86B");
         }
-        if (isStart) return createManualPointStyle("Start", "#8145d4");
-        if (isEnd) return createManualPointStyle("End", "#8145d4");
+        if (isStart) return getSavedPointStyle("Start", "#00A86B");
+        if (isEnd) return getSavedPointStyle("End", "#D32F2F");
         return createManualPointStyle("", "#000", 6.5);
       }
       return new ol.style.Style({
@@ -1337,7 +1492,7 @@ async function manualRouteClickHandler(event) {
       throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
     }
   } catch (error) {
-    showError("Sorry, there was an error whilst creating the path.");
+    showToast("Sorry, there was an error whilst creating the path.");
     logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
     return;
   }
@@ -1362,7 +1517,7 @@ export function updateSaveRouteContainer() {
 //#region DRIVER.JS
 
 async function handleSaveRouteTour() {
-  await handleAutoRouteGeneration('-363769, 7256750', '-357507, 7256649');
+  await handleAutoRouteGeneration('54.454722, -3.267793', '54.454195, -3.211540');
 
   setTimeout(() => {
     savingRoutesTourDriver = createSavingRoutesTour(homeButtonFunction);
@@ -1389,6 +1544,168 @@ export function handleInitialTour() {
 
 //#endregion
 
+//#region POINT INTERACTION
+
+/**
+ * Converts a human-entered [latitude, longitude] pair into Web Mercator (EPSG: 3857)
+ * coordinates for OpenLayers.
+ *
+ * @param {[number, number]} latLon - An array containing latitude and longitude as [lat, lon].
+ * @returns {ol.coordinate.Coordinate | null} The converted Web Mercator coordinate [x, y], or null if invalid.
+ */
+function toWebMercator(latLon) {
+  if (!latLon || latLon.length < 2) return null;
+
+  // OpenLayers expects [longitude, latitude]
+  return ol.proj.fromLonLat([latLon[1], latLon[0]]);
+}
+
+/**
+ * Handles a change on either the start or end coordinate input.
+ */
+function handleCoordEntryChange(entry, type) {
+  const raw = entry?.value?.trim() ?? "";
+  const parsed = parseCoordString(raw);
+
+  // this returns if the string is in an invalid format
+  if (!parsed) return;
+
+  // this converts coords to Web Mercator when the value is lon/lat
+  const mercatorCoords = toWebMercator(parsed);
+  if (!mercatorCoords) return;
+
+  const style = getSavedPointStyle(
+    type === "start" ? "Start" : "End",
+    "#074df0"
+  );
+
+  // returning prematurely if the point is not in Cumbria 
+  if (!isPointInPolygon(ol.proj.toLonLat(mercatorCoords))) {
+    showToast("Please choose a point within Cumbria.")
+    return;
+  }
+
+  // this creates the point feature 
+  const pointFeature = createPoint(
+    mercatorCoords,
+    style,
+    type,
+    type === "start" ? "Start" : "End"
+  );
+
+  // this adds the point feature and adds the OpenLayers interaction to it
+  addStartEndPoint(pointFeature, interactivePointLayer, type);
+  setUpPointInteraction([interactivePointLayer]);
+
+  const map = getMap();
+  map.renderSync();
+
+  const startVal = startCoordEntry?.value?.trim();
+  const endVal = endCoordEntry?.value?.trim();
+
+  if (startVal && endVal) {
+    handleAutoRouteGeneration(startVal, endVal);
+  }
+  else {
+    moveMapToPosition(map, [parsed[1], parsed[0]], 1200, 12); // reversed order as moveMap expects coords in [Lon, Lat format], whereas parsed is in [Lat, Lon] format
+  }
+}
+
+/**
+ * Adds a start/end point feature to a vector layer, removing any existing feature of the same type first
+ *
+ * @param {ol.Feature} pointFeature The point feature to add
+ * @param {ol.layer.Vector} vectorLayer The vector layer that will contain the feature
+ * @param {string} type Feature type identifier (e.g. `"start"` or `"end"`)
+ * @returns {void}
+ */
+function addStartEndPoint(pointFeature, vectorLayer, type) {
+  const vectorLayerSource = vectorLayer.getSource();
+
+  // this removes any existing features which are of the same type 
+  vectorLayerSource.getFeatures()
+  .filter(feature => feature.get('type') === type)
+  .forEach(feature => vectorLayerSource.removeFeature(feature))
+
+  vectorLayerSource.addFeature(pointFeature)
+}
+
+/**
+ * Creates an OpenLayers point feature.
+ *
+ * @param {Array<number>} coordinates Coordinates in EPSG:3857.
+ * @param {ol.style.Style} style Style to apply to the feature.
+ * @param {string} type Logical point type (e.g. "start", "end", "waypoint").
+ * @param {string} [label] Display label for the point.
+ * @returns {ol.Feature}
+ */
+export function createPoint(coordinates, style, type, label) {
+
+    const point = new ol.Feature({
+        geometry: new ol.geom.Point(coordinates)
+    });
+
+    point.set("type", type);
+    point.set("label", label);
+    point.setStyle(style);
+
+    return point;
+}
+
+/**
+ * Adds a translate interaction to start / end OpenLayers points
+ * 
+ * @param {Array} layers The layers that the interaction is to be applied upon 
+ * @returns {void}
+ */
+export function setUpPointInteraction(layers) {
+  const map = getMap();
+  if (!map || !layers) return;
+
+  const interactivePointLayerSource = interactivePointLayer.getSource();
+
+  // this removes any previous interaction
+  if (interactivePointLayerInteraction) {
+    map.removeInteraction(interactivePointLayerInteraction);
+  }
+
+  // this makes the OpenLayers interaction
+  interactivePointLayerInteraction = new ol.interaction.Translate({
+    layers: layers,
+    filter: (feature) => feature.getGeometry() instanceof ol.geom.Point // (only accounts for points)
+  });
+  
+  map.addInteraction(interactivePointLayerInteraction); 
+
+  interactivePointLayerInteraction.on('translateend', (event) => {
+    const movedFeature = event.features.item(0);
+    if (!movedFeature) return;
+
+    const newCoordinates = movedFeature.getGeometry().getCoordinates();
+    const pointType = movedFeature.get("type");
+    const newLonLatCoordinate = ol.proj.toLonLat(newCoordinates);
+    const coordinateString = formatLatLon(newLonLatCoordinate, 6);
+
+    // this updates the correct input
+    if (pointType === "start") {
+      startCoordEntry.value = coordinateString;
+    } else if (pointType === "end") {
+      endCoordEntry.value = coordinateString;
+    }
+
+    const startVal = startCoordEntry?.value?.trim();
+    const endVal = endCoordEntry?.value?.trim();
+
+    // this ensures routes are only recalculated if both points are present
+    if (startVal && endVal) {
+      handleAutoRouteGeneration(startVal, endVal);
+    }
+
+  });
+}
+
+//#endregion
+
 //#region DELETING POINTS
 
 function deselectSelectedPoint() {
@@ -1399,28 +1716,6 @@ function deselectSelectedPoint() {
   }
   return
 };
-
-function initPointDeleteHandlers() {
-  if (!deletePointModal) return;
-
-  // for hiding if clicking anywhere outside the modal
-  deletePointModal.addEventListener("click", (e) => {
-    dismissDeletePointModal(e);
-  });
-
-  // for deselecting the currently-selected point when the modal is closed 
-  deletePointModal.addEventListener("close", deselectSelectedPoint);
-
-  // for when the user clicks the 'exit' button on the modal
-  deletePointModalExitButton?.addEventListener("click", () => {
-    showDeletePointModal(false)
-  });
-
-  // for when the user clicks 'delete point' on the modal
-  deletePointModalDeleteButton?.addEventListener("click", () => {
-    deleteSavedPoint(selectedPoint)
-  });
-}
 
 //#endregion
 
@@ -1528,7 +1823,38 @@ function handleKeyboardShortcuts(e) {
 //#endregion
 
 
-//#region EVENT LISTENERS
+//#region EVENT LISTENERS / INIT
+
+function initInteractivePointLayer(map) {
+  interactivePointLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    zIndex: 1100 // above the route layer + saved points layer 
+  });
+
+  map.addLayer(interactivePointLayer);
+}
+
+function initPointDeleteHandlers() {
+  if (!deletePointModal) return;
+
+  // for hiding if clicking anywhere outside the modal
+  deletePointModal.addEventListener("click", (e) => {
+    dismissDeletePointModal(e);
+  });
+
+  // for deselecting the currently-selected point when the modal is closed 
+  deletePointModal.addEventListener("close", deselectSelectedPoint);
+
+  // for when the user clicks the 'exit' button on the modal
+  deletePointModalExitButton?.addEventListener("click", () => {
+    showDeletePointModal(false)
+  });
+
+  // for when the user clicks 'delete point' on the modal
+  deletePointModalDeleteButton?.addEventListener("click", () => {
+    deleteSavedPoint(selectedPoint)
+  });
+}
 
 export function initUi() {
   const map = getMap();
@@ -1540,6 +1866,8 @@ export function initUi() {
 
   initSaveRoute();
   initPointDeleteHandlers();
+
+  initInteractivePointLayer(map);
 
 
   // initial tour (automatic routing and saving the first route)
@@ -1555,16 +1883,23 @@ export function initUi() {
   // These event listeners are for navigation panels.
   addClickListener(autoOpenNavButton, openNav, "click");
   addClickListener(manualOpenNavButton, openNav, "click");
+
   addClickListener(closeNavButton, closeNav, "click");
+
   addClickListener(openSavedRoutesDashButton, openSavedRoutesDash, "click");
   addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click");
+
   addClickListener(settingOpenButton, openSettings, "click");
   addClickListener(settingCloseButton, closeSettings, "click");
+
   addClickListener(importRouteOpenButton, openImportRoute, "click");
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(importRouteCancelButton, cancelRouteImport, "click");
+
   addClickListener(loginNavBarButton, () => window.location.href = "https://app.crestr.co.uk/login-page", 'click')
   addClickListener(logoutNavBarButton, logout, 'click')
+
+  addClickListener(reportIssueOpenButton, () => showReportIssueModal(true), "click");
 
 
   // These event listeners are for route import.
@@ -1586,6 +1921,8 @@ export function initUi() {
   addClickListener(searchForAreaButton, searchArea, "click");
   addClickListener(setStartCoordButton, setStartCoord, "click");
   addClickListener(setEndCoordButton, setEndCoord, "click");
+  addClickListener(startCoordEntry, () => handleCoordEntryChange(startCoordEntry, "start"), 'change')
+  addClickListener(endCoordEntry, () => handleCoordEntryChange(endCoordEntry, "end"), 'change')
 
   // These event listeners are for manual route creation.
   addClickListener(clearManualRouteButton, clearManualRoute, "click");
@@ -1603,6 +1940,10 @@ export function initUi() {
   addClickListener(loginModalExitButton, () => showLoginModal(false), 'click');
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
   addClickListener(loginModal, dismissLoginModal, 'click');
+
+  // These event listeners are for the login modal
+  addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click")
+  addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);

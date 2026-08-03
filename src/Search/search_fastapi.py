@@ -60,9 +60,7 @@ def search_area(
 
             print(f"Latitude: {latitude}\nLongitude: {longitude}")
 
-            web_mercator_x, web_mercator_y = service.convert_wgs84_to_web_mercator(longitude, latitude)
-
-            coords = [web_mercator_x, web_mercator_y]
+            coords = [float(longitude), float(latitude)]
 
             print(coords)
 

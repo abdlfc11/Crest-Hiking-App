@@ -40,14 +40,15 @@ function createPinSvg(fillColor, strokeColor = "#FFFFFF") {
 /**
  * returns the default OpenLayers style for a saved map point
  * @param {string} name the label text to display above the pin
+ * @param {string} [fill=null] The Fill colour of the point to be added, defaults to null 
  * @returns {ol.style.Style} OpenLayers Style object for standard points
  */
-export function getSavedPointStyle(name) {
+export function getSavedPointStyle(name, fill) {
   return new ol.style.Style({
 
     // icon
     image: new ol.style.Icon({
-      src: createPinSvg(UNSELECTED_FILL), 
+      src: createPinSvg(fill || UNSELECTED_FILL), 
 
       // anchor in order to place the icon above the point slightly rather than directly on-top of the point 
       anchor: [0.5, 1],           

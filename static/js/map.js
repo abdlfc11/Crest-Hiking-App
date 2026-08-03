@@ -20,6 +20,11 @@ export function getRouteLayer() {
   return routeLayer;
 }
 
+export function routeLayerHasFeatures() {
+  const source = getRouteLayer()?.getSource();
+  return Boolean(source && source.getFeatures().length > 0);
+}
+
 export function getTileLayer() {
   return tileLayer;
 }
@@ -37,9 +42,10 @@ export function initMap() {
 }
 
 function createMap() {
-  const initialCenter = Array.isArray(window.appConfig?.mapInitialCenter)
-    ? window.appConfig.mapInitialCenter
-    : [-211507, 7118524];
+  const initialCentreLatLon = Array.isArray(window.appConfig?.mapInitialCentre)
+    ? window.appConfig.mapInitialCentre
+    : [-3.198308, 54.465458];
+  const initialCentre = ol.proj.fromLonLat(initialCentreLatLon);
   const initialZoom = window.appConfig?.mapInitialZoom ?? 10.5;
 
   map = new ol.Map({
@@ -54,7 +60,7 @@ function createMap() {
       projection: "EPSG:3857",
       maxZoom: 17,
       minZoom: 0,
-      center: initialCenter,
+      center: initialCentre,
       zoom: initialZoom,
     }),
   });
@@ -77,7 +83,7 @@ export function createTileLayer() {
     source: new ol.source.XYZ({
       url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
       attributions: `
-      <a href="https://docs.crestr.co.uk/privacy-policy/privacy_policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+      <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
       |
       Map data: © <a href="https://www.openstreetmap.org/copyright/">OpenStreetMap</a>,
       SRTM
