@@ -14,8 +14,6 @@ from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import traceback
 from sqlmodel import Session, select
-from pathlib import Path
-from functools import lru_cache
 
 # Local Module Imports
 from src.extensions import service, get_current_user, log_action
@@ -63,30 +61,6 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 #endregion
 
-@lru_cache
-def _load_manifest():
-    path = Path("static/dist/.vite/manifest.json")  # adjust if needed
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text())
-
-def vite_asset(entry: str, asset_type: str = "js") -> str:
-    """
-    entry: 'map' (the name you give in rollupOptions.input)
-    asset_type: 'js' or 'css'
-    """
-    manifest = _load_manifest()
-    # Vite manifest keys are usually the original source path or the entry name
-    key = next((k for k in manifest if k.endswith(f"{entry}.js") or k == entry), None)
-    if not key:
-        return ""  # or raise in production
-
-    info = manifest[key]
-    if asset_type == "css":
-        css_files = info.get("css", [])
-        return css_files[0] if css_files else ""
-    return info.get("file", "")
-
 #region JINJA TEMPLATES 
 
 def format_distance(
@@ -123,7 +97,6 @@ templates.env.filters["format_distance"] = format_distance
 templates.env.filters["format_elevation"] = format_elevation
 templates.env.filters["format_eta"] = format_eta
 templates.env.filters["strftime"] = strftime_filter
-templates.env.globals["vite_asset"] = vite_asset
 
 #endregion
 
