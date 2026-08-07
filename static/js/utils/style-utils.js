@@ -7,6 +7,11 @@
  * 
  */
 
+import Fill from "ol/style/Fill"
+import Stroke from "ol/style/Stroke"
+import Circle from "ol/style/Circle"
+import Style from "ol/style/Style"
+
 
 
 /**
@@ -18,24 +23,24 @@
  * @returns {Object} The styling to be applied to the point via OL
  */
 export function createManualPointStyle(label, colour, radius=7.5, strokeBorderColor="#FFFFFF") {
-  return new ol.style.Style({
-    image : new ol.style.Circle({
+  return new Style({
+    image : new Circle({
       radius : radius,
-      fill : new ol.style.Fill({
+      fill : new Fill({
         color : colour
       }),
-      stroke : new ol.style.Stroke({
+      stroke : new Stroke({
         color : strokeBorderColor,
         width : 3
       })
     }),
-    text : label ? new ol.style.Text({
+    text : label ? new Text({
       text : label,
       font : "bold 12px sans-serif",
-      fill : new ol.style.Fill({
+      fill : new Fill({
         color : "black"
       }),
-      stroke : new ol.style.Stroke({
+      stroke : new Stroke({
         color : strokeBorderColor,
         width : 3
       }),

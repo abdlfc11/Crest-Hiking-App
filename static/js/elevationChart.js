@@ -2,6 +2,10 @@ import { normaliseCoordLength, getCurrentPathData } from './routes/routeState.js
 import { getRouteLayer } from './map.js';
 import { getTheme, getDistanceUnit } from './settingsState.js';
 import { createManualPointStyle } from './utils/style-utils.js';
+import { fromLonLat, toLonLat } from 'ol/proj.js';
+import { Feature } from 'ol';
+import { Point } from 'ol/geom.js';
+import { getDistance } from 'ol/sphere.js'
 
 /**
  * Returns true if the coord is in EPSG:4326 projection and false otherwise
@@ -46,12 +50,12 @@ function updateMapHoverPoint(coordinate) {
   // converts coordinates into web mercator to display the point feature on the map (which has projection of Web Mercator)
   let coord = [coordinate[0], coordinate[1]];
   if (isLonLatCoord(coord)) {
-    coord = ol.proj.fromLonLat(coord);
+    coord = fromLonLat(coord);
   }
 
   if (!hoverPointFeature) {
-    hoverPointFeature = new ol.Feature({
-      geometry: new ol.geom.Point(coord)
+    hoverPointFeature = new Feature({
+      geometry: new Point(coord)
     });
 
     hoverPointFeature.setStyle(createManualPointStyle("", "#FFFFFF", 7.5, "#0a45e7"));
@@ -132,7 +136,7 @@ export function createElevationProfile(coordinates) {
         if (isLonLatCoord(coord)) {
           lonLat = [coord[0], coord[1]];
         } else {
-          lonLat = ol.proj.toLonLat([coord[0], coord[1]]);
+          lonLat = toLonLat([coord[0], coord[1]]);
         }
         return [lonLat[0], lonLat[1], coord[2] || 0];
     });
@@ -150,7 +154,7 @@ export function createElevationProfile(coordinates) {
         const p2 = geoCoordinates[i];
 
          
-        const segmentMeters = ol.sphere.getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
+        const segmentMeters = getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
         const segmentKm = segmentMeters / 1000;
 
         if (distanceUnit === "miles") {

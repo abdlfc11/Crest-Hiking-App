@@ -9,8 +9,12 @@
     <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
 
     <!-- OpenLayers -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css" />
-    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+
+    <!-- Despite moving to using npm packages, the server-rendered html + vite caused issues in loading the ol.css file -->
+    <!-- so the choice has been made to load the css via cdn instead of via npm. -->
+    <!-- However, JS / TS is still loaded via npm packages. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.9.0/ol.css">
+
 
     <!-- #region CSS FILES -->
 
@@ -48,8 +52,7 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <!-- Driver.js -->
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
+
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
@@ -614,9 +617,11 @@
         };
     </script>
 
-    <script type="module" src="{{ url_for('static', path='js/map.js') }}"></script>
-    <script type="module" src="{{ url_for('static', path='js/routes/savedRoutesDashboard.js') }}"></script>
-    <script type="module" src="{{ url_for('static', path='js/importRoute.js') }}"></script>
+    <!-- Vite builds (asset paths resolved from the Vite build manifest) -->
+    <script type="module" src="{{ url_for('static', path='dist/' + vite_asset('map', 'js')) }}"></script>
+    <script type="module" src="{{ url_for('static', path='dist/js/savedRoutes.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='dist/js/importRoute.js') }}"></script>
+
     <script>lucide.createIcons();</script>
 
 </body>
