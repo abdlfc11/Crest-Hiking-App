@@ -1,4 +1,4 @@
-http://localhost {
+app.crestr.co.uk {
     reverse_proxy web-fastapi:5000
 }
 
