@@ -1,20 +1,12 @@
 //#region IMPORTS
 
 // Open Layers Imports
-
-import { 
-  toLonLat, 
-  fromLonLat
-} from "ol/proj.js";
-
+import { toLonLat, fromLonLat } from "ol/proj.js";
 import { Point, LineString } from "ol/geom.js"
 import VectorSource from "ol/source/Vector.js";
 import VectorLayer from "ol/layer/Vector.js";
 import Feature from "ol/Feature.js";
-
 import GeoJSON from "ol/format/GeoJSON.js"
-
-
 import { Translate } from "ol/interaction.js"
 
 // Local File Imports
@@ -1748,9 +1740,12 @@ function deselectSelectedPoint() {
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
   document.documentElement.classList.toggle("dark", effective === "dark");
+
+  const currentCoordinates =  getCurrentMode() === "auto" ? getCurrentPathData() : manualRouteState.pathCoords
+
   resetElevationChart();
-  if (getCurrentPathData()) {
-    createElevationProfile(getCurrentPathData());
+  if (currentCoordinates) {
+    createElevationProfile(currentCoordinates);
     initChartToggleListener();
   };
 }
