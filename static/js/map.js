@@ -21,9 +21,34 @@ import VectorSource from "ol/source/Vector.js";
 import Style from "ol/style/Style.js";
 import Stroke from "ol/style/Stroke.js";
 
+// Lucide Icons
+import {
+  createIcons,
+  RotateCcw,
+  ChevronDown,
+  Waypoints,
+  Import,
+  Settings,
+  Bug,
+  Heart
+} from 'lucide';
+
 export let map = null;
 export let tileLayer = null;
 export let routeLayer = null;
+
+// Icon initialisation
+createIcons({
+  icons: {
+    RotateCcw,
+    ChevronDown,
+    Waypoints,
+    Import,
+    Settings,
+    Bug,
+    Heart
+  }
+});
 
 let mapInitialised = false;
 
