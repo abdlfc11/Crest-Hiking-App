@@ -10,6 +10,9 @@
  *      - CalculateEta(distanceKm)
  */
 
+import { toLonLat } from "ol/proj.js";
+import { getDistance } from "ol/sphere.js"
+
 /**
  * Rounds coordinates to a specific decimal point 
  * 
@@ -120,9 +123,9 @@ export function formatLatLon(lonLat, decimals = 6) {
 export function calculateTotalDistance(points) {
   let totalDistance = 0;
   for (let i = 1; i < points.length; i++) {
-    const previous = ol.proj.toLonLat(points[i - 1]);
-    const current = ol.proj.toLonLat(points[i]);
-    totalDistance += ol.sphere.getDistance(previous, current)
+    const previous = toLonLat(points[i - 1]);
+    const current = toLonLat(points[i]);
+    totalDistance += getDistance(previous, current)
   }
   return totalDistance;
 }

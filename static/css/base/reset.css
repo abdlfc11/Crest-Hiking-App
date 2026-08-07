@@ -13,6 +13,13 @@ body {
   overflow: hidden;
 }
 
+/* this disables interaction with the entire app during the tour */
+body.tour-active, 
+body.tour-active * {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
 /* Overriding browser autofill colour */
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px white inset !important;

@@ -1,10 +1,54 @@
+import "ol/ol.css?inline"
+
+import { getRouteStrokeStyle } from "./utils/style-utils.js";
+
+// OpenLayers Core & Views
+import Map from "ol/Map.js";
+import View from "ol/View.js";
+import { defaults as defaultControls } from "ol/control.js";
+import { fromLonLat } from "ol/proj.js";
+
+// OpenLayers Layers
+import Tile from "ol/layer/Tile.js";
+import VectorLayer from "ol/layer/Vector.js";
+
+// OpenLayers Sources
+import OSM from "ol/source/OSM.js";
+import XYZ from "ol/source/XYZ.js";
+import VectorSource from "ol/source/Vector.js";
+
+// OpenLayers Styles
+import Style from "ol/style/Style.js";
+import Stroke from "ol/style/Stroke.js";
+
+// Lucide Icons
 import {
-  getRouteStrokeStyle
-} from "./utils/style-utils.js"
+  createIcons,
+  RotateCcw,
+  ChevronDown,
+  Waypoints,
+  Import,
+  Settings,
+  Bug,
+  Heart
+} from 'lucide';
 
 export let map = null;
 export let tileLayer = null;
 export let routeLayer = null;
+
+// Icon initialisation
+createIcons({
+  icons: {
+    RotateCcw,
+    ChevronDown,
+    Waypoints,
+    Import,
+    Settings,
+    Bug,
+    Heart
+  }
+});
 
 let mapInitialised = false;
 
@@ -45,18 +89,18 @@ function createMap() {
   const initialCentreLatLon = Array.isArray(window.appConfig?.mapInitialCentre)
     ? window.appConfig.mapInitialCentre
     : [-3.198308, 54.465458];
-  const initialCentre = ol.proj.fromLonLat(initialCentreLatLon);
+  const initialCentre = fromLonLat(initialCentreLatLon);
   const initialZoom = window.appConfig?.mapInitialZoom ?? 10.5;
 
-  map = new ol.Map({
+  map = new Map({
     layers: [tileLayer],
     target: "map",
-    controls: ol.control.defaults.defaults({
+    controls: defaultControls({
       attributionOptions: {
         collapsible: false
       }
     }),
-    view: new ol.View({
+    view: new View({
       projection: "EPSG:3857",
       maxZoom: 17,
       minZoom: 0,
@@ -79,8 +123,8 @@ export function onMapRenderComplete(handler) {
 }
 
 export function createTileLayer() {
-  tileLayer = new ol.layer.Tile({
-    source: new ol.source.XYZ({
+  tileLayer = new Tile({
+    source: new XYZ({
       url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
       attributions: `
       <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
@@ -96,10 +140,10 @@ export function createTileLayer() {
 }
 
 export function createRouteLayer() {
-  routeLayer = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-    style: new ol.style.Style({
-      stroke: new ol.style.Stroke(getRouteStrokeStyle()),
+  routeLayer = new VectorLayer({
+    source: new VectorSource(),
+    style: new Style({
+      stroke: new Stroke(getRouteStrokeStyle()),
     }),
     zIndex: 999,
   });

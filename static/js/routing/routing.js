@@ -16,6 +16,9 @@ import {
 } from '../ui.js'
 import { logError } from "../utils/logError-utils.js";
 
+import { fromLonLat, toLonLat } from "ol/proj.js";
+import { getDistance } from "ol/sphere.js";
+
 /**
  * Function used to calculate and return a path (and associated information) between two given points in projection EPSG: 4326 (Lon, Lat)
  * Specific to automatic routing
@@ -109,7 +112,7 @@ export async function addManualPoint(x, y) {
   const currentClick = [x, y];
 
   // The below code uses a more computationally expensive but much more accurate way of finding out if a point is in Cumbria
-  const lonLatCoords = ol.proj.toLonLat(currentClick);
+  const lonLatCoords = toLonLat(currentClick);
   const isInCumbria = isPointInPolygon(lonLatCoords, cumbriaBoundary);
   if (!isInCumbria) {
       return {"success": false, "message": "Please click on a point within Cumbria"};
@@ -135,9 +138,9 @@ export async function addManualPoint(x, y) {
     const thresholdDistance = 50;
 
     // lon lat used to calculate distance (Web Mercator projection has distortion risk over long distances)
-    const startLonLat = ol.proj.toLonLat(start);
-    const endLonLat = ol.proj.toLonLat(end);
-    const distance = ol.sphere.getDistance(startLonLat, endLonLat);
+    const startLonLat = toLonLat(start);
+    const endLonLat = toLonLat(end);
+    const distance = getDistance(startLonLat, endLonLat);
 
     // if points are close enough snap the final point to the first point
     if (distance < thresholdDistance) {
@@ -164,8 +167,8 @@ export async function addManualPoint(x, y) {
     // otherwise, it calculates it and adds it to the cache 
     else {
       // conversion to lon lat as the API expects coordinates in the form [Lon, Lat]
-      const lastLonLat = ol.proj.toLonLat(lastClickedPoint);
-      const finalLonLat = ol.proj.toLonLat(finalClick);
+      const lastLonLat = toLonLat(lastClickedPoint);
+      const finalLonLat = toLonLat(finalClick);
       const data = await getPathSegment(lastLonLat, finalLonLat);
 
       if (!data.success) {
@@ -180,8 +183,8 @@ export async function addManualPoint(x, y) {
       // conversion to Web Mercator as the API sends coords in the form: [Lon, Lat], whereas OpenLayers map is in Web Mercator projection
       segment = segment.map(coord =>
         coord.length >= 3
-          ? [...ol.proj.fromLonLat([coord[0], coord[1]]), coord[2]]
-          : ol.proj.fromLonLat([coord[0], coord[1]])
+          ? [...fromLonLat([coord[0], coord[1]]), coord[2]]
+          : fromLonLat([coord[0], coord[1]])
       );
 
       // this stores the segment in cache 

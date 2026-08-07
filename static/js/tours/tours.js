@@ -1,4 +1,5 @@
-const driver = window.driver.js.driver;
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 /**
  * This function is responsible for creating and returning the tour for the manual routing mode 
@@ -95,6 +96,18 @@ export function createSavedRouteDashboardTour() {
 export function createAutomaticRoutingTour(onTourEnd) {
     return driver({
         popoverClass: 'app-tour-theme',
+        disableActiveInteraction: true,
+
+        // injects active class to body upon starting the tour
+        onInit: () => {
+            document.body.classList.add("tour-active");
+        },
+        
+        // 2. removes active class from body when the tour ends 
+        onDestroyStarted: () => {
+            document.body.classList.remove("tour-active");
+        },
+
         onDoneClick: async (element, step, options) => {
             options.driver.destroy();
 
