@@ -9,7 +9,7 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: true,
 
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         map: resolve(__dirname, "static/js/map.js"),
         savedRoutes: resolve(__dirname, "static/js/routes/savedRoutesDashboard.js"),
