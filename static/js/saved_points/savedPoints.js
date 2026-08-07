@@ -127,7 +127,7 @@ export async function saveNewPoint(coordinate, name) {
       if (data.success) {
           return loadAndDisplaySavedPoints();
         }
-      showError(data?.message || "There was an error on our end, please try again later.");
+      throw new Error(data.message)
       return;
   }
   catch(error) {
