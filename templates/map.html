@@ -253,11 +253,11 @@
             </div>
             {% if user is none or not user.preferred_name %}
                 <div id="sidenav-login-logout-button-container">
-                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill sidenav-login-logout-button">Log In</button>
+                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill sidenav-login-logout-button"><i data-lucide="log-in"></i>Log In</button>
                 </div>
             {% else %}
                 <div id="sidenav-login-logout-button-container">
-                    <button style="margin: .5rem;" id="sidenav-logout-button" class="btn-pill sidenav-login-logout-button">Log Out</button>
+                    <button style="margin: .5rem;" id="sidenav-logout-button" class="btn-pill sidenav-login-logout-button"><i data-lucide="log-out"></i>Log Out</button>
                 </div>
             {% endif %}
         </div>

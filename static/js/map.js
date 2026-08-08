@@ -30,7 +30,9 @@ import {
   Import,
   Settings,
   Bug,
-  Heart
+  Heart,
+  LogIn,
+  LogOut
 } from 'lucide';
 
 export let map = null;
@@ -46,7 +48,9 @@ createIcons({
     Import,
     Settings,
     Bug,
-    Heart
+    Heart,
+    LogIn,
+    LogOut
   }
 });
 
