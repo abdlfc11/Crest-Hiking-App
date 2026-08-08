@@ -93,7 +93,7 @@ export function getSelectedPointStyle(name) {
   return new Style({
 
     // icon
-    image: new Ico({
+    image: new Icon({
       src: createPinSvg(SELECTED_FILL), 
 
       // anchor in order to place the icon above the point slightly rather than directly on-top of the point 
@@ -114,7 +114,7 @@ export function getSelectedPointStyle(name) {
         color: TEXT_FILL,
       }),
 
-      stroke: new StrokeStroke({
+      stroke: new Stroke({
         color: TEXT_STROKE,
         width: 3 
       }),
