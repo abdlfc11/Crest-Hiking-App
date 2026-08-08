@@ -1,15 +1,7 @@
 /* CUSTOM THEME FOR DRIVER.JS TOURS */
 
 :root {
-  --tour-blue: #2563eb;
-  --tour-blue-hover: #1d4ed8;
-  --tour-blue-light: #eaf0ff;
-  --tour-text-dark: #16181d;
-  --tour-text-gray: #6b7280;
-  --tour-text-red: red;
-  --tour-border: #e5e7eb;
-  --tour-radius: 14px;
-  --tour-shadow: 0 10px 30px rgba(16, 24, 40, 0.14), 0 2px 6px rgba(16, 24, 40, 0.08);
+  --tour-ink: #FFFFFF;
 }
 
 /* this ensures that interaction is allowed for DriverJS popover controls */
@@ -21,7 +13,7 @@ body.tour-active .driver-popover * {
 /* Popover wrapper */
 .driver-popover.app-tour-theme {
   background: var(--bg);
-  color: var(--ink);
+  color: var(--tour-ink);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-surface);
@@ -48,7 +40,7 @@ body.tour-active .driver-popover * {
 .app-tour-theme .driver-popover-title {
   font-size: 17px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--tour-ink);
   margin-bottom: 6px;
 }
 
@@ -60,7 +52,7 @@ body.tour-active .driver-popover * {
 
 /* Close button */
 .app-tour-theme .driver-popover-close-btn {
-  color: var(--ink) !important;
+  color: var(--tour-ink) !important;
   font-size: 16px;
   top: 16px;
   right: 16px;
@@ -85,7 +77,7 @@ body.tour-active .driver-popover * {
 /* Buttons */
 .app-tour-theme .driver-popover-footer-btn {
   background: var(--blue);
-  color: var(--ink);
+  color: var(--tour-ink);
   border: none;
   border-radius: 10px;
   padding: 9px 18px;
@@ -104,7 +96,7 @@ body.tour-active .driver-popover * {
 /* Previous buttons */
 .app-tour-theme .driver-popover-prev-btn {
   background:var(--btn-bg);
-  color: var(--ink);
+  color: var(--tour-ink);
 }
 .app-tour-theme .driver-popover-prev-btn:hover {
   background: var(--btn-bg-hover);

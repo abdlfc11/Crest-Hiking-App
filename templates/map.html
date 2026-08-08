@@ -80,7 +80,6 @@
         <!-- ##### MAIN ROUTING PANEL ##### -->
         <div id="start-end">
             <div class="coords-header">
-                <span id="auto-open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
                 <span class="coords-title">Path Generation</span>
                 <button id="auto-home-button" class="home-button"><i data-lucide="rotate-ccw"></i></button>
             </div>
@@ -121,7 +120,6 @@
         <!-- ##### MANUAL ROUTING PANEL ##### -->
         <div id="manual-mode-content" style="display: none;">
             <div id="manual-routing-header" class="coords-header">
-                <span id="manual-open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
                 <span class="coords-title">Manual Route Creation</span>
                 <button id="manual-home-button" class="home-button"><i data-lucide="rotate-ccw"></i></button>
             </div>
@@ -240,29 +238,99 @@
         <div id="map"></div>
     </div>
 
-    <!-- ##### SIDE NAV BAR ##### -->
-    <div id="the-sidenav" class="sidenav">
+    <!-- ##### SIDE NAV RAIL ##### -->
+    <div id="the-sidenav" class="sidenav" aria-label="Main navigation">
         <div class="sidenav-inner">
-            <div id="sidenav-upper-links">
-                <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-                <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
-                <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
-                <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
-                <a id="report-issues-open-button"><i data-lucide="bug"></i>Report Issues</a>
-                <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
-            </div>
+            <ul class="sidenav-links">
+                <li>
+                    <a
+                        id="saved-routes-dash-open-button"
+                        class="sidenav-link"
+                        aria-label="Saved Routes"
+                    >
+                        <i data-lucide="waypoints"></i>
+                        <span class="nav-label">Saved Routes</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        id="import-route-open-button"
+                        class="sidenav-link"
+                        aria-label="Import Route"
+                    >
+                        <i data-lucide="import"></i>
+                        <span class="nav-label">Import Route</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        id="settings-open-button"
+                        class="sidenav-link"
+                        aria-label="Settings"
+                    >
+                        <i data-lucide="settings"></i>
+                        <span class="nav-label">Settings</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        id="report-issues-open-button"
+                        class="sidenav-link"
+                        aria-label="Report Issues"
+                    >
+                        <i data-lucide="bug"></i>
+                        <span class="nav-label">Report Issues</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        class="sidenav-link tooltip-left"
+                        id="donate-button"
+                        data-tooltip="We're still in Beta, so donations are closed for now. Thank you for the support!"
+                        href="javascript:void(0)"
+                    >
+                        <i data-lucide="heart"></i>
+                        <span class="nav-label">Donate</span>
+                    </a>
+                </li>
+            </ul>
+
             {% if user is none or not user.preferred_name %}
-                <div id="sidenav-login-logout-button-container">
-                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill sidenav-login-logout-button"><i data-lucide="log-in"></i>Log In</button>
+                <div
+                    id="sidenav-login-logout-button-container"
+                    class="sidenav-auth"
+                >
+                    <button
+                        type="button"
+                        id="sidenav-login-button"
+                        class="sidenav-link sidenav-auth-button"
+                        aria-label="Log In"
+                    >
+                        <i data-lucide="log-in"></i>
+                        <span class="nav-label">Log In</span>
+                    </button>
                 </div>
             {% else %}
-                <div id="sidenav-login-logout-button-container">
-                    <button style="margin: .5rem;" id="sidenav-logout-button" class="btn-pill sidenav-login-logout-button"><i data-lucide="log-out"></i>Log Out</button>
+                <div
+                    id="sidenav-login-logout-button-container"
+                    class="sidenav-auth"
+                >
+                    <button
+                        type="button"
+                        id="sidenav-logout-button"
+                        class="sidenav-link sidenav-auth-button"
+                        aria-label="Log Out"
+                    >
+                        <i data-lucide="log-out"></i>
+                        <span class="nav-label">Log Out</span>
+                    </button>
                 </div>
             {% endif %}
         </div>
-    </div>
-
     </div>
 
     <!-- ##### SAVED ROUTE DASHBOARD ##### -->

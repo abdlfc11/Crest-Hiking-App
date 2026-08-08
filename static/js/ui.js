@@ -141,10 +141,6 @@ const setEndCoordButton = document.getElementById("set-end-coord-button");
 const startCoordEntry = document.getElementById("start-point-entry");
 const endCoordEntry = document.getElementById("end-point-entry");
 
-const autoOpenNavButton = document.getElementById("auto-open-nav-button");
-const manualOpenNavButton = document.getElementById("manual-open-nav-button");
-const closeNavButton = document.getElementById("close-nav-button");
-
 const autoHomeButton = document.getElementById("auto-home-button");
 const manualHomeButton = document.getElementById("manual-home-button");
 
@@ -161,7 +157,6 @@ const searchForAreaButton = document.getElementById("search-for-area-button");
 
 const mapElement = document.getElementById("map");
 
-const navBar = document.getElementById("the-sidenav");
 const reportIssueOpenButton = document.getElementById('report-issues-open-button')
 const loginNavBarButton = document.getElementById('sidenav-login-button');
 const logoutNavBarButton = document.getElementById('sidenav-logout-button');
@@ -362,7 +357,6 @@ function showReportIssueModal(show) {
   if (!reportIssueModal) return;
   if (show) {
     reportIssueModal.showModal();
-    closeNav();
   } else {
     reportIssueModal.close();
   }
@@ -668,17 +662,8 @@ export function mapClickHandler(event) {
 
 //#region OPEN/CLOSE PANEL FUNCTIONS
 
-function openNav() {
-  navBar.style.width = "17rem";
-}
-
-export function closeNav() {
-  navBar.style.width = "0";
-}
-
 // this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
 function noRouteCreateFunction() {
-  closeNav()
   closeSavedRoutesDash()
 }
 
@@ -924,12 +909,11 @@ function clearImportRouteInput() {
 }
 
 /**
- * Function responsible for closing the import route panel and the navigation panel when the cancel button is clicked.
+ * Function responsible for clearing and closing the import route panel when the cancel button is clicked.
  */
 function cancelRouteImport() {
     clearImportRouteInput();
     closeImportRoute();
-    closeNav();
 };
 
 /**
@@ -1899,11 +1883,6 @@ export function initUi() {
   });
 
   // These event listeners are for navigation panels.
-  addClickListener(autoOpenNavButton, openNav, "click");
-  addClickListener(manualOpenNavButton, openNav, "click");
-
-  addClickListener(closeNavButton, closeNav, "click");
-
   addClickListener(openSavedRoutesDashButton, openSavedRoutesDash, "click");
   addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click");
 

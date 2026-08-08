@@ -96,14 +96,13 @@ export function createSavedRouteDashboardTour() {
 export function createAutomaticRoutingTour(onTourEnd) {
     return driver({
         popoverClass: 'app-tour-theme',
-        disableActiveInteraction: true,
 
         // injects active class to body upon starting the tour
         onInit: () => {
             document.body.classList.add("tour-active");
         },
         
-        // 2. removes active class from body when the tour ends 
+        // this removes active class from body when the tour ends 
         onDestroyStarted: () => {
             document.body.classList.remove("tour-active");
         },
@@ -123,10 +122,10 @@ export function createAutomaticRoutingTour(onTourEnd) {
             }
             },
             {
-            element: '#auto-open-nav-button',
+            element: '#the-sidenav',
             popover: {
-                title: 'The Menu',
-                description: 'Pressing this button will let you navigate between settings, importing routes and your saved routes dashboard.'
+                title: 'Navigation',
+                description: 'Use the navigation rail on the left to open settings, import routes and access your saved routes dashboard. It expands when you hover over it.'
             }
             },
             {
