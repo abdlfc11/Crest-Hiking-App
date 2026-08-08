@@ -24,6 +24,12 @@
   overflow: hidden;
 }
 
+/* OpenLayers */
+.ol-control {
+  right: 8px;
+  left: auto;
+}
+
 /* MODE TOGGLING */
 
 #mode-toggle {
