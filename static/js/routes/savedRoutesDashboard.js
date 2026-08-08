@@ -5,7 +5,7 @@
 
 import { deleteRoute, downloadRoute, loadRoute } from "./routeApi.js";
 
-import { closeNav, closeSavedRoutesDash,  } from "../ui.js"
+import { closeSavedRoutesDash } from "../ui.js"
 
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 
@@ -62,7 +62,6 @@ async function onLoadClick(event) {
 
   try {
     await closeSavedRoutesDash();
-    await closeNav();
     const data = await loadRoute(route.routeName);
     await displayLoadedRouteOnMap(data);
     await initChartToggleListener();
