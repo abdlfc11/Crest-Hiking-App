@@ -194,6 +194,14 @@ const reportIssueResultLabel = document.getElementById('report-issue-result-labe
 const reportIssueTitleInput = document.getElementById("report-issue-title");
 const reportIssueTextAreaInput = document.getElementById("report-issue-description");
 
+// donate modal
+const donateButton = document.getElementById('donate-button');
+
+const donateModal = document.getElementById('donate-modal');
+const donateModalContent = document.getElementById('donate-modal-content');
+const donateModalCloseButton = document.getElementById('donate-modal-close-button');
+const donateModalMaybeLaterButton = document.getElementById('donate-modal-maybe-later-button')
+
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
 const closeSavedRoutesDashButton = document.getElementById('saved-routes-dash-go-back-button');
@@ -274,6 +282,35 @@ function checkIfMobile() {
       `;
   }
 }
+
+//#endregion
+
+//#region DONATE MODAL
+
+/**
+ * Toggles the login modal display and sets the action context
+ * @param {boolean} show true if you want to show the modal, false if you want to hide the modal
+ * @param {string} [actionName='perform this action'] the specific action that is being performed when showing the modal e.g save routes 
+ * @returns {void}
+ */
+export function showDonateModal(show) {
+  if (show) {
+    donateModal.showModal();
+  } 
+  else {
+    donateModal.close();
+  }
+};
+
+/**
+ * Function used to catch clicks outside of the donate modal in order to close the modal upon these clicks 
+ * @returns {void}
+ */
+function dismissDonateModal(e) {
+  if (donateModalContent && !donateModalContent.contains(e.target)) {
+      showDonateModal(false);
+    }
+};
 
 //#endregion
 
@@ -1938,9 +1975,15 @@ export function initUi() {
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
   addClickListener(loginModal, dismissLoginModal, 'click');
 
-  // These event listeners are for the login modal
-  addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click")
+  // These event listeners are for the report issue modal
+  addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click");
   addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
+
+  // These event listeners are for the donate modal
+  addClickListener(donateModalCloseButton, () => showDonateModal(false), "click");
+  addClickListener(donateModalMaybeLaterButton, () => showDonateModal(false), "click");
+  addClickListener(donateButton, () => showDonateModal(true), "click");
+  addClickListener(donateModal, dismissDonateModal, "click");
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);

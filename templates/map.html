@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/tooltip.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/donate-modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/form-fields.css') }}">
 
     <!-- Layout CSS Files -->
@@ -170,6 +171,51 @@
             <button id="remove-point-button">remove</button>
         </div>
 
+        <!-- ##### DONATE MODAL ##### -->
+        <dialog class="modal-overlay" id="donate-modal">
+            <div class="modal-wrapper" id="donate-modal-wrapper">
+                <div class="modal-content donate-modal-content" id="donate-modal-content">
+                    <button class="donate-modal-close" id="donate-modal-close-button" data-donate-close aria-label="Close">&times;</button>
+                
+                    <div class="modal-header">
+                        <h2>Support Crestr</h2>
+                    </div>
+                
+                    <div class="modal-body donate-modal-body">
+                        <p>Crestr is free and in active development. Donations go toward hosting costs, no pressure, and Crestr stays free either way.</p>
+                    </div>
+                
+                    <div class="donate-options">
+                        <a class="donate-option" href="https://liberapay.com/abd_ulll16/donate" target="_blank" rel="noopener noreferrer">
+                        <span class="donate-option-icon">
+                            <i data-lucide="heart"></i>
+                        </span>
+                        <span class="donate-option-text">
+                            <span class="donate-option-name">Liberapay</span>
+                            <span class="donate-option-desc">Recurring, weekly or monthly</span>
+                        </span>
+                        <i data-lucide="move-right"></i>
+                        </a>
+                
+                        <a class="donate-option" href="https://ko-fi.com/abdulsultan" target="_blank" rel="noopener noreferrer">
+                        <span class="donate-option-icon">
+                            <i data-lucide="coffee"></i>
+                        </span>
+                        <span class="donate-option-text">
+                            <span class="donate-option-name">Ko-fi</span>
+                            <span class="donate-option-desc">One-off, buy Crestr a coffee</span>
+                        </span>
+                        <i data-lucide="move-right"></i>
+                        </a>
+                    </div>
+            
+                    <div class="modal-actions">
+                        <button id="donate-modal-maybe-later-button" class="modal-btn modal-btn-secondary" data-donate-close type="button">Maybe later</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
         <!-- ##### REPORT ISSUE MODAL ##### -->
         <dialog id="report-issue-dialog" class="modal-overlay">
             <div class="modal-wrapper">
@@ -288,9 +334,8 @@
 
                 <li>
                     <a
-                        class="sidenav-link tooltip-left"
+                        class="sidenav-link"
                         id="donate-button"
-                        data-tooltip="We're still in Beta, so donations are closed for now. Thank you for the support!"
                         href="javascript:void(0)"
                     >
                         <i data-lucide="heart"></i>

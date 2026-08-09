@@ -1,0 +1,177 @@
+/*
+  DONATE MODAL COMPONENT
+
+  Extends the base .modal-overlay / .modal-content pattern from modal.css
+  with a donation-specific layout: a couple of lines of context, then a
+  list of donation options as clickable cards (external links, open in
+  a new tab).
+
+  Depends on: modal.css (base overlay/content/actions), tokens.css,
+  buttons.css (.modal-btn-secondary).
+
+  Usage:
+    <dialog class="modal-overlay" id="donateModal">
+      <div class="modal-wrapper">
+        <div class="modal-content donate-modal-content">
+          <button class="donate-modal-close" data-donate-close aria-label="Close">×</button>
+          <div class="modal-header">
+            <h2>Support Crest</h2>
+          </div>
+          <div class="modal-body donate-modal-body">
+            <p>Crest is free and in active development. Donations go toward
+               hosting costs — no pressure, and Crest stays free either way.</p>
+          </div>
+          <div class="donate-options">
+            <a class="donate-option" href="https://liberapay.com/YOUR_HANDLE" target="_blank" rel="noopener noreferrer">
+              ...
+            </a>
+            <a class="donate-option" href="https://ko-fi.com/YOUR_HANDLE" target="_blank" rel="noopener noreferrer">
+              ...
+            </a>
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn modal-btn-secondary" data-donate-close>Maybe later</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+*/
+
+.donate-modal-content {
+  position: relative;
+  max-width: 420px;
+  text-align: left;
+}
+
+.donate-modal-content .modal-header h2 {
+  text-align: center;
+}
+
+.donate-modal-body {
+  text-align: center;
+  padding-top: 0;
+}
+
+.donate-modal-body p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.donate-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.donate-modal-close:hover {
+  background: var(--secondary-bg);
+  color: var(--ink);
+}
+
+.donate-modal-close:focus-visible {
+  outline: 3px solid var(--blue-ring);
+  outline-offset: 2px;
+}
+
+/* This styles the options list */
+
+.donate-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 20px 0;
+}
+
+.donate-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.15s;
+}
+
+.donate-option:hover {
+  transform: translateY(-1.5px);
+  box-shadow: var(--shadow-surface);
+  border-color: var(--blue);
+}
+
+.donate-option:focus-visible {
+  outline: 3px solid var(--blue-ring);
+  outline-offset: 2px;
+}
+
+.donate-option:active {
+  transform: translateY(0);
+}
+
+.donate-option-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.donate-option-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.donate-option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.donate-option-name {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.donate-option-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.donate-option-arrow {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.donate-option:hover .donate-option-arrow {
+  transform: translateX(2px);
+  color: var(--blue);
+}
