@@ -1,5 +1,11 @@
 //#region 
 
+import Fill from "ol/style/Fill"
+import Icon from "ol/style/Icon"
+import Stroke from "ol/style/Stroke"
+import Style from "ol/style/Style"
+import Text from "ol/style/Text"
+
 const UNSELECTED_FILL = "#11617c"
 const UNSELECTED_STROKE = "#FFFFFF"
 const UNSELECTED_TEXT_FONT = "bold 12px system-ui"
@@ -44,10 +50,10 @@ function createPinSvg(fillColor, strokeColor = "#FFFFFF") {
  * @returns {ol.style.Style} OpenLayers Style object for standard points
  */
 export function getSavedPointStyle(name, fill) {
-  return new ol.style.Style({
+  return new Style({
 
     // icon
-    image: new ol.style.Icon({
+    image: new Icon({
       src: createPinSvg(fill || UNSELECTED_FILL), 
 
       // anchor in order to place the icon above the point slightly rather than directly on-top of the point 
@@ -59,16 +65,16 @@ export function getSavedPointStyle(name, fill) {
     }),
 
     // text (name of point)
-    text: new ol.style.Text({
+    text: new Text({
       text: name,
       
       font: UNSELECTED_TEXT_FONT,
 
-      fill: new ol.style.Fill({
+      fill: new Fill({
         color: TEXT_FILL,
       }),
 
-      stroke: new ol.style.Stroke({
+      stroke: new Stroke({
         color: TEXT_STROKE,
         width: 3
       }),
@@ -84,10 +90,10 @@ export function getSavedPointStyle(name, fill) {
  * @returns {ol.style.Style} OpenLayers Style object for selected points
  */
 export function getSelectedPointStyle(name) {
-  return new ol.style.Style({
+  return new Style({
 
     // icon
-    image: new ol.style.Icon({
+    image: new Icon({
       src: createPinSvg(SELECTED_FILL), 
 
       // anchor in order to place the icon above the point slightly rather than directly on-top of the point 
@@ -99,16 +105,16 @@ export function getSelectedPointStyle(name) {
     }),
 
     // text (name of point)
-    text: new ol.style.Text({
+    text: new Text({
       text: name,
 
       font: SELECTED_TEXT_FONT,
 
-      fill: new ol.style.Fill({
+      fill: new Fill({
         color: TEXT_FILL,
       }),
 
-      stroke: new ol.style.Stroke({
+      stroke: new Stroke({
         color: TEXT_STROKE,
         width: 3 
       }),

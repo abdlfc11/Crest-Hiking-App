@@ -3,6 +3,11 @@ import { getMap } from "../map.js";
 import { showLoginModal, showDeletePointModal } from "../ui.js";
 import { showToast } from "../utils/ui-utils.js";
 import { logError } from "../utils/logError-utils.js";
+import { fromLonLat, toLonLat } from "ol/proj.js";
+import { Feature } from "ol";
+import { Point } from "ol/geom.js";
+import VectorLayer from "ol/layer/Vector.js";
+import VectorSource from "ol/source/Vector.js";
 
 let savedPointsLayer = null;
 
@@ -23,17 +28,17 @@ function convertPointsToFeatures(data) {
     return data.points.map(point => {
 
         // converts to Web Mercator (API sends coords in [Lon, Lat] format)
-        const mercatorCoords = ol.proj.fromLonLat(point.coordinates);
-        return new ol.Feature({
-            geometry: new ol.geom.Point(mercatorCoords),
+        const mercatorCoords = fromLonLat(point.coordinates);
+        return new Feature({
+            geometry: new Point(mercatorCoords),
             name: point.name
         });
     });
 };
 
 function createSavedPointsLayer(features) {
-    return new ol.layer.Vector({
-        source: new ol.source.Vector({ features }),
+    return new VectorLayer({
+        source: new VectorSource({ features }),
         style: f => getSavedPointStyle(f.get("name")),
         zIndex: 1000
     });
@@ -98,7 +103,7 @@ export async function saveNewPoint(coordinate, name) {
   const lonLat =
     Math.abs(coordinate[0]) <= 180 && Math.abs(coordinate[1]) <= 90
       ? [coordinate[0], coordinate[1]]
-      : ol.proj.toLonLat([coordinate[0], coordinate[1]]);
+      : toLonLat([coordinate[0], coordinate[1]]);
 
   try {
 

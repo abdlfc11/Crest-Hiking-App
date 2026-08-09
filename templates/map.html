@@ -9,8 +9,12 @@
     <link rel="icon" href="https://images.crestr.co.uk/Crest-Logo.png" type="image/png">
 
     <!-- OpenLayers -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css" />
-    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+
+    <!-- Despite moving to using npm packages, the server-rendered html + vite caused issues in loading the ol.css file -->
+    <!-- so the choice has been made to load the css via cdn instead of via npm. -->
+    <!-- However, JS / TS is still loaded via npm packages. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.9.0/ol.css">
+
 
     <!-- #region CSS FILES -->
 
@@ -25,6 +29,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/tooltip.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/donate-modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/form-fields.css') }}">
 
     <!-- Layout CSS Files -->
@@ -45,14 +50,6 @@
 
     <!-- ICONS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-    <!-- Driver.js -->
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
     <!-- Umami Analytics -->
     <!-- SELF HOSTERS: Change values in you .env file -->
@@ -84,7 +81,6 @@
         <!-- ##### MAIN ROUTING PANEL ##### -->
         <div id="start-end">
             <div class="coords-header">
-                <span id="auto-open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
                 <span class="coords-title">Path Generation</span>
                 <button id="auto-home-button" class="home-button"><i data-lucide="rotate-ccw"></i></button>
             </div>
@@ -125,7 +121,6 @@
         <!-- ##### MANUAL ROUTING PANEL ##### -->
         <div id="manual-mode-content" style="display: none;">
             <div id="manual-routing-header" class="coords-header">
-                <span id="manual-open-nav-button" style="font-size:20px; cursor:pointer;">&#9776;</span>
                 <span class="coords-title">Manual Route Creation</span>
                 <button id="manual-home-button" class="home-button"><i data-lucide="rotate-ccw"></i></button>
             </div>
@@ -175,6 +170,51 @@
         <div id="remove-point">
             <button id="remove-point-button">remove</button>
         </div>
+
+        <!-- ##### DONATE MODAL ##### -->
+        <dialog class="modal-overlay" id="donate-modal">
+            <div class="modal-wrapper" id="donate-modal-wrapper">
+                <div class="modal-content donate-modal-content" id="donate-modal-content">
+                    <button class="donate-modal-close" id="donate-modal-close-button" data-donate-close aria-label="Close">&times;</button>
+                
+                    <div class="modal-header">
+                        <h2>Support Crestr</h2>
+                    </div>
+                
+                    <div class="modal-body donate-modal-body">
+                        <p>Crestr is free and in active development. Donations go toward hosting costs, no pressure, and Crestr stays free either way.</p>
+                    </div>
+                
+                    <div class="donate-options">
+                        <a class="donate-option" href="https://liberapay.com/abd_ulll16/donate" target="_blank" rel="noopener noreferrer">
+                        <span class="donate-option-icon">
+                            <i data-lucide="heart"></i>
+                        </span>
+                        <span class="donate-option-text">
+                            <span class="donate-option-name">Liberapay</span>
+                            <span class="donate-option-desc">Recurring, weekly or monthly</span>
+                        </span>
+                        <i data-lucide="move-right"></i>
+                        </a>
+                
+                        <a class="donate-option" href="https://ko-fi.com/abdulsultan" target="_blank" rel="noopener noreferrer">
+                        <span class="donate-option-icon">
+                            <i data-lucide="coffee"></i>
+                        </span>
+                        <span class="donate-option-text">
+                            <span class="donate-option-name">Ko-fi</span>
+                            <span class="donate-option-desc">One-off, buy Crestr a coffee</span>
+                        </span>
+                        <i data-lucide="move-right"></i>
+                        </a>
+                    </div>
+            
+                    <div class="modal-actions">
+                        <button id="donate-modal-maybe-later-button" class="modal-btn modal-btn-secondary" data-donate-close type="button">Maybe later</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
 
         <!-- ##### REPORT ISSUE MODAL ##### -->
         <dialog id="report-issue-dialog" class="modal-overlay">
@@ -244,29 +284,98 @@
         <div id="map"></div>
     </div>
 
-    <!-- ##### SIDE NAV BAR ##### -->
-    <div id="the-sidenav" class="sidenav">
+    <!-- ##### SIDE NAV RAIL ##### -->
+    <div id="the-sidenav" class="sidenav" aria-label="Main navigation">
         <div class="sidenav-inner">
-            <div id="sidenav-upper-links">
-                <a id="close-nav-button" href="javascript:void(0)" class="closebtn">&times;</a>
-                <a id="saved-routes-dash-open-button"><i data-lucide="waypoints"></i>Saved Routes</a>
-                <a id="import-route-open-button"><i data-lucide="import"></i>Import Route</a>
-                <a id="settings-open-button"><i data-lucide="settings"></i>Settings</a>
-                <a id="report-issues-open-button"><i data-lucide="bug"></i>Report Issues</a>
-                <a class="tooltip-left" id="donate-button" data-tooltip="We're still in Beta, so donations are closed for now. Thank you so much for the support!" href="javascript:void(0)"><i data-lucide="heart"></i>Donate</a>
-            </div>
+            <ul class="sidenav-links">
+                <li>
+                    <a
+                        id="saved-routes-dash-open-button"
+                        class="sidenav-link"
+                        aria-label="Saved Routes"
+                    >
+                        <i data-lucide="waypoints"></i>
+                        <span class="nav-label">Saved Routes</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        id="import-route-open-button"
+                        class="sidenav-link"
+                        aria-label="Import Route"
+                    >
+                        <i data-lucide="import"></i>
+                        <span class="nav-label">Import Route</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        id="settings-open-button"
+                        class="sidenav-link"
+                        aria-label="Settings"
+                    >
+                        <i data-lucide="settings"></i>
+                        <span class="nav-label">Settings</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        id="report-issues-open-button"
+                        class="sidenav-link"
+                        aria-label="Report Issues"
+                    >
+                        <i data-lucide="bug"></i>
+                        <span class="nav-label">Report Issues</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a
+                        class="sidenav-link"
+                        id="donate-button"
+                        href="javascript:void(0)"
+                    >
+                        <i data-lucide="heart"></i>
+                        <span class="nav-label">Donate</span>
+                    </a>
+                </li>
+            </ul>
+
             {% if user is none or not user.preferred_name %}
-                <div id="sidenav-login-logout-button-container">
-                    <button style="margin: .5rem;" id="sidenav-login-button" class="btn-pill sidenav-login-logout-button">Log In</button>
+                <div
+                    id="sidenav-login-logout-button-container"
+                    class="sidenav-auth"
+                >
+                    <button
+                        type="button"
+                        id="sidenav-login-button"
+                        class="sidenav-link sidenav-auth-button"
+                        aria-label="Log In"
+                    >
+                        <i data-lucide="log-in"></i>
+                        <span class="nav-label">Log In</span>
+                    </button>
                 </div>
             {% else %}
-                <div id="sidenav-login-logout-button-container">
-                    <button style="margin: .5rem;" id="sidenav-logout-button" class="btn-pill sidenav-login-logout-button">Log Out</button>
+                <div
+                    id="sidenav-login-logout-button-container"
+                    class="sidenav-auth"
+                >
+                    <button
+                        type="button"
+                        id="sidenav-logout-button"
+                        class="sidenav-link sidenav-auth-button"
+                        aria-label="Log Out"
+                    >
+                        <i data-lucide="log-out"></i>
+                        <span class="nav-label">Log Out</span>
+                    </button>
                 </div>
             {% endif %}
         </div>
-    </div>
-
     </div>
 
     <!-- ##### SAVED ROUTE DASHBOARD ##### -->
@@ -614,10 +723,10 @@
         };
     </script>
 
-    <script type="module" src="{{ url_for('static', path='js/map.js') }}"></script>
-    <script type="module" src="{{ url_for('static', path='js/routes/savedRoutesDashboard.js') }}"></script>
-    <script type="module" src="{{ url_for('static', path='js/importRoute.js') }}"></script>
-    <script>lucide.createIcons();</script>
+    <!-- Vite builds (asset paths resolved from the Vite build manifest) -->
+    <script type="module" src="{{ url_for('static', path='dist/js/map.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='dist/js/savedRoutes.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='dist/js/importRoute.js') }}"></script>
 
 </body>
 </html>

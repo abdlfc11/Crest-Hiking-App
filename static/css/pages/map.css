@@ -24,12 +24,18 @@
   overflow: hidden;
 }
 
+/* OpenLayers */
+.ol-control {
+  right: 8px;
+  left: auto;
+}
+
 /* MODE TOGGLING */
 
 #mode-toggle {
   position: absolute;
   top: 5px;
-  left: 10px;
+  left: 70px;
   z-index: 900;
   background: rgb(255 255 255 / 0.65);
   backdrop-filter: blur(10px);
@@ -77,7 +83,7 @@
 #start-end {
   position: absolute;
   top: 60px;
-  left: 10px;
+  left: 70px;
   z-index: 1000;
   background: rgb(255 255 255 / 0.65);
   backdrop-filter: blur(10px);
@@ -224,7 +230,7 @@
 #manual-mode-content {
   position: absolute;
   top: 60px;
-  left: 10px;
+  left: 70px;
   z-index: 1000;
   background: rgb(255 255 255 / 0.65);
   backdrop-filter: blur(10px);
@@ -244,11 +250,6 @@
   background: #f1f5f9;
   border-radius: 4px;
   border: 1px solid #e2e8f0;
-}
-
-.ol-control {
-  right: 8px;
-  left: auto;
 }
 
 /* SAVE / LOAD ROUTE PANEL */

@@ -20,6 +20,7 @@ let viewport = null;
 let getCurrentModeFn = null;
 let getClickModeFn = null;
 let desiredCursor = 'grab';
+let mapRef = null;          // keep a reference so we can call hasFeatureAtPixel
 
 export function initCursorManager(map, getCurrentMode, getClickMode) {
   if (!map) {
@@ -27,29 +28,25 @@ export function initCursorManager(map, getCurrentMode, getClickMode) {
     return;
   }
 
+  mapRef = map;
   viewport = map.getViewport();
   getCurrentModeFn = getCurrentMode;
   getClickModeFn = getClickMode;
 
-  // whenever the cursor moves the cursor is updated using the OpenLayers viewport element
-  map.on('pointermove', () => {
-    if (viewport) {
-      viewport.style.cursor = desiredCursor;
-    }
+  // every pointer move → decide the final cursor
+  map.on('pointermove', (evt) => {
+    applyCursor(evt.pixel);
   });
 
-  // applies the cursor based on the state of the app
+  // initial application
   updateCursor();
 }
 
 /**
  * Re-evaluates the desired cursor from app state and applies it.
- * this is called whenever route creation mode or click mode changes.
  */
 export function updateCursor() {
-  if (!getCurrentModeFn || !getClickModeFn) {
-    return;
-  }
+  if (!getCurrentModeFn || !getClickModeFn) return;
 
   const mode = getCurrentModeFn();
   const clickMode = getClickModeFn();
@@ -62,22 +59,56 @@ export function updateCursor() {
 }
 
 /**
- * forces a specific cursor immediately.
- * should only for transient states if needed; prefer updateCursor() for normal flow.
+ * Forces a specific cursor immediately.
  */
 export function setCursor(cursorValue) {
   desiredCursor = cursorValue;
-  if (viewport) {
-    viewport.style.cursor = desiredCursor;
-  }
+  // apply immediately (no pixel available → no feature check)
+  applyCursor(null);
 }
 
 /**
- * Force re-apply the current desired cursor.
- * Useful after closing panels (saved routes dashboard, etc.) when no pointer move has occurred yet
+ * Force re-apply the current desired cursor
+ * (useful after closing panels, etc.)
  */
 export function forceApplyCursor() {
-  if (viewport) {
-    viewport.style.cursor = desiredCursor;
+  applyCursor(null);
+}
+
+/**
+ * Internal helper that decides the final cursor value
+ * and writes it to the viewport.
+ *
+ * @param {import('ol').Pixel | null} pixel current mouse pixel (null = no feature test)
+ */
+function applyCursor(pixel) {
+  if (!viewport) return;
+
+  let cursor = desiredCursor;
+
+  // Only consider pointer when we are auto routing --> 'grab' cursor instead of 'pointer' cursor 
+  if (desiredCursor === 'grab' && pixel && mapRef) {
+
+    // gets the feature under the cursor (if any)
+    const feature = mapRef.forEachFeatureAtPixel(
+      pixel,
+      (f) => f  // this returns the first feature found
+    );
+
+    if (feature) {
+      const geometryType = feature.getGeometry().getType();
+      const type = feature.get('type');
+
+      const hoveredOverStartOrEndPoint = geometryType === 'Point' && (type === 'start' || type === 'end')
+      const hoveredOverLineString = geometryType === 'LineString'
+
+      // this shows the pointer on everything EXCEPT Point features named "start" or "end" AND Linestrings 
+      // this ensures that only saved points have the 'pointer' cursor, LineStrings will be removed from this when further route editing is implemented 
+      if ( !hoveredOverStartOrEndPoint && !hoveredOverLineString ) {
+        cursor = 'pointer';
+      }
+    }
   }
+
+  viewport.style.cursor = cursor;
 }

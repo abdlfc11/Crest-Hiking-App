@@ -1,5 +1,16 @@
 //#region IMPORTS
 
+// Open Layers Imports
+import { toLonLat, fromLonLat } from "ol/proj.js";
+import { Point, LineString } from "ol/geom.js"
+import VectorSource from "ol/source/Vector.js";
+import VectorLayer from "ol/layer/Vector.js";
+import Feature from "ol/Feature.js";
+import GeoJSON from "ol/format/GeoJSON.js"
+import { Translate } from "ol/interaction.js"
+
+// Local File Imports
+
 import {
   calculateEta,
   calculateTotalDistance,
@@ -18,13 +29,14 @@ import {
 } from "./utils/format-utils.js";
 
 import {
-  moveMapToPosition,
   showToast,
   addClickListener,
   removeDOMElement,
   createStatsPanel,
   parseCoordString
 } from "./utils/ui-utils.js";
+
+import { moveMapToPosition } from "./utils/map-utils.js";
 
 import { calculatePath, addManualPoint } from "./routing/index.js";
 
@@ -108,6 +120,9 @@ import {
 
 import { logout } from "./auth/auth.js";
 import { logError } from "./utils/logError-utils.js";
+import { Vector } from "ol/source.js";
+import Style from "ol/style/Style.js";
+import Stroke from "ol/style/Stroke.js";
 
 //#endregion
 
@@ -126,10 +141,6 @@ const setEndCoordButton = document.getElementById("set-end-coord-button");
 const startCoordEntry = document.getElementById("start-point-entry");
 const endCoordEntry = document.getElementById("end-point-entry");
 
-const autoOpenNavButton = document.getElementById("auto-open-nav-button");
-const manualOpenNavButton = document.getElementById("manual-open-nav-button");
-const closeNavButton = document.getElementById("close-nav-button");
-
 const autoHomeButton = document.getElementById("auto-home-button");
 const manualHomeButton = document.getElementById("manual-home-button");
 
@@ -146,7 +157,6 @@ const searchForAreaButton = document.getElementById("search-for-area-button");
 
 const mapElement = document.getElementById("map");
 
-const navBar = document.getElementById("the-sidenav");
 const reportIssueOpenButton = document.getElementById('report-issues-open-button')
 const loginNavBarButton = document.getElementById('sidenav-login-button');
 const logoutNavBarButton = document.getElementById('sidenav-logout-button');
@@ -183,6 +193,14 @@ const reportIssueModalContent = reportIssueModal.querySelector('.modal-content')
 const reportIssueResultLabel = document.getElementById('report-issue-result-label');
 const reportIssueTitleInput = document.getElementById("report-issue-title");
 const reportIssueTextAreaInput = document.getElementById("report-issue-description");
+
+// donate modal
+const donateButton = document.getElementById('donate-button');
+
+const donateModal = document.getElementById('donate-modal');
+const donateModalContent = document.getElementById('donate-modal-content');
+const donateModalCloseButton = document.getElementById('donate-modal-close-button');
+const donateModalMaybeLaterButton = document.getElementById('donate-modal-maybe-later-button')
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -267,6 +285,35 @@ function checkIfMobile() {
 
 //#endregion
 
+//#region DONATE MODAL
+
+/**
+ * Toggles the donate modal display and sets the action context
+ * @param {boolean} show true if you want to show the modal, false if you want to hide the modal
+ * @param {string} [actionName='perform this action'] the specific action that is being performed when showing the modal e.g save routes 
+ * @returns {void}
+ */
+export function showDonateModal(show) {
+  if (show) {
+    donateModal.showModal();
+  } 
+  else {
+    donateModal.close();
+  }
+};
+
+/**
+ * Function used to catch clicks outside of the donate modal in order to close the modal upon these clicks 
+ * @returns {void}
+ */
+function dismissDonateModal(e) {
+  if (donateModalContent && !donateModalContent.contains(e.target)) {
+      showDonateModal(false);
+    }
+};
+
+//#endregion
+
 //#region LOGIN MODAL
 
 /**
@@ -347,7 +394,6 @@ function showReportIssueModal(show) {
   if (!reportIssueModal) return;
   if (show) {
     reportIssueModal.showModal();
-    closeNav();
   } else {
     reportIssueModal.close();
   }
@@ -560,7 +606,7 @@ function setEndCoord() {
 function setCoordEntry(entry, event) {
   // event.coordinate is in Web Mercator
   // this means conversion to lat/lon is required for display
-  const lonLat = ol.proj.toLonLat(event.coordinate);
+  const lonLat = toLonLat(event.coordinate);
   entry.value = formatLatLon(lonLat, 6);
   entry.placeholder = "Coordinates";
   entry.classList.remove("input-error");
@@ -621,7 +667,7 @@ export function mapClickHandler(event) {
   map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
     if (
       layer === savedPointsLayer &&
-      feature.getGeometry() instanceof ol.geom.Point
+      feature.getGeometry() instanceof Point
     ) {
       newSelection = feature;
       featureClicked = true;
@@ -638,7 +684,7 @@ export function mapClickHandler(event) {
   } 
   else if (!featureClicked) {
     const coordinate = event.coordinate;
-    const lonLat = ol.proj.toLonLat(coordinate);
+    const lonLat = toLonLat(coordinate);
 
     // TO BE CHANGED TO CUSTOM MODAL 
     const pointName = prompt(
@@ -653,12 +699,9 @@ export function mapClickHandler(event) {
 
 //#region OPEN/CLOSE PANEL FUNCTIONS
 
-function openNav() {
-  navBar.style.width = "17rem";
-}
-
-export function closeNav() {
-  navBar.style.width = "0";
+// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
+function noRouteCreateFunction() {
+  closeSavedRoutesDash()
 }
 
 // this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
@@ -909,12 +952,11 @@ function clearImportRouteInput() {
 }
 
 /**
- * Function responsible for closing the import route panel and the navigation panel when the cancel button is clicked.
+ * Function responsible for clearing and closing the import route panel when the cancel button is clicked.
  */
 function cancelRouteImport() {
     clearImportRouteInput();
     closeImportRoute();
-    closeNav();
 };
 
 /**
@@ -1020,7 +1062,7 @@ export function clearAutoRoute() {
   // this clears any other temporary vector layers (but leaves saved-points + interactive + route alone)
   map.getLayers().getArray().slice().forEach((layer) => {
     if (
-      layer instanceof ol.layer.Vector &&
+      layer instanceof VectorLayer &&
       layer !== getSavedPointsLayer() &&
       layer !== getRouteLayer() &&
       layer !== interactivePointLayer
@@ -1093,7 +1135,7 @@ export function homeButtonFunction() {
   // Keep: routeLayer, interactivePointLayer, saved-points layer
   map.getLayers().getArray().slice().forEach((layer) => {
     if (
-      layer instanceof ol.layer.Vector &&
+      layer instanceof VectorLayer &&
       layer !== getRouteLayer() &&
       layer !== interactivePointLayer &&
       layer !== getSavedPointsLayer()
@@ -1146,7 +1188,7 @@ function searchArea() {
       const view = map.getView();
 
       // this converts the received coordinates into web mercator (as search API sends coords in [lon, lat] format)
-      const searchCenter = ol.proj.fromLonLat(data.coordinates);
+      const searchCenter = fromLonLat(data.coordinates);
       if (view.getZoom() >= 7) {
         view.animate(
           { center: view.getCenter(), duration: 1000, zoom: 10 },
@@ -1229,7 +1271,7 @@ function displayPath(data) {
   // this clears the hovered point feature to prevent the preserving of stale OL point features
   setHoverPointFeature(null);
 
-  const pathFeature = new ol.format.GeoJSON().readFeature(data.pathGeoJSON, {
+  const pathFeature = new GeoJSON().readFeature(data.pathGeoJSON, {
     dataProjection: "EPSG:4326",
     featureProjection: "EPSG:3857",
   });
@@ -1244,8 +1286,8 @@ function displayPath(data) {
     const endCoord = coordinates[coordinates.length - 1];
 
     // this converts coordinates into Web Mercator format, as the backend sends the path back in [Lon, Lat] format (Web Mercator is the OpenLayers map projection)
-    const startMercatorCoord = ol.proj.fromLonLat([startCoord[0], startCoord[1]]);
-    const endMercatorCoord = ol.proj.fromLonLat([endCoord[0], endCoord[1]]);
+    const startMercatorCoord = fromLonLat([startCoord[0], startCoord[1]]);
+    const endMercatorCoord = fromLonLat([endCoord[0], endCoord[1]]);
 
     // this creates and then displays (by adding them to the interactivePointLayerSource) the start and end point features
     const startPointFeature = createPoint(startMercatorCoord, getSavedPointStyle("Start", "#00A86B"), "start", "Start")
@@ -1344,8 +1386,8 @@ export function updateManualRoute() {
   setLastKnownDistanceKm(totalDistanceKm);
 
   userClicks.forEach((point, index) => {
-    const feature = new ol.Feature({
-      geometry: new ol.geom.Point(point),
+    const feature = new Feature({
+      geometry: new Point(point),
       type: "point",
     });
     feature.set("index", index);
@@ -1354,15 +1396,15 @@ export function updateManualRoute() {
 
   if (pathCoords.length > 1) {
     features.push(
-      new ol.Feature({
-        geometry: new ol.geom.LineString(pathCoords),
+      new Feature({
+        geometry: new LineString(pathCoords),
         type: "line",
       }),
     );
   }
 
-  manualRouteLayer = new ol.layer.Vector({
-    source: new ol.source.Vector({ features }),
+  manualRouteLayer = new VectorLayer({
+    source: new VectorSource({ features }),
     style(feature) {
       const featureType = feature.get("type");
       if (featureType === "point") {
@@ -1378,8 +1420,8 @@ export function updateManualRoute() {
         if (isEnd) return getSavedPointStyle("End", "#D32F2F");
         return createManualPointStyle("", "#000", 6.5);
       }
-      return new ol.style.Style({
-        stroke: new ol.style.Stroke(getRouteStrokeStyle()),
+      return new Style({
+        stroke: new Stroke(getRouteStrokeStyle()),
       });
     },
   });
@@ -1557,7 +1599,7 @@ function toWebMercator(latLon) {
   if (!latLon || latLon.length < 2) return null;
 
   // OpenLayers expects [longitude, latitude]
-  return ol.proj.fromLonLat([latLon[1], latLon[0]]);
+  return fromLonLat([latLon[1], latLon[0]]);
 }
 
 /**
@@ -1580,7 +1622,7 @@ function handleCoordEntryChange(entry, type) {
   );
 
   // returning prematurely if the point is not in Cumbria 
-  if (!isPointInPolygon(ol.proj.toLonLat(mercatorCoords))) {
+  if (!isPointInPolygon(toLonLat(mercatorCoords))) {
     showToast("Please choose a point within Cumbria.")
     return;
   }
@@ -1641,8 +1683,8 @@ function addStartEndPoint(pointFeature, vectorLayer, type) {
  */
 export function createPoint(coordinates, style, type, label) {
 
-    const point = new ol.Feature({
-        geometry: new ol.geom.Point(coordinates)
+    const point = new Feature({
+        geometry: new Point(coordinates)
     });
 
     point.set("type", type);
@@ -1670,9 +1712,9 @@ export function setUpPointInteraction(layers) {
   }
 
   // this makes the OpenLayers interaction
-  interactivePointLayerInteraction = new ol.interaction.Translate({
+  interactivePointLayerInteraction = new Translate({
     layers: layers,
-    filter: (feature) => feature.getGeometry() instanceof ol.geom.Point // (only accounts for points)
+    filter: (feature) => feature.getGeometry() instanceof Point // (only accounts for points)
   });
   
   map.addInteraction(interactivePointLayerInteraction); 
@@ -1683,7 +1725,7 @@ export function setUpPointInteraction(layers) {
 
     const newCoordinates = movedFeature.getGeometry().getCoordinates();
     const pointType = movedFeature.get("type");
-    const newLonLatCoordinate = ol.proj.toLonLat(newCoordinates);
+    const newLonLatCoordinate = toLonLat(newCoordinates);
     const coordinateString = formatLatLon(newLonLatCoordinate, 6);
 
     // this updates the correct input
@@ -1725,9 +1767,12 @@ function deselectSelectedPoint() {
 export function applyTheme(theme) {
   const effective = theme === "system" ? getTheme() : theme;
   document.documentElement.classList.toggle("dark", effective === "dark");
+
+  const currentCoordinates =  getCurrentMode() === "auto" ? getCurrentPathData() : manualRouteState.pathCoords
+
   resetElevationChart();
-  if (getCurrentPathData()) {
-    createElevationProfile(getCurrentPathData());
+  if (currentCoordinates) {
+    createElevationProfile(currentCoordinates);
     initChartToggleListener();
   };
 }
@@ -1826,8 +1871,8 @@ function handleKeyboardShortcuts(e) {
 //#region EVENT LISTENERS / INIT
 
 function initInteractivePointLayer(map) {
-  interactivePointLayer = new ol.layer.Vector({
-    source: new ol.source.Vector(),
+  interactivePointLayer = new VectorLayer({
+    source: new VectorSource(),
     zIndex: 1100 // above the route layer + saved points layer 
   });
 
@@ -1881,11 +1926,6 @@ export function initUi() {
   });
 
   // These event listeners are for navigation panels.
-  addClickListener(autoOpenNavButton, openNav, "click");
-  addClickListener(manualOpenNavButton, openNav, "click");
-
-  addClickListener(closeNavButton, closeNav, "click");
-
   addClickListener(openSavedRoutesDashButton, openSavedRoutesDash, "click");
   addClickListener(closeSavedRoutesDashButton, closeSavedRoutesDash, "click");
 
@@ -1941,9 +1981,15 @@ export function initUi() {
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
   addClickListener(loginModal, dismissLoginModal, 'click');
 
-  // These event listeners are for the login modal
-  addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click")
+  // These event listeners are for the report issue modal
+  addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click");
   addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
+
+  // These event listeners are for the donate modal
+  addClickListener(donateModalCloseButton, () => showDonateModal(false), "click");
+  addClickListener(donateModalMaybeLaterButton, () => showDonateModal(false), "click");
+  addClickListener(donateButton, () => showDonateModal(true), "click");
+  addClickListener(donateModal, dismissDonateModal, "click");
 
   onMapClick(mapClickHandler);
   onMapRenderComplete(mapRenderComplete);

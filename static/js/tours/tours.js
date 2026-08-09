@@ -1,4 +1,5 @@
-const driver = window.driver.js.driver;
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 /**
  * This function is responsible for creating and returning the tour for the manual routing mode 
@@ -95,6 +96,17 @@ export function createSavedRouteDashboardTour() {
 export function createAutomaticRoutingTour(onTourEnd) {
     return driver({
         popoverClass: 'app-tour-theme',
+
+        // injects active class to body upon starting the tour
+        onInit: () => {
+            document.body.classList.add("tour-active");
+        },
+        
+        // this removes active class from body when the tour ends 
+        onDestroyStarted: () => {
+            document.body.classList.remove("tour-active");
+        },
+
         onDoneClick: async (element, step, options) => {
             options.driver.destroy();
 
@@ -110,10 +122,10 @@ export function createAutomaticRoutingTour(onTourEnd) {
             }
             },
             {
-            element: '#auto-open-nav-button',
+            element: '#the-sidenav',
             popover: {
-                title: 'The Menu',
-                description: 'Pressing this button will let you navigate between settings, importing routes and your saved routes dashboard.'
+                title: 'Navigation',
+                description: 'Use the navigation rail on the left to open settings, import routes and access your saved routes dashboard. It expands when you hover over it.'
             }
             },
             {

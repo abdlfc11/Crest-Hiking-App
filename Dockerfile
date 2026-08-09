@@ -1,8 +1,16 @@
-# Use official Python image
+# This builds the frontend 
+
+FROM node:22-slim AS frontend
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
 FROM python:3.11-slim-bookworm
 
-
-# Set working directory
 WORKDIR /app
 
 # copies the requirements for parsing the file of unrequired libraries
@@ -25,6 +33,9 @@ RUN mkdir -p /app/Pathfinding
 
 # this copies python backend 
 COPY src/ /app/src/
+
+# copies the built frontend assets
+COPY --from=frontend /app/static/dist /app/static/dist
 
 # this puts my js, html and css into the container 
 COPY templates/ templates/

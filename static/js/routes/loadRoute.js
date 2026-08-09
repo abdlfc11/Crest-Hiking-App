@@ -1,5 +1,15 @@
 import { getMap, getRouteLayer, getPathColour } from "../map.js";
 
+import GeoJSON from "ol/format/GeoJSON.js";
+import Stroke from "ol/style/Stroke.js";
+import Style from "ol/style/Style.js";
+import Point from "ol/geom/Point.js"
+import Feature from "ol/Feature.js"
+import {
+  toLonLat,
+  fromLonLat
+} from "ol/proj.js"
+
 import {
   formatDistance,
   formatElevation,
@@ -44,7 +54,7 @@ export function displayLoadedRouteOnMap(data) {
   const vectorSource = routeLayer.getSource();
   vectorSource.clear();
 
-  const format = new ol.format.GeoJSON();
+  const format = new GeoJSON();
   const features = format.readFeatures(data.pathGeoJSON, {
     dataProjection: "EPSG:4326",
     featureProjection: "EPSG:3857",
@@ -53,8 +63,8 @@ export function displayLoadedRouteOnMap(data) {
 
   features.forEach((feature) => {
     feature.setStyle(
-      new ol.style.Style({
-        stroke: new ol.style.Stroke(getRouteStrokeStyle()),
+      new Style({
+        stroke: new Stroke(getRouteStrokeStyle()),
       }),
     );
   });
@@ -65,16 +75,16 @@ export function displayLoadedRouteOnMap(data) {
   const endCoord = coordinates[coordinates.length - 1]
 
   // converts lon lat to Web Mercator to display features on OpenLayer map (which has Web Mercator projection) 
-  const startMercator = ol.proj.fromLonLat([startCoord[0], startCoord[1]]);
-  const endMercator = ol.proj.fromLonLat([endCoord[0], endCoord[1]]);
+  const startMercator = fromLonLat([startCoord[0], startCoord[1]]);
+  const endMercator = fromLonLat([endCoord[0], endCoord[1]]);
 
-  const startFeature = new ol.Feature({
-    geometry: new ol.geom.Point(startMercator)
+  const startFeature = new Feature({
+    geometry: new Point(startMercator)
   });
   startFeature.setStyle(getSavedPointStyle("Start", "#00A86B"));
 
-  const endFeature = new ol.Feature({
-    geometry: new ol.geom.Point(endMercator)
+  const endFeature = new Feature({
+    geometry: new Point(endMercator)
   });
   endFeature.setStyle(getSavedPointStyle("End", "#D32F2F"));
 

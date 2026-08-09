@@ -1,0 +1,35 @@
+{
+  "name": "crestr-hiking-app",
+  "version": "1.0.0",
+  "description": "[![GitHub stars](https://img.shields.io/github/stars/abdlfc11/Crest-Hiking-App?style=social)](https://github.com/abdlfc11/Crest-Hiking-App/stargazers) [![GitHub forks](https://img.shields.io/github/forks/abdlfc11/Crest-Hiking-App?style=social)](https://github.com/abdlfc11/Crest-Hiking-App/network/members) [![GitHub last commit](https://img.shields.io/github/last-commit/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/commits/main) [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/commits/main) [![GitHub release](https://img.shields.io/github/v/release/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/releases) [![GitHub issues](https://img.shields.io/github/issues/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/pulls)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdlfc11/Crestr-Hiking-App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/abdlfc11/Crestr-Hiking-App/issues"
+  },
+  "homepage": "https://github.com/abdlfc11/Crestr-Hiking-App#readme",
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "driver.js": "^1.8.0",
+    "lucide": "^1.30.0",
+    "ol": "^10.10.0"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "vite": "^8.2.1"
+  }
+}
+

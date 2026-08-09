@@ -1,7 +1,17 @@
+// Local Imports 
 import { normaliseCoordLength, getCurrentPathData } from './routes/routeState.js';
 import { getRouteLayer } from './map.js';
 import { getTheme, getDistanceUnit } from './settingsState.js';
 import { createManualPointStyle } from './utils/style-utils.js';
+
+// OpenLayers imports 
+import { fromLonLat, toLonLat } from 'ol/proj.js';
+import { Feature } from 'ol';
+import { Point } from 'ol/geom.js';
+import { getDistance } from 'ol/sphere.js'
+
+// Chart.js imports 
+import Chart from 'chart.js/auto';
 
 /**
  * Returns true if the coord is in EPSG:4326 projection and false otherwise
@@ -46,12 +56,12 @@ function updateMapHoverPoint(coordinate) {
   // converts coordinates into web mercator to display the point feature on the map (which has projection of Web Mercator)
   let coord = [coordinate[0], coordinate[1]];
   if (isLonLatCoord(coord)) {
-    coord = ol.proj.fromLonLat(coord);
+    coord = fromLonLat(coord);
   }
 
   if (!hoverPointFeature) {
-    hoverPointFeature = new ol.Feature({
-      geometry: new ol.geom.Point(coord)
+    hoverPointFeature = new Feature({
+      geometry: new Point(coord)
     });
 
     hoverPointFeature.setStyle(createManualPointStyle("", "#FFFFFF", 7.5, "#0a45e7"));
@@ -77,9 +87,13 @@ function clearMapHoverPoint() {
 };
 
 export function resetElevationChart() {
+    const ctx = document.getElementById('elevation-chart');
+    
+    // this destroys the chart via reference or via Chart.js canvas registry
+    const existingChart = elevationChart || (ctx ? Chart.getChart(ctx) : null);
 
-    if (elevationChart) {
-        elevationChart.destroy();
+    if (existingChart) {
+        existingChart.destroy();
         elevationChart = null;
     }
     currentCoordinates = null;
@@ -132,7 +146,7 @@ export function createElevationProfile(coordinates) {
         if (isLonLatCoord(coord)) {
           lonLat = [coord[0], coord[1]];
         } else {
-          lonLat = ol.proj.toLonLat([coord[0], coord[1]]);
+          lonLat = toLonLat([coord[0], coord[1]]);
         }
         return [lonLat[0], lonLat[1], coord[2] || 0];
     });
@@ -173,8 +187,8 @@ export function createElevationProfile(coordinates) {
 
     const text = isDark ? "#ffffff" : "#1f2937";
     const grid = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-    const border = isDark ? "#2563eb" : "#1d4ed8";
-    const fill = isDark ? "rgba(37,99,235,0.25)" : "rgba(37,99,235,0.15)";
+    const border = isDark ? '#60a5fa' : '#1d4ed8';
+    const fill = isDark ? 'rgba(96, 165, 250, 0.2)' : 'rgba(29, 78, 216, 0.12)';
     
     const white = '#FFFFFF'
 

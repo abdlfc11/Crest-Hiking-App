@@ -34,6 +34,7 @@ import {
   formatElevation,
   formatETA
 } from "../utils/format-utils.js"
+import { toLonLat } from "ol/proj.js";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
@@ -83,7 +84,7 @@ function handleSaveRoute(e) {
     // manually plotted points converted to lon lat as they are stored in web mercator (auto / loaded routes aren't)
     if (mode === "manual" && manualRouteState.pathCoords.length > 0) {
       pathCoordinates = pathCoordinates.map(coord => {
-        const lonLat = ol.proj.toLonLat([coord[0], coord[1]]);
+        const lonLat = toLonLat([coord[0], coord[1]]);
         return coord.length >= 3 ? [lonLat[0], lonLat[1], coord[2]] : lonLat;
       });
     }

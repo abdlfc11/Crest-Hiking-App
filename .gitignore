@@ -6,20 +6,46 @@ venv/
 __pycache__/
 *.pyc
 
+
+# Node / npm / Vite
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Vite build output 
+static/dist/
+dist/
+.vite/
+*.local
+
 # environment variables
 .env
 
-# OS junk
+# IDEs and Editors 
 .DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.code-workspace
 
-# flask
-instance/
 
-# logs
+# logs and temp 
 *.log
-
-# SQLite databases 
-*.db
+logs/
+tmp/
+temp/
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # old graph files and graph making files
 *.tif
