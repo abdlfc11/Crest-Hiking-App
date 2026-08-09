@@ -704,12 +704,6 @@ function noRouteCreateFunction() {
   closeSavedRoutesDash()
 }
 
-// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
-function noRouteCreateFunction() {
-  closeNav()
-  closeSavedRoutesDash()
-}
-
 function openSavedRoutesDash() {
 
   // This prevents non-logged in and registered users from opening the save route panel
