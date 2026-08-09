@@ -5,7 +5,10 @@ services:
     ports: !override []
   pgadmin:
     ports: !override []
-  web:
+  web-fastapi:
     ports: !override []
+    volumes: !override
+    - ./migrations:/app/migrations
+    - graph_cache:/app/graph_generation/cache
   umami:
     ports: !override []

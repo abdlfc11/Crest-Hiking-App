@@ -45,6 +45,9 @@ COPY static/ static/
 COPY alembic.ini /app/alembic.ini
 COPY migrations/ migrations/
 
+# graph copies
+COPY graph_generation/ graph_generation/
+
 # this sets the python path so imports are clean
 ENV PYTHONPATH=/app/src
 
