@@ -139,11 +139,6 @@ html.dark {
   font-family: inherit;
 }
 
-/* donate button - currently disabled, only opens when there is a full release  */
-#donate-button {
-  cursor: not-allowed;
-}
-
 /* Nav limits for short viewports */
 @media screen and (max-height: 450px) {
   .sidenav-inner {
