@@ -126,7 +126,7 @@ export async function saveNewPoint(coordinate, name) {
         return;
       }
       else if (!response.ok) {
-        throw new Error(data.message || "No info to display")
+        throw new Error(data.message || "There was an unexpected error whilst saving your point, try again later.")
       }
 
       if (data.success) {

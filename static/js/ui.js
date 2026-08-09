@@ -288,7 +288,7 @@ function checkIfMobile() {
 //#region DONATE MODAL
 
 /**
- * Toggles the login modal display and sets the action context
+ * Toggles the donate modal display and sets the action context
  * @param {boolean} show true if you want to show the modal, false if you want to hide the modal
  * @param {string} [actionName='perform this action'] the specific action that is being performed when showing the modal e.g save routes 
  * @returns {void}
@@ -701,6 +701,12 @@ export function mapClickHandler(event) {
 
 // this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
 function noRouteCreateFunction() {
+  closeSavedRoutesDash()
+}
+
+// this is for the 'create route' button on the panel shown on the saved routes dashboard when the user has no saved routes
+function noRouteCreateFunction() {
+  closeNav()
   closeSavedRoutesDash()
 }
 

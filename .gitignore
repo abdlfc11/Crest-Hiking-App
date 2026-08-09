@@ -60,3 +60,5 @@ testing_stuff.py
 AGENTS.md
 
 .wiki/
+
+*.code-workspace
