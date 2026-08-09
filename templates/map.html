@@ -46,6 +46,11 @@
     <!-- Tours.js CSS File-->
     <link rel="stylesheet" href="{{ url_for('static', path='css/vendor/tours.css') }}">
 
+    <!-- Vite-extracted CSS (sidecars from JS-imported stylesheets, e.g. driver.js) -->
+    {% for css_path in vite_css('static/js/routes/savedRoutesDashboard.js') %}
+    <link rel="stylesheet" href="{{ url_for('static', path=css_path) }}" />
+    {% endfor %}
+
     <!-- #endregion -->
 
     <!-- ICONS -->
@@ -723,10 +728,11 @@
         };
     </script>
 
-    <!-- Vite builds (asset paths resolved from the Vite build manifest) -->
-    <script type="module" src="{{ url_for('static', path='dist/js/map.js') }}"></script>
-    <script type="module" src="{{ url_for('static', path='dist/js/savedRoutes.js') }}"></script>
-    <script type="module" src="{{ url_for('static', path='dist/js/importRoute.js') }}"></script>
+    <!-- Vite builds (asset paths resolved from the Vite build manifest via vite_asset(),
+         so entry filenames can be content-hashed to bust browser/CDN caches) -->
+    <script type="module" src="{{ url_for('static', path=vite_asset('static/js/map.js')) }}"></script>
+    <script type="module" src="{{ url_for('static', path=vite_asset('static/js/routes/savedRoutesDashboard.js')) }}"></script>
+    <script type="module" src="{{ url_for('static', path=vite_asset('static/js/importRoute.js')) }}"></script>
 
 </body>
 </html>

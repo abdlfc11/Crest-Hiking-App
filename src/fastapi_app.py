@@ -48,6 +48,44 @@ app.mount(
     name="static",
 )
 
+# Vite Helpers:
+# These helpers resolve a Vite source path (the keys used in vite.config.js build.input) to the actual
+# hashed output file, reading the manifest once at import time.
+VITE_MANIFEST_PATH = STATIC_DIR / "dist" / ".vite" / "manifest.json"
+
+
+def _load_vite_manifest() -> dict:
+    try:
+        if VITE_MANIFEST_PATH.exists():
+            with open(VITE_MANIFEST_PATH, "r", encoding="utf-8") as manifest_file:
+                return json.load(manifest_file)
+    except Exception as error:
+        print(f"CRITICAL: Failed to load Vite manifest: {error}")
+    return {}
+
+
+VITE_MANIFEST = _load_vite_manifest()
+
+
+def vite_asset(src: str) -> str:
+    """
+    Resolve a Vite source path to its built, content-hashed output path relative to the /static mount
+    """
+    entry = VITE_MANIFEST.get(src)
+    if isinstance(entry, dict) and entry.get("file"):
+        return f"dist/{entry['file']}"
+    return f"dist/js/{src.rsplit('/', 1)[-1]}"
+
+
+def vite_css(src: str) -> list:
+    """
+    Return the CSS assets declared for a Vite entry
+    """
+    entry = VITE_MANIFEST.get(src)
+    if isinstance(entry, dict) and entry.get("css"):
+        return [f"dist/{css}" for css in entry["css"]]
+    return []
+
 # External Local API routers 
 app.include_router(points_router)
 app.include_router(report_issue_router)
@@ -58,6 +96,11 @@ app.include_router(error_logging_router)
 app.include_router(search_router)
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+# Vite manifest resolution helpers are exposed to templates so built assets can
+# be referenced by their content-hashed file names.
+templates.env.globals["vite_asset"] = vite_asset
+templates.env.globals["vite_css"] = vite_css
 
 #endregion
 
