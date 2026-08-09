@@ -164,7 +164,7 @@ export function createElevationProfile(coordinates) {
         const p2 = geoCoordinates[i];
 
          
-        const segmentMeters = ol.sphere.getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
+        const segmentMeters = getDistance([p1[0], p1[1]], [p2[0], p2[1]]);
         const segmentKm = segmentMeters / 1000;
 
         if (distanceUnit === "miles") {
