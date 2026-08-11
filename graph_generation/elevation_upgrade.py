@@ -191,7 +191,7 @@ for edge_index in range(graph.ecount()):
 print("Edge enrichment completed.")
 
 # This saves the graph 
-with open("graph_generation/elevation_populated_igraph.pkl", "wb") as file:
+with open("graph_generation/cache/elevation_populated_igraph.pkl", "wb") as file:
     p.dump((graph, node_to_id), file)
 
 print("Saved enriched igraph successfully.")

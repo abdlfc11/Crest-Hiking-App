@@ -16,7 +16,7 @@ export default defineConfig({
         importRoute: resolve(__dirname, "static/js/importRoute.js"),
       },
       output: {
-        entryFileNames: "js/[name].js",
+        entryFileNames: "js/[name]-[hash].js",
         chunkFileNames: "js/[name]-[hash].js",
         assetFileNames: "assets/[name]-[hash][extname]",
       },

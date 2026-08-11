@@ -32,7 +32,7 @@ services:
       - ./templates:/app/templates
       - ./static:/app/static
       - ./migrations:/app/migrations
-      - ./graph_generation:/app/graph_generation
+      - graph_cache:/app/graph_generation/cache
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -126,3 +126,4 @@ volumes:
   umami_postgres_data:
   caddy_data:
   caddy_config:
+  graph_cache:
