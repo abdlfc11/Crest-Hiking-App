@@ -9,6 +9,9 @@ import Feature from "ol/Feature.js";
 import GeoJSON from "ol/format/GeoJSON.js"
 import { Translate } from "ol/interaction.js"
 
+// LocalForage
+import localforage from "localforage";
+
 // Local File Imports
 
 import {
@@ -43,7 +46,6 @@ import { calculatePath, addManualPoint } from "./routing/index.js";
 import {
   getMap,
   onMapClick,
-  onMapRenderComplete,
   getRouteLayer,
   getPathColour,
   setRouteLayer,
@@ -202,6 +204,13 @@ const donateModalContent = document.getElementById('donate-modal-content');
 const donateModalCloseButton = document.getElementById('donate-modal-close-button');
 const donateModalMaybeLaterButton = document.getElementById('donate-modal-maybe-later-button')
 
+// load last route modal
+const loadLastRouteModal = document.getElementById('load-last-route-dialog');
+const loadLastRouteModalContent = loadLastRouteModal.querySelector('.modal-content');
+const loadLastRouteModalRouteName = document.getElementById('load-last-route-dialog-route-name');
+const loadLastRouteModalLoadButton = document.getElementById('load-last-route-dialog-load-button');
+const loadLastRouteModalDismissButton = document.getElementById('load-last-route-dialog-dismiss-button');
+
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
 const closeSavedRoutesDashButton = document.getElementById('saved-routes-dash-go-back-button');
@@ -285,31 +294,35 @@ function checkIfMobile() {
 
 //#endregion
 
-//#region DONATE MODAL
+//#region GENERAL MODAL
 
 /**
- * Toggles the donate modal display and sets the action context
- * @param {boolean} show true if you want to show the modal, false if you want to hide the modal
- * @param {string} [actionName='perform this action'] the specific action that is being performed when showing the modal e.g save routes 
+ * Function used to catch clicks outside of a modal in order to close the modal upon these clicks. 
+ * 
+ * @param {Event} e 
+ * @param {HTMLDivElement} modalContent 
+ * @param {HTMLDialogElement} modal 
  * @returns {void}
  */
-export function showDonateModal(show) {
-  if (show) {
-    donateModal.showModal();
-  } 
-  else {
-    donateModal.close();
-  }
+function closeModalUponOutsideClick(e, modalContent, modal) {
+  if (modalContent && !modalContent.contains(e.target)) {
+      modal.close()
+    }
 };
 
 /**
- * Function used to catch clicks outside of the donate modal in order to close the modal upon these clicks 
- * @returns {void}
+ * Toggles the provided modal
+ * @param {boolean} show true if you want to show the modal, false if you want to hide the modal
+ * @param {HTMLDialogElement} modal The modal you want to open/close
+ * @returns {void} 
  */
-function dismissDonateModal(e) {
-  if (donateModalContent && !donateModalContent.contains(e.target)) {
-      showDonateModal(false);
-    }
+export function showModal(show, modal) {
+  if (show) {
+    modal.showModal();
+  } 
+  else {
+    modal.close();
+  }
 };
 
 //#endregion
@@ -346,40 +359,14 @@ function loginModalLogin() {
   return;
 };
 
-/**
- * Function used to catch clicks outside of the login modal in order to close the modal upon these clicks 
- * @returns {void}
- */
-function dismissLoginModal(e) {
-  if (loginModalContent && !loginModalContent.contains(e.target)) {
-      showLoginModal(false);
-    }
-};
-
 //#endregion
 
-//#region DELETE POINT MODAL
+//#region LOAD LAST ROUTE MODAL
 
-/**
- * Displays the Delete Point Modal if True is passed into the function and hides it if False is passed into the function
- * 
- * @param {boolean} show 
- * @returns {void}
- */
-export function showDeletePointModal(show) {
-  if (!deletePointModal) return;
-  show ? deletePointModal.showModal() : deletePointModal.close();
+function dismissLastLoadedRoute() {
+  showModal(false, loadLastRouteModal);
+  localforage.setItem('unauthenticated-save-route-attempt', false);
 }
-
-/**
- * Function used to catch clicks outside of the login modal in order to close the modal upon these clicks 
- * @returns {void}
- */
-function dismissDeletePointModal(e) {
-  if (deletePointModalContent && !deletePointModalContent.contains(e.target)) {
-      showDeletePointModal(false);
-    }
-};
 
 //#endregion
 
@@ -398,16 +385,6 @@ function showReportIssueModal(show) {
     reportIssueModal.close();
   }
 }
-
-/**
- * Closes the report issue modal if it registers a click outside of the modal
- * @returns {void}
- */
-function dismissReportIssueModal(e) {
-  if (reportIssueModalContent && !reportIssueModalContent.contains(e.target)) {
-      showReportIssueModal(false);
-    }
-};
 
 /**
  * This function validates the input fields for the report issue form.
@@ -680,7 +657,7 @@ export function mapClickHandler(event) {
     const pointName = selectedPoint.get("name");
     selectedPoint.setStyle(getSelectedPointStyle(pointName));
     deletePointModalNameDisplay.textContent = pointName;
-    showDeletePointModal(true);
+    showModal(true, deletePointModal);
   } 
   else if (!featureClicked) {
     const coordinate = event.coordinate;
@@ -988,9 +965,11 @@ function handleToggles(event) {
   event.currentTarget.classList.add("active");
 };
 
-function switchToAutoMode() {
+async function switchToAutoMode() {
   const map = getMap();
   if (!map) return;
+
+  await localforage.setItem("lastRoutingMode", "auto");
 
   setCurrentMode("auto");
   updateCursor();
@@ -1006,9 +985,11 @@ function switchToAutoMode() {
   clearAutoRoute();
 };
 
-function switchToManualMode() {
+async function switchToManualMode() {
   const map = getMap();
   if (!map) return;
+
+  await localforage.setItem("lastRoutingMode", "manual");
   
   setCurrentMode("manual");
   updateCursor();
@@ -1205,11 +1186,6 @@ function searchArea() {
 };
 //#endregion
 
-async function mapRenderComplete() {
-
-  loadAndDisplaySavedPoints();  
-};
-
 //#region AUTOMATIC ROUTING
 
 async function handleAutoRouteGeneration(start=null, end=null) {
@@ -1224,9 +1200,8 @@ async function handleAutoRouteGeneration(start=null, end=null) {
   try {
     const response = await calculatePath(startPoint, endPoint); // response.coordinates may return coordinates whereby each element has 3 values (x, y and elevation)
 
-    const routeStats = displayPath(response);
+    const routeStats = await displayPath(response);
 
-    routeStats.eta_seconds = formatETA(routeStats.eta_seconds)
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
     displayAutoRouteStats(getLastAutoRouteStats());
@@ -1246,7 +1221,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
   }
 };
 
-function displayPath(data) {
+async function displayPath(data) {
 
   try { 
   const map = getMap();
@@ -1270,7 +1245,7 @@ function displayPath(data) {
     featureProjection: "EPSG:3857",
   });
 
-  routeLayerSource.addFeature(pathFeature);
+  await routeLayerSource.addFeature(pathFeature);
 
   const coordinates = data.coordinates;
 
@@ -1290,6 +1265,14 @@ function displayPath(data) {
     interactivePointLayerSource.addFeature(startPointFeature)
     interactivePointLayerSource.addFeature(endPointFeature)
 
+    // only caches routes if user is not logged in
+    if (!window.appConfig.loggedIn) {
+      await localforage.setItem("cachedAutoRouteCoordinates", data.pathGeoJSON);
+      await localforage.setItem("cachedAutoRouteStartPointCoords", startMercatorCoord);
+      await localforage.setItem("cachedAutoRouteEndPointCoords", endMercatorCoord);
+      await localforage.setItem("cachedAutoRouteStats", data.route_stats);
+      console.log(data.route_stats);
+    }
   }
 
   setCurrentPathData(data.coordinates); // data.coordinates are [lon, lat, elev] (EPSG:4326)
@@ -1311,7 +1294,7 @@ function displayPath(data) {
   }
 };
 
-function displayAutoRouteStats(routeStats) {
+async function displayAutoRouteStats(routeStats) {
 
   let statsDiv = document.getElementById("route-stats");
 
@@ -1323,8 +1306,154 @@ function displayAutoRouteStats(routeStats) {
   statsDiv.id = "route-stats";
   document.body.appendChild(statsDiv);
 
-  statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), routeStats.eta_seconds, formatElevation(routeStats.elevation_gain))
+  statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), formatETA(routeStats.eta_seconds), formatElevation(routeStats.elevation_gain))
 };
+
+//#endregion
+
+//#region CACHED ROUTES
+
+async function handleLoadCachedAutoRoute() {
+  try {
+    await displayCachedRoute();
+
+    const [cachedCoords, cachedRouteStats] = await Promise.all([
+      await localforage.getItem("cachedAutoRouteCoordinates"),
+      await localforage.getItem('cachedAutoRouteStats')
+    ])
+
+    setLastKnownDistanceKm(cachedRouteStats.total_distance);
+
+    await displayCachedRouteStats(cachedRouteStats);
+
+    resetElevationChart();
+    initChartToggleListener();
+    createElevationProfile(cachedCoords.geometry.coordinates);
+
+    setCurrentPathData(cachedCoords.geometry.coordinates);
+
+    if (saveContainer) saveContainer.style.display = "flex";
+  }
+  catch(error) {
+    console.log(error.message)
+    showToast("There was an error loading you last route", "error", null);
+  }
+}
+    
+
+/**
+ * Loads the last cached route, automatically determines if route is manual / auto generated and retrieves the appropriate cached data 
+ * makes use of localforage as opposed to localstorage due to high volume data 
+ * @param {void} 
+ * @returns {void}
+ */
+async function displayCachedRoute() {
+
+  const currentMode = await localforage.getItem("lastRoutingMode"); // needed to differentiate between cached auto routes / cached manual routes
+  const map = getMap(); 
+
+  if (loadLastRouteModal) showModal(false, loadLastRouteModal);
+  // if (await localforage.getItem('unauthenticated-save-route-attempt')) localforage.setItem('unauthenticated-save-route-attempt', false);
+
+  try {  
+    if (currentMode === "auto") {
+
+      const routeLayer = getRouteLayer();
+
+      const routeLayerSource = routeLayer.getSource();
+      const interactivePointLayerSource = interactivePointLayer.getSource();
+
+      // clears all current features if present (unlikely given this occurs upon app load)
+      routeLayerSource.clear();
+      interactivePointLayerSource.getFeatures()
+      .filter(feature => feature.get('type') === 'start' || feature.get('type') === 'end')
+      .forEach(feature => interactivePointLayerSource.removeFeature(feature))
+
+      // clears the hovered point feature to prevent the preserving of stale OL point features
+      setHoverPointFeature(null);
+
+      // retrieves cached data in parallel 
+      const [cachedCoords, cachedStartCoords, cachedEndCoords] = await Promise.all([
+        localforage.getItem("cachedAutoRouteCoordinates"),
+        localforage.getItem("cachedAutoRouteStartPointCoords"),
+        localforage.getItem("cachedAutoRouteEndPointCoords")
+      ]);
+
+      // recreates the path, start point and end point features 
+      const pathFeature = new GeoJSON().readFeature(cachedCoords, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857",
+      });
+
+      const startPointFeature = createPoint(
+        cachedStartCoords,
+        getSavedPointStyle("Start", "#00A86B"),
+        "start",
+        "Start"
+      )
+
+      const endPointFeature = createPoint(
+        cachedEndCoords,
+        getSavedPointStyle("End", "#D32F2F"),
+        "end", 
+        "End"
+      )
+
+      // adds the features to the sources of the vector layers on the map --> displays the features on the map 
+      routeLayerSource.addFeature(pathFeature);
+      interactivePointLayerSource.addFeature(startPointFeature)
+      interactivePointLayerSource.addFeature(endPointFeature)
+
+      setTimeout(() => {
+        map.getView().fit(routeLayerSource.getExtent(), {
+          padding: [300, 300, 300, 430],
+          duration: 1200,
+        });
+        map.render();
+      }, 100);
+    }
+  }
+  catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+async function displayCachedRouteStats(routeStats) {
+  try {
+    const parsedStats = typeof routeStats === "string" ? JSON.parse(routeStats) : routeStats;
+
+    console.log(routeStats);
+
+    let statsDiv = document.getElementById("route-stats");
+
+    if (statsDiv) {
+      statsDiv.remove();
+    };
+
+    statsDiv = document.createElement("div");
+    statsDiv.id = "route-stats";
+    document.body.appendChild(statsDiv);
+
+    statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(parsedStats.total_distance)), formatETA(parsedStats.eta_seconds), formatElevation(parsedStats.elevation_gain));
+  }
+  catch (error) {
+    throw new Error(error.message)
+  }
+}
+
+async function handleInitialLoadCachedRoute() { 
+  const hasPreviousSaveAttempt = await localforage.getItem('unauthenticated-save-route-attempt')
+
+  if (hasPreviousSaveAttempt && window.appConfig.loggedIn) {
+    loadLastRouteModalRouteName.textContent = await localforage.getItem('cachedRouteName')
+    showModal(true, loadLastRouteModal);
+  }
+  else {
+    return;
+  }
+}
+
+window.displayCachedRoute = displayCachedRoute
 
 //#endregion
 
@@ -1878,7 +2007,7 @@ function initPointDeleteHandlers() {
 
   // for hiding if clicking anywhere outside the modal
   deletePointModal.addEventListener("click", (e) => {
-    dismissDeletePointModal(e);
+    closeModalUponOutsideClick(e, deletePointModalContent, deletePointModal)
   });
 
   // for deselecting the currently-selected point when the modal is closed 
@@ -1886,7 +2015,7 @@ function initPointDeleteHandlers() {
 
   // for when the user clicks the 'exit' button on the modal
   deletePointModalExitButton?.addEventListener("click", () => {
-    showDeletePointModal(false)
+    showModal(false, deletePointModal)
   });
 
   // for when the user clicks 'delete point' on the modal
@@ -1901,6 +2030,8 @@ export function initUi() {
     initCursorManager(map, getCurrentMode, getClickMode);
   }
 
+  localforage.setItem("lastRoutingMode", "auto");
+
   applyTheme(getTheme());
 
   initSaveRoute();
@@ -1912,9 +2043,13 @@ export function initUi() {
   // initial tour (automatic routing and saving the first route)
   handleInitialTour();
 
+  // shows modal to load previous route if prompted to login after attempted save route
+  handleInitialLoadCachedRoute()
+
   // These event listeners are for settings and preferences.
   setOnDistanceUnitChange(() => handleDistanceUnitToggle());
   window.addEventListener("load", checkIfMobile);
+  window.addEventListener('DOMContentLoaded', loadAndDisplaySavedPoints);
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     applyTheme(getTheme());
   });
@@ -1971,22 +2106,25 @@ export function initUi() {
   addClickListener(document, handleKeyboardShortcuts, "keydown");
 
   // These event listeners are for the login modal
-  addClickListener(loginModalExitButton, () => showLoginModal(false), 'click');
+  addClickListener(loginModalExitButton, () => showModal(false, loginModal), 'click');
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
-  addClickListener(loginModal, dismissLoginModal, 'click');
+  addClickListener(loginModal, (e) => closeModalUponOutsideClick(e, loginModalContent, loginModal), 'click');
 
   // These event listeners are for the report issue modal
   addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click");
   addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
 
   // These event listeners are for the donate modal
-  addClickListener(donateModalCloseButton, () => showDonateModal(false), "click");
-  addClickListener(donateModalMaybeLaterButton, () => showDonateModal(false), "click");
-  addClickListener(donateButton, () => showDonateModal(true), "click");
-  addClickListener(donateModal, dismissDonateModal, "click");
+  addClickListener(donateModalCloseButton, () => showModal(false, donateModal), "click");
+  addClickListener(donateModalMaybeLaterButton, () => showModal(false, donateModal), "click");
+  addClickListener(donateButton, () => showModal(true, donateModal), "click");
+  addClickListener(donateModal, (e) => closeModalUponOutsideClick(e, donateModal, donateModalContent), "click");
+
+  // These event listeners are for the load last route modal
+  addClickListener(loadLastRouteModalDismissButton, dismissLastLoadedRoute, "click");
+  addClickListener(loadLastRouteModalLoadButton, handleLoadCachedAutoRoute, "click");
 
   onMapClick(mapClickHandler);
-  onMapRenderComplete(mapRenderComplete);
 
   // These event listeners are for returning the map to the Lake District + clearing inputs
   autoHomeButton?.addEventListener("click", homeButtonFunction);

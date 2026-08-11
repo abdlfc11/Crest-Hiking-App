@@ -34,7 +34,10 @@ import {
   formatElevation,
   formatETA
 } from "../utils/format-utils.js"
+
 import { toLonLat } from "ol/proj.js";
+
+import localforage from "localforage";
 
 let saveRouteForm = null;
 const allRoutesContainer = document.getElementById("all-routes-container");
@@ -52,13 +55,8 @@ export function initSaveRoute() {
   }
 }
 
-function handleSaveRoute(e) {
+async function handleSaveRoute(e) {
   e.preventDefault();
-
-  if (!window.appConfig.loggedIn) {
-    showLoginModal(true, 'save routes');
-    return;
-  }
 
   let elevDisplayValue; 
   let routeName = "";
@@ -72,6 +70,13 @@ function handleSaveRoute(e) {
     routeName = routeNameEntry.value;
     eta = routeETADisplay?.textContent;
     elevationChange = routeElevationDisplay?.textContent
+
+    if (!window.appConfig.loggedIn) {
+      showLoginModal(true, 'save routes');
+      await localforage.setItem("unauthenticated-save-route-attempt", true);
+      await localforage.setItem("cachedRouteName", routeName);
+      return;
+    }
 
 
     const mode = getCurrentMode();
