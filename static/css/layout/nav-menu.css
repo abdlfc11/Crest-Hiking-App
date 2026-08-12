@@ -10,12 +10,13 @@
   --nav-width-collapsed: 48px;
   --nav-width-expanded: 200px;
   --nav-border: 1px solid rgba(0, 0, 0, 0.08);
+  --nav-border-radius: 30px;
   --nav-transition: width 0.22s ease;
 
   --nav-link-transition: background-color 0.15s ease, color 0.15s ease;
   --nav-link-height: 44px;
   --nav-link-height-compact: 40px;
-  --nav-link-padding: 0 8px;
+  --nav-link-padding: 0 5px;
   --nav-link-margin: 8px 8px;
   --nav-link-gap: 12px;
   --nav-link-radius: 8px;
@@ -54,6 +55,8 @@ html.dark {
   border-right: var(--nav-border);
   background: var(--glass-bg);
   border-right: 1px solid var(--border);
+  border-top-right-radius: var(--nav-border-radius);
+  border-bottom-right-radius: var(--nav-border-radius);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
