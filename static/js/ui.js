@@ -1317,12 +1317,16 @@ async function handleLoadCachedAutoRoute() {
   try {
     await displayCachedRoute();
 
-    const [cachedCoords, cachedRouteStats] = await Promise.all([
+    const [cachedCoords, cachedRouteStats, startWebMercator, endWebMercator] = await Promise.all([
       await localforage.getItem("cachedAutoRouteCoordinates"),
-      await localforage.getItem('cachedAutoRouteStats')
+      await localforage.getItem('cachedAutoRouteStats'),
+      await localforage.getItem('cachedAutoRouteStartPointCoords'),
+      await localforage.getItem('cachedAutoRouteEndPointCoords')
     ])
 
     setLastKnownDistanceKm(cachedRouteStats.total_distance);
+    startCoordEntry.value = formatLatLon(toLonLat(startWebMercator))
+    endCoordEntry.value = formatLatLon(toLonLat(endWebMercator))
 
     await displayCachedRouteStats(cachedRouteStats);
 
@@ -1401,8 +1405,9 @@ async function displayCachedRoute() {
 
       // adds the features to the sources of the vector layers on the map --> displays the features on the map 
       routeLayerSource.addFeature(pathFeature);
-      interactivePointLayerSource.addFeature(startPointFeature)
-      interactivePointLayerSource.addFeature(endPointFeature)
+      addStartEndPoint(startPointFeature, interactivePointLayer, "start");
+      addStartEndPoint(endPointFeature, interactivePointLayer, "end");
+      setUpPointInteraction([interactivePointLayer]);
 
       setTimeout(() => {
         map.getView().fit(routeLayerSource.getExtent(), {
