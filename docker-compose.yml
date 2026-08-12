@@ -113,6 +113,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    env_file:
+      - path: caddy.env
+        required: true
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
