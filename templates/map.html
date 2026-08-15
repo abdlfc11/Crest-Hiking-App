@@ -22,6 +22,13 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/base/tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/base/reset.css') }}">
 
+    <!-- Page-Specific CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/map.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/stats-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/saved-routes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/settings-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/import-route.css') }}">
+
     <!-- Component CSS Files --> 
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/toggle-switch.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/error-toast.css') }}">
@@ -35,13 +42,6 @@
     <!-- Layout CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/layout/nav-menu.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/layout/slide-panel.css') }}">
-
-    <!-- Page-Specific CSS Files -->
-    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/map.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/stats-panel.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/saved-routes.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/settings-panel.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/pages/import-route.css') }}">
 
     <!-- Tours.js CSS File-->
     <link rel="stylesheet" href="{{ url_for('static', path='css/vendor/tours.css') }}">
@@ -113,13 +113,15 @@
                             </div>
                         </div>
                     </div>
+                    <div id="auto-mode-routing-buttons">
 
-                    <button type="button" class="generate-button loading-button" id="generate-path-button">
-                        <span class="loading-button-text" id="generate-path-button-text">Generate path</span>
-                        <span class="loader"></span>
-                    </button>
+                        <button type="button" class="generate-button loading-button" id="generate-path-button">
+                            <span class="loading-button-text" id="generate-path-button-text">Generate path</span>
+                            <span class="loader"></span>
+                        </button>
 
-                    <button type="button" class="generate-button" id="clear-auto-route-button">Clear Path</button>
+                        <button type="button" class="generate-button btn-secondary" id="clear-auto-route-button">Clear Path</button>
+                    </div>
             </div>
         </div>
 

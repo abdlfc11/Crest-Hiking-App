@@ -52,7 +52,8 @@
 
   --btn-bg: #3c3c3c;
   --btn-bg-hover: #454545;
-  --secondary-btn-bg: #FFFFFF;
+  --secondary-btn-bg: #9d9797;
+  --secondary-btn-bg-hover: #888484;
   --btn-disabled-bg: #93b4f2;
   --btn-disabled-text: #ffffff;
 
@@ -67,6 +68,17 @@
   --radius-md: 12px;
   --radius-sm: 8px;
   --radius-pill: 9999px;
+
+  /* Spacing */
+  --space-3xs: 0.125rem; 
+  --space-2xs: 0.25rem; 
+  --space-xs:  0.5rem;  
+  --space-sm:  0.75rem; 
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
 
   --shadow-surface: 0 10px 35px rgba(15, 23, 42, 0.06);
   --shadow-lift: 0 4px 12px rgba(37, 99, 235, 0.28);
