@@ -285,6 +285,42 @@
             </div>
         </dialog>
 
+        <!-- ##### LOAD LAST ROUTE MODAL ##### -->
+        <dialog id="load-last-route-dialog" class="modal-overlay">
+            <div class="modal-wrapper">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h2>Load your last route?</h2>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="load-last-route-modal-route-container">
+                            <div class="load-last-route-modal-route-row">
+                                <p>Name</p>
+                                <span id="load-last-route-modal-route-name" class="modal-route-name"></span>
+                            </div>
+                            <div class="load-last-route-modal-route-row">
+                                <p>Distance</p>
+                                <span id="load-last-route-modal-route-distance" class="modal-route-distance"></span>
+                            </div>
+                            <div class="load-last-route-modal-route-row">
+                                <p>Elevation Gain</p>
+                                <span id="load-last-route-modal-route-elevation-gain"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" id="load-last-route-dialog-dismiss-button" class="modal-btn modal-btn-danger">Discard</button>
+                        <button id="load-last-route-dialog-load-button" class="modal-btn modal-btn-normal">Load</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
+
+
 
         <div id="map"></div>
     </div>

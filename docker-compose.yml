@@ -114,10 +114,8 @@ services:
       - "80:80"
       - "443:443"
     env_file:
-      - path: example.env
+      - path: caddy.env
         required: true
-      - path: .env
-        required: false
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data

@@ -1,0 +1,47 @@
+/*
+  LOAD LAST ROUTE MODAL COMPONENT
+
+  Extends the base .modal-overlay / .modal-content pattern from modal.css
+  with a load-route-specific layout
+
+  Depends on: 
+    - modal.css 
+    - tokens.css
+    - buttons.css 
+*/
+
+.load-last-route-modal-route-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: var(--secondary-bg);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.load-last-route-modal-route-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.load-last-route-modal-route-container p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.load-last-route-modal-route-container span {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-strong);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

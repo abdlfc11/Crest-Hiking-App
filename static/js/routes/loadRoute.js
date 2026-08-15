@@ -31,6 +31,7 @@ import { deleteRoute, loadRoute } from "./routeApi.js";
 
 import { initChartToggleListener } from "../elevationChart.js";
 import { getSavedPointStyle } from "../saved_points/style.js";
+import { MAP_VIEW_PADDING } from "../constants.js";
 
 
 let routeList = null;
@@ -111,7 +112,7 @@ export function displayLoadedRouteOnMap(data) {
         if (complete) {
           view.fit(vectorSource.getExtent(), {
             size: map.getSize(),
-            padding: [50, 100, 100, 430],
+            padding: MAP_VIEW_PADDING,
             duration: 1000
           })
         }
@@ -123,7 +124,7 @@ export function displayLoadedRouteOnMap(data) {
   else {
     map.getView().fit(vectorSource.getExtent(), {
       size: map.getSize(),
-      padding: [50, 100, 100, 430],
+      padding: MAP_VIEW_PADDING,
       duration: 1000,
     });
   }

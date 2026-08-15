@@ -1,6 +1,6 @@
 import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
-import { showLoginModal, showDeletePointModal } from "../ui.js";
+import { showLoginModal, showModal} from "../ui.js";
 import { showToast } from "../utils/ui-utils.js";
 import { logError } from "../utils/logError-utils.js";
 import { fromLonLat, toLonLat } from "ol/proj.js";
@@ -10,6 +10,7 @@ import VectorLayer from "ol/layer/Vector.js";
 import VectorSource from "ol/source/Vector.js";
 
 let savedPointsLayer = null;
+const deletePointModal = document.getElementById('delete-point-confirmation-dialog');
 
 export function getSavedPointsLayer() {
     return savedPointsLayer
@@ -161,23 +162,23 @@ export async function deleteSavedPoint(selectedPoint) {
     const data = await response.json();
 
     if (response.status === 401) {
-      showDeletePointModal(false);
+      showModal(false, deletePointModal);
       showLoginModal(true);
       return;
     }
     else if (!response.ok) {
-      showDeletePointModal(false);
+      showModal(false, deletePointModal);
       throw new Error(data.message || "There was an unexpected error whilst deleting your point, try again later.")
     }
 
     if (data.success) {
-      showDeletePointModal(false);
+      showModal(false, deletePointModal);
       selectedPoint = null;
       loadAndDisplaySavedPoints();
       return;
     }
     else {
-      showDeletePointModal(false);
+      showModal(false, deletePointModal);
       throw new Error(data.message || "There was an unexpected error whilst deleting your point, try again later.")
     }
   }

@@ -50,8 +50,13 @@ app.mount(
 
 # Vite Helpers:
 # These helpers resolve a Vite source path (the keys used in vite.config.js build.input) to the actual
-# hashed output file, reading the manifest once at import time.
+# hashed output file. The manifest is read with an mtime-based cache so that a rebuilt manifest
+# (e.g. after `npm run build` on a bind-mounted static dir) is picked up without restarting the app.
 VITE_MANIFEST_PATH = STATIC_DIR / "dist" / ".vite" / "manifest.json"
+
+# (mtime_ns, size) fingerprint of the last-read manifest -> parsed manifest data.
+# Reloaded lazily whenever the file on disk changes.
+_vite_manifest_cache = {"fingerprint": None, "data": {}}
 
 
 def _load_vite_manifest() -> dict:
@@ -64,14 +69,30 @@ def _load_vite_manifest() -> dict:
     return {}
 
 
-VITE_MANIFEST = _load_vite_manifest()
+def _get_vite_manifest() -> dict:
+    """Return the current Vite manifest, re-reading it only when it has changed on disk."""
+    try:
+        manifest_stat = VITE_MANIFEST_PATH.stat()
+        fingerprint = (manifest_stat.st_mtime_ns, manifest_stat.st_size)
+    except FileNotFoundError:
+        _vite_manifest_cache["fingerprint"] = None
+        _vite_manifest_cache["data"] = {}
+        return {}
+    except OSError as error:
+        print(f"CRITICAL: Failed to stat Vite manifest: {error}")
+        return _vite_manifest_cache["data"]
+
+    if _vite_manifest_cache["fingerprint"] != fingerprint:
+        _vite_manifest_cache["fingerprint"] = fingerprint
+        _vite_manifest_cache["data"] = _load_vite_manifest()
+    return _vite_manifest_cache["data"]
 
 
 def vite_asset(src: str) -> str:
     """
     Resolve a Vite source path to its built, content-hashed output path relative to the /static mount
     """
-    entry = VITE_MANIFEST.get(src)
+    entry = _get_vite_manifest().get(src)
     if isinstance(entry, dict) and entry.get("file"):
         return f"dist/{entry['file']}"
     return f"dist/js/{src.rsplit('/', 1)[-1]}"
@@ -81,7 +102,7 @@ def vite_css(src: str) -> list:
     """
     Return the CSS assets declared for a Vite entry
     """
-    entry = VITE_MANIFEST.get(src)
+    entry = _get_vite_manifest().get(src)
     if isinstance(entry, dict) and entry.get("css"):
         return [f"dist/{css}" for css in entry["css"]]
     return []

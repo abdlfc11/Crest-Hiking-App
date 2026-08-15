@@ -8,33 +8,6 @@
 
   Depends on: modal.css (base overlay/content/actions), tokens.css,
   buttons.css (.modal-btn-secondary).
-
-  Usage:
-    <dialog class="modal-overlay" id="donateModal">
-      <div class="modal-wrapper">
-        <div class="modal-content donate-modal-content">
-          <button class="donate-modal-close" data-donate-close aria-label="Close">×</button>
-          <div class="modal-header">
-            <h2>Support Crest</h2>
-          </div>
-          <div class="modal-body donate-modal-body">
-            <p>Crest is free and in active development. Donations go toward
-               hosting costs — no pressure, and Crest stays free either way.</p>
-          </div>
-          <div class="donate-options">
-            <a class="donate-option" href="https://liberapay.com/YOUR_HANDLE" target="_blank" rel="noopener noreferrer">
-              ...
-            </a>
-            <a class="donate-option" href="https://ko-fi.com/YOUR_HANDLE" target="_blank" rel="noopener noreferrer">
-              ...
-            </a>
-          </div>
-          <div class="modal-actions">
-            <button class="modal-btn modal-btn-secondary" data-donate-close>Maybe later</button>
-          </div>
-        </div>
-      </div>
-    </dialog>
 */
 
 .donate-modal-content {

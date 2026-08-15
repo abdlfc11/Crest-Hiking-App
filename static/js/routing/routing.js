@@ -18,6 +18,7 @@ import { logError } from "../utils/logError-utils.js";
 
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere.js";
+import localforage from "localforage";
 
 /**
  * Function used to calculate and return a path (and associated information) between two given points in projection EPSG: 4326 (Lon, Lat)
@@ -199,6 +200,8 @@ export async function addManualPoint(x, y) {
     logError("Calculating Path", error.message, null, "NO_PATH_FOUND");
     throw error;
   }
+
+  await localforage.setItem('cachedSegmentCache', segmentCache)
 
   // this appends the segment to pathCoords (skips first point to prevent duplication)
   manualRouteState.pathCoords.push(... segment.slice(1))
