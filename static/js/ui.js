@@ -270,6 +270,38 @@ export function getClickMode() {
   return clickMode;
 }
 
+/**
+ * Checks if user is on mobile device and advices to use Crestr on desktop / laptop instead 
+ * 
+ * @param {void}
+ * @returns {void}
+ */
+function checkIfMobile() {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;   
+  if (isMobile) {
+      document.body.innerHTML = `
+          <div style="height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; font-family: system-ui;">
+              <div>
+                  <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Crestr Hiking App</h1>
+                  <p style="font-size: 1.3rem; margin-bottom: 2rem;">
+                      This website is designed for desktop only.
+                  </p>
+                  <p style="max-width: 500px; margin: 0 auto 2rem;">
+                      For the best experience on your phone, we’re building a dedicated mobile app.<br><br>
+                      In the meantime, please visit us on a laptop or desktop computer.
+                  </p>
+                  <button onclick="window.location.reload()" 
+                          style="padding: 14px 32px; font-size: 1.1rem; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                      Refresh Anyway
+                  </button>
+              </div>
+          </div>
+      `;
+  }
+}
+//#endregion
+//#region DONATE MODAL
+
 //#region GENERAL MODAL
 
 /**
