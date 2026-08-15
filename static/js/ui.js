@@ -9,6 +9,9 @@ import Feature from "ol/Feature.js";
 import GeoJSON from "ol/format/GeoJSON.js"
 import { Translate } from "ol/interaction.js"
 
+// constants
+import { MAP_VIEW_PADDING } from "./constants.js";
+
 // LocalForage
 import localforage from "localforage";
 
@@ -207,9 +210,12 @@ const donateModalMaybeLaterButton = document.getElementById('donate-modal-maybe-
 // load last route modal
 const loadLastRouteModal = document.getElementById('load-last-route-dialog');
 const loadLastRouteModalContent = loadLastRouteModal.querySelector('.modal-content');
-const loadLastRouteModalRouteName = document.getElementById('load-last-route-dialog-route-name');
 const loadLastRouteModalLoadButton = document.getElementById('load-last-route-dialog-load-button');
 const loadLastRouteModalDismissButton = document.getElementById('load-last-route-dialog-dismiss-button');
+const loadLastRouteModalRouteName = document.getElementById('load-last-route-modal-route-name');
+const loadLastRouteModalRouteDistance = document.getElementById('load-last-route-modal-route-distance');
+const loadLastRouteModalRouteElevationGain = document.getElementById('load-last-route-modal-route-elevation-gain');
+
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -263,36 +269,6 @@ let interactivePointLayer = null; // stores the vector layer which holds the poi
 export function getClickMode() {
   return clickMode;
 }
-
-//#region MOBILE CHECK
-
-// check if user is on mobile and take subsequent action to inform them of decision to make Crest desktop only on web
-function checkIfMobile() {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;   
-
-  if (isMobile) {
-      document.body.innerHTML = `
-          <div style="height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; font-family: system-ui;">
-              <div>
-                  <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Crest Hiking App</h1>
-                  <p style="font-size: 1.3rem; margin-bottom: 2rem;">
-                      This website is designed for desktop only.
-                  </p>
-                  <p style="max-width: 500px; margin: 0 auto 2rem;">
-                      For the best experience on your phone, we’re building a dedicated mobile app.<br><br>
-                      In the meantime, please visit us on a laptop or desktop computer.
-                  </p>
-                  <button onclick="window.location.reload()" 
-                          style="padding: 14px 32px; font-size: 1.1rem; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                      Refresh Anyway
-                  </button>
-              </div>
-          </div>
-      `;
-  }
-}
-
-//#endregion
 
 //#region GENERAL MODAL
 
@@ -363,9 +339,37 @@ function loginModalLogin() {
 
 //#region LOAD LAST ROUTE MODAL
 
-function dismissLastLoadedRoute() {
+function discardLastLoadedRoute() {
   showModal(false, loadLastRouteModal);
-  localforage.setItem('unauthenticated-save-route-attempt', false);
+  localforage.clear();
+}
+
+function populateLastLoadedRouteModal(routeStats, routeName) {
+  loadLastRouteModalRouteName.textContent = routeName || 'Untitled route';
+  loadLastRouteModalRouteDistance.textContent = formatDistance(routeStats.total_distance)
+  loadLastRouteModalRouteElevationGain.textContent = `${routeStats.elevation_gain} m`
+}
+
+
+async function handleInitialLoadCachedRoute() { 
+  const hasPreviousSaveAttempt = await localforage.getItem('unauthenticated-save-route-attempt')
+  const routeName = await localforage.getItem('cachedRouteName'); 
+  const lastRoutingMode = await localforage.getItem('lastRoutingMode');
+
+  if (!hasPreviousSaveAttempt || !window.appConfig.loggedIn) return;
+
+  if (lastRoutingMode === "auto") {
+    const routeStats = await localforage.getItem('cachedAutoRouteStats');
+
+    populateLastLoadedRouteModal(routeStats, routeName);
+    showModal(true, loadLastRouteModal);
+  }
+  else {
+    const routeStats = await localforage.getItem('cachedManualRouteStats');
+
+    populateLastLoadedRouteModal(routeStats, routeName);
+    showModal(true, loadLastRouteModal);
+  }
 }
 
 //#endregion
@@ -1192,6 +1196,8 @@ async function handleAutoRouteGeneration(start=null, end=null) {
   const startPoint = start || startCoordEntry?.value || "";
   const endPoint = end || endCoordEntry?.value || "";
 
+  if (await localforage.getItem('lastRoutingMode') !== "auto") localforage.setItem('lastRoutingMode', "auto");
+
   if (validateInputCoords(startPoint, endPoint) !== true) return;
 
   generatePathButton.disabled = true;
@@ -1204,6 +1210,9 @@ async function handleAutoRouteGeneration(start=null, end=null) {
 
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
+
+    console.log(`AUTO ROUTE STATS : ${routeStats}`);
+
     displayAutoRouteStats(getLastAutoRouteStats());
     
     resetElevationChart();
@@ -1313,152 +1322,253 @@ async function displayAutoRouteStats(routeStats) {
 
 //#region CACHED ROUTES
 
-async function handleLoadCachedAutoRoute() {
+async function handleLoadCachedRoute() {
+  const routeType = await localforage.getItem("lastRoutingMode"); // needed to differentiate between cached auto routes / cached manual routes
+  if (loadLastRouteModal) showModal(false, loadLastRouteModal); // hides modal 
+
   try {
-    await displayCachedRoute();
-
-    const [cachedCoords, cachedRouteStats, startWebMercator, endWebMercator] = await Promise.all([
-      await localforage.getItem("cachedAutoRouteCoordinates"),
-      await localforage.getItem('cachedAutoRouteStats'),
-      await localforage.getItem('cachedAutoRouteStartPointCoords'),
-      await localforage.getItem('cachedAutoRouteEndPointCoords')
-    ])
-
-    setLastKnownDistanceKm(cachedRouteStats.total_distance);
-    startCoordEntry.value = formatLatLon(toLonLat(startWebMercator))
-    endCoordEntry.value = formatLatLon(toLonLat(endWebMercator))
-
-    await displayCachedRouteStats(cachedRouteStats);
-
-    resetElevationChart();
-    initChartToggleListener();
-    createElevationProfile(cachedCoords.geometry.coordinates);
-
-    setCurrentPathData(cachedCoords.geometry.coordinates);
-
-    if (saveContainer) saveContainer.style.display = "flex";
+    if (routeType === "auto") {
+      handleLoadAutoCachedRoute();
+    }
+    else if (routeType === "manual") {
+      switchToManualMode();
+      handleLoadManualCachedRoute();
+    }
+    else {
+      throw new Error("Invalid route type given")
+    }
   }
   catch(error) {
     console.log(error.message)
     showToast("There was an error loading you last route", "error", null);
   }
+  finally {
+    localforage.clear();
+  }
+}
+
+async function handleLoadAutoCachedRoute() {
+  try {
+      await displayAutoCachedRoute();
+
+      const [cachedCoords, cachedRouteStats, startWebMercator, endWebMercator] = await Promise.all([
+        await localforage.getItem("cachedAutoRouteCoordinates"),
+        await localforage.getItem('cachedAutoRouteStats'),
+        await localforage.getItem('cachedAutoRouteStartPointCoords'),
+        await localforage.getItem('cachedAutoRouteEndPointCoords')
+      ])
+
+      const parsedStats = typeof cachedRouteStats === "string" ? JSON.parse(cachedRouteStats) : cachedRouteStats;
+      setLastAutoRouteStats(parsedStats)
+
+      setLastKnownDistanceKm(cachedRouteStats.total_distance);
+      startCoordEntry.value = formatLatLon(toLonLat(startWebMercator))
+      endCoordEntry.value = formatLatLon(toLonLat(endWebMercator))
+
+      await displayAutoCachedRouteStats(parsedStats);
+
+      resetElevationChart();
+      initChartToggleListener();
+      createElevationProfile(cachedCoords.geometry.coordinates);
+
+      setCurrentPathData(cachedCoords.geometry.coordinates);
+
+      if (saveContainer) saveContainer.style.display = "flex";
+  }
+  catch(error) {
+    throw new Error(error.message);
+  }
 }
     
-
 /**
  * Loads the last cached route, automatically determines if route is manual / auto generated and retrieves the appropriate cached data 
  * makes use of localforage as opposed to localstorage due to high volume data 
- * @param {void} 
+ * @param {void}
  * @returns {void}
  */
-async function displayCachedRoute() {
-
-  const currentMode = await localforage.getItem("lastRoutingMode"); // needed to differentiate between cached auto routes / cached manual routes
+async function displayAutoCachedRoute() {
   const map = getMap(); 
 
-  if (loadLastRouteModal) showModal(false, loadLastRouteModal);
   // if (await localforage.getItem('unauthenticated-save-route-attempt')) localforage.setItem('unauthenticated-save-route-attempt', false);
 
   try {  
-    if (currentMode === "auto") {
 
-      const routeLayer = getRouteLayer();
+    const routeLayer = getRouteLayer();
 
-      const routeLayerSource = routeLayer.getSource();
-      const interactivePointLayerSource = interactivePointLayer.getSource();
+    const routeLayerSource = routeLayer.getSource();
+    const interactivePointLayerSource = interactivePointLayer.getSource();
 
-      // clears all current features if present (unlikely given this occurs upon app load)
-      routeLayerSource.clear();
-      interactivePointLayerSource.getFeatures()
-      .filter(feature => feature.get('type') === 'start' || feature.get('type') === 'end')
-      .forEach(feature => interactivePointLayerSource.removeFeature(feature))
+    // clears all current features if present (unlikely given this occurs upon app load)
+    routeLayerSource.clear();
+    interactivePointLayerSource.getFeatures()
+    .filter(feature => feature.get('type') === 'start' || feature.get('type') === 'end')
+    .forEach(feature => interactivePointLayerSource.removeFeature(feature))
 
-      // clears the hovered point feature to prevent the preserving of stale OL point features
-      setHoverPointFeature(null);
+    // clears the hovered point feature to prevent the preserving of stale OL point features
+    setHoverPointFeature(null);
 
-      // retrieves cached data in parallel 
-      const [cachedCoords, cachedStartCoords, cachedEndCoords] = await Promise.all([
-        localforage.getItem("cachedAutoRouteCoordinates"),
-        localforage.getItem("cachedAutoRouteStartPointCoords"),
-        localforage.getItem("cachedAutoRouteEndPointCoords")
-      ]);
+    // retrieves cached data in parallel 
+    const [cachedCoords, cachedStartCoords, cachedEndCoords] = await Promise.all([
+      localforage.getItem("cachedAutoRouteCoordinates"),
+      localforage.getItem("cachedAutoRouteStartPointCoords"),
+      localforage.getItem("cachedAutoRouteEndPointCoords")
+    ]);
 
-      // recreates the path, start point and end point features 
-      const pathFeature = new GeoJSON().readFeature(cachedCoords, {
-        dataProjection: "EPSG:4326",
-        featureProjection: "EPSG:3857",
+    // recreates the path, start point and end point features 
+    const pathFeature = new GeoJSON().readFeature(cachedCoords, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857",
+    });
+
+    const startPointFeature = createPoint(
+      cachedStartCoords,
+      getSavedPointStyle("Start", "#00A86B"),
+      "start",
+      "Start"
+    )
+
+    const endPointFeature = createPoint(
+      cachedEndCoords,
+      getSavedPointStyle("End", "#D32F2F"),
+      "end", 
+      "End"
+    )
+
+    // adds the features to the sources of the vector layers on the map --> displays the features on the map 
+    routeLayerSource.addFeature(pathFeature);
+    addStartEndPoint(startPointFeature, interactivePointLayer, "start");
+    addStartEndPoint(endPointFeature, interactivePointLayer, "end");
+    setUpPointInteraction([interactivePointLayer]);
+
+    setTimeout(() => {
+      map.getView().fit(routeLayerSource.getExtent(), {
+        padding: MAP_VIEW_PADDING,
+        duration: 1200,
       });
-
-      const startPointFeature = createPoint(
-        cachedStartCoords,
-        getSavedPointStyle("Start", "#00A86B"),
-        "start",
-        "Start"
-      )
-
-      const endPointFeature = createPoint(
-        cachedEndCoords,
-        getSavedPointStyle("End", "#D32F2F"),
-        "end", 
-        "End"
-      )
-
-      // adds the features to the sources of the vector layers on the map --> displays the features on the map 
-      routeLayerSource.addFeature(pathFeature);
-      addStartEndPoint(startPointFeature, interactivePointLayer, "start");
-      addStartEndPoint(endPointFeature, interactivePointLayer, "end");
-      setUpPointInteraction([interactivePointLayer]);
-
-      setTimeout(() => {
-        map.getView().fit(routeLayerSource.getExtent(), {
-          padding: [300, 300, 300, 430],
-          duration: 1200,
-        });
-        map.render();
-      }, 100);
-    }
+      map.render();
+    }, 100);
   }
   catch (error) {
     throw new Error(error.message);
   }
 }
 
-async function displayCachedRouteStats(routeStats) {
+async function displayAutoCachedRouteStats(routeStats) {
   try {
-    const parsedStats = typeof routeStats === "string" ? JSON.parse(routeStats) : routeStats;
-
-    console.log(routeStats);
 
     let statsDiv = document.getElementById("route-stats");
 
     if (statsDiv) {
       statsDiv.remove();
     };
+    
+    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
+    console.log(`AUTO CACHED ROUTES : ${JSON.stringify(routeStats)}`)
+    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
 
     statsDiv = document.createElement("div");
     statsDiv.id = "route-stats";
     document.body.appendChild(statsDiv);
 
-    statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(parsedStats.total_distance)), formatETA(parsedStats.eta_seconds), formatElevation(parsedStats.elevation_gain));
+    statsDiv.innerHTML = createStatsPanel(formatDistance(parseFloat(routeStats.total_distance)), formatETA(routeStats.eta_seconds), formatElevation(routeStats.elevation_gain));
   }
   catch (error) {
     throw new Error(error.message)
   }
 }
 
-async function handleInitialLoadCachedRoute() { 
-  const hasPreviousSaveAttempt = await localforage.getItem('unauthenticated-save-route-attempt')
+async function handleLoadManualCachedRoute() {
 
-  if (hasPreviousSaveAttempt && window.appConfig.loggedIn) {
-    loadLastRouteModalRouteName.textContent = await localforage.getItem('cachedRouteName')
-    showModal(true, loadLastRouteModal);
+  console.log('updating route state')
+  const updateManualRouteState = (newUserClicks, newPathCoords, newSegmentCache) => {
+    manualRouteState.userClicks = newUserClicks;
+    manualRouteState.pathCoords = newPathCoords;
+    manualRouteState.segmentCache = newSegmentCache;
   }
-  else {
-    return;
+
+  const newUserClicks = await localforage.getItem('cachedUserClicks');
+  const newPathCoords = await localforage.getItem('cachedPathCoords');
+  const newSegmentCache = await localforage.getItem('cachedSegmentCache');
+
+  await updateManualRouteState(newUserClicks, newPathCoords, newSegmentCache)
+
+  const map = getMap();
+  if (!map) return;
+
+  if (manualRouteLayer) map.removeLayer(manualRouteLayer);
+  if (!removeExistingStats()) return;
+
+  if (saveContainer) saveContainer.style.display = "flex";
+
+  const { userClicks, pathCoords } = manualRouteState;
+  const totalDistanceKm = calculateTotalDistance(pathCoords) / 1000;
+  const distanceDisplay = formatDistance(totalDistanceKm);
+  const etaDisplay = calculateEta(totalDistanceKm);
+  const isSnappedToEnd = checkIfCircularRoute();
+  const features = [];
+  const elevationGainDisplay = formatElevation(calculateElevationGain(pathCoords));
+
+  localforage.setItem('cachedUserClicks', userClicks)
+  localforage.setItem('cachedPathCoords', pathCoords)
+  
+  setLastKnownDistanceKm(totalDistanceKm);
+
+  userClicks.forEach((point, index) => {
+    const feature = new Feature({
+      geometry: new Point(point),
+      type: "point",
+    });
+    feature.set("index", index);
+    features.push(feature);
+  });
+
+  if (pathCoords.length > 1) {
+    features.push(
+      new Feature({
+        geometry: new LineString(pathCoords),
+        type: "line",
+      }),
+    );
   }
+
+  manualRouteLayer = new VectorLayer({
+    source: new VectorSource({ features }),
+    style(feature) {
+      const featureType = feature.get("type");
+      if (featureType === "point") {
+        const index = feature.get("index");
+        const isStart = index === 0;
+        const isEnd = index === userClicks.length - 1;
+
+        if (isSnappedToEnd) {
+          if (isStart) return getSavedPointStyle("Start/End", "#00A86B");
+          if (isEnd) return getSavedPointStyle("", "#00A86B");
+        }
+        if (isStart) return getSavedPointStyle("Start", "#00A86B");
+        if (isEnd) return getSavedPointStyle("End", "#D32F2F");
+        return createManualPointStyle("", "#000", 6.5);
+      }
+      return new Style({
+        stroke: new Stroke(getRouteStrokeStyle()),
+      });
+    },
+  });
+
+  map.addLayer(manualRouteLayer);
+
+  const isOnePoint = pathCoords.length === 1;
+
+  updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords);
+  createElevationProfile(pathCoords);
+
+  setTimeout(() => {
+    map.getView().fit(manualRouteLayer.getSource().getExtent(), {
+      padding: MAP_VIEW_PADDING,
+      duration: 1200,
+    });
+    map.render();
+  }, 100);
 }
-
-window.displayCachedRoute = displayCachedRoute
 
 //#endregion
 
@@ -1494,7 +1604,7 @@ function removeExistingStats() {
   return true;
 };
 
-export function updateManualRoute() {
+export async function updateManualRoute() {
   const map = getMap();
   if (!map) return;
 
@@ -1510,7 +1620,12 @@ export function updateManualRoute() {
   const isSnappedToEnd = checkIfCircularRoute();
   const features = [];
   const elevationGainDisplay = formatElevation(calculateElevationGain(pathCoords));
-  
+
+  if (!window.appConfig.loggedIn) {
+    await localforage.setItem('cachedUserClicks', userClicks);
+    await localforage.setItem('cachedPathCoords', pathCoords);
+    await localforage.setItem('cachedManualRouteStats', {"total_distance": totalDistanceKm, "elevation_gain": calculateElevationGain(pathCoords)});
+  }
   setLastKnownDistanceKm(totalDistanceKm);
 
   userClicks.forEach((point, index) => {
@@ -2035,8 +2150,6 @@ export function initUi() {
     initCursorManager(map, getCurrentMode, getClickMode);
   }
 
-  localforage.setItem("lastRoutingMode", "auto");
-
   applyTheme(getTheme());
 
   initSaveRoute();
@@ -2053,8 +2166,11 @@ export function initUi() {
 
   // These event listeners are for settings and preferences.
   setOnDistanceUnitChange(() => handleDistanceUnitToggle());
-  window.addEventListener("load", checkIfMobile);
+
+  // This ensures that points are loaded near instantly 
   window.addEventListener('DOMContentLoaded', loadAndDisplaySavedPoints);
+
+  // This ensures that the theme of the app changes if system settings switch to dark mode after sunset 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     applyTheme(getTheme());
   });
@@ -2123,11 +2239,12 @@ export function initUi() {
   addClickListener(donateModalCloseButton, () => showModal(false, donateModal), "click");
   addClickListener(donateModalMaybeLaterButton, () => showModal(false, donateModal), "click");
   addClickListener(donateButton, () => showModal(true, donateModal), "click");
-  addClickListener(donateModal, (e) => closeModalUponOutsideClick(e, donateModal, donateModalContent), "click");
+  addClickListener(donateModal, (e) => closeModalUponOutsideClick(e, donateModalContent, donateModal), "click");
 
   // These event listeners are for the load last route modal
-  addClickListener(loadLastRouteModalDismissButton, dismissLastLoadedRoute, "click");
-  addClickListener(loadLastRouteModalLoadButton, handleLoadCachedAutoRoute, "click");
+  addClickListener(loadLastRouteModalDismissButton, discardLastLoadedRoute, "click");
+  addClickListener(loadLastRouteModalLoadButton, handleLoadCachedRoute, "click");
+  addClickListener(loadLastRouteModal, (e) => closeModalUponOutsideClick(e, loadLastRouteModalContent, loadLastRouteModal), "click");
 
   onMapClick(mapClickHandler);
 
