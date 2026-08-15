@@ -2199,6 +2199,9 @@ export function initUi() {
   // These event listeners are for settings and preferences.
   setOnDistanceUnitChange(() => handleDistanceUnitToggle());
 
+  // This ensures mobile users are warned about the poor design of the mobile web UI
+  window.addEventListener("load", checkIfMobile);
+
   // This ensures that points are loaded near instantly 
   window.addEventListener('DOMContentLoaded', loadAndDisplaySavedPoints);
 
