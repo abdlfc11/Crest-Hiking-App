@@ -12,6 +12,38 @@
   reference it since both are always shown together on this page).
 */
 
+/* local tokens */
+:root {
+  --map-bg-fallback: #f8f9fa;
+  --mode-button-hover-text: #334155;
+  --action-shadow-sm: 0 1px 3px rgba(37, 99, 235, 0.2); 
+  --generate-button-hover-shadow: 0 3px 6px rgba(37, 99, 235, 0.3);
+  --generate-button-active-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+  --coord-input-focus-border: #3b82f6;
+  --coord-input-focus-ring: 0 0 3px 1px rgba(59, 130, 246, 0.2), 0 0 8px 3px rgba(59, 130, 246, 0.1);
+  --coord-input-active-border: #5a76e7;
+  --home-button-bg: rgb(100 116 139 / 0.65);
+  --home-button-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --home-button-hover-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  --point-name-color: #ef4444;
+}
+
+html.dark {
+  --coord-input-bg: #374151;
+  --coord-input-text: #f3f4f6;
+  --coord-input-border: #4b5563;
+  --coord-input-placeholder: #6b7280;
+  --coord-button-bg: #4b5563;
+  --coord-button-border: #6b7280;
+  --coord-button-hover-bg: #6b7280;
+  --coord-button-hover-border: #9ca3af;
+  --mode-button-bg: #374151;
+  --mode-button-text: #d1d5db;
+  --mode-button-border: #4b5563;
+  --mode-button-hover-bg: #4b5563;
+  --error-message-color: #f87171;
+}
+
 /* Map container */
 #map {
   position: absolute;
@@ -19,8 +51,9 @@
   left: 0;
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   z-index: 1;
-  background: #f8f9fa;
+  background: var(--map-bg-fallback); /* fallback before OL tiles paint */
   overflow: hidden;
 }
 
@@ -31,34 +64,35 @@
 }
 
 /* MODE TOGGLING */
-
 #mode-toggle {
   position: absolute;
   top: 5px;
   left: 70px;
   z-index: 900;
-  background: rgb(255 255 255 / 0.65);
+  background: var(--panel-glass-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  padding: 8px;
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  border: 1px solid var(--border-alt);
+  padding: 5px;
   font-family: var(--font-sans);
+  max-width: calc(100vw - 90px);
 }
 
 .mode-toggle-container {
   display: flex;
-  gap: 4px;
+  gap: 3px;
+  flex-wrap: wrap;
 }
 
 .mode-button {
-  padding: 8px 16px;
-  background: rgb(241 245 249 / 0.75);
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 5px 11px;
+  background: rgb(241 245 249 / 0.75); /* --surface-subtle base color at a one-off alpha */
+  color: var(--muted-strong);
+  border: 1px solid var(--border-alt);
+  border-radius: 5px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -66,40 +100,40 @@
 }
 
 .mode-button:hover {
-  background: #e2e8f0;
-  border-color: #94a3b8;
-  color: #334155;
+  background: var(--secondary-bg);
+  border-color: var(--placeholder);
+  color: var(--mode-button-hover-text);
 }
 
 .mode-button.active {
   background: var(--blue);
   color: white;
-  border-color: #1e40af;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  border-color: var(--blue-dark-alt);
+  box-shadow: var(--action-shadow-sm);
 }
 
 /* AUTOMATIC ROUTE GENERATION */
-
 #start-end {
   position: absolute;
-  top: 60px;
+  top: 48px;
   left: 70px;
   z-index: 1000;
-  background: rgb(255 255 255 / 0.65);
+  background: var(--panel-glass-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  min-width: 280px;
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  border: 1px solid var(--border-alt);
+  min-width: 240px;
+  max-width: calc(100vw - 90px);
   font-family: var(--font-sans);
 }
 
 .coords-header {
-  background: rgb(241 245 249 / 0.65);
-  padding: 12px 16px;
-  border-radius: 8px 8px 0 0;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--surface-subtle); /* --surface-subtle base color at a one-off alpha */
+  padding: 8px 12px;
+  border-radius: var(--panel-radius) var(--panel-radius) 0 0;
+  border-bottom: 1px solid var(--border-alt);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -107,17 +141,17 @@
 
 .coords-title {
   font-weight: 600;
-  font-size: 14px;
-  color: #1e293b;
+  font-size: 13px;
+  color: var(--ink);
   letter-spacing: -0.01em;
 }
 
 .coords-content {
-  padding: 12px 16px;
+  padding: 8px 12px;
 }
 
 .coord-row {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .coord-row:last-child {
@@ -126,57 +160,57 @@
 
 .coord-label {
   display: block;
-  font-size: 13px;
-  color: #475569;
+  font-size: 12px;
+  color: var(--muted-strong);
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   pointer-events: none;
 }
 
 .coord-input-group {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .coord-input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #e1cbcb;
-  border-radius: 8px;
-  font-size: 13px;
+  min-width: 0;
+  padding: 6px 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border-alt);
+  border-radius: 6px;
+  font-size: 12px;
   font-family: inherit;
   background: white;
-  color: #1e293b;
-  width: 180px;
+  color: var(--ink);
+  width: 150px;
+  max-width: 100%;
   transition: all 0.14s ease-in-out;
 }
 
-.coord-input:hover {
-  border-color: #94a3b8;
-}
-
 .coord-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
-    0 0 12px 4px rgba(59, 130, 246, 0.1);
+  border-color: var(--coord-input-focus-border);
+  box-shadow: var(--coord-input-focus-ring);
   outline: none;
 }
 
 .coord-input.input-error {
-  border-color: #fc4646;
+  border-color: var(--error-accent);
 }
 
 .coord-input.is-active {
-  border-color: #5a76e7;
+  border-color: var(--coord-input-active-border);
 }
 
 .coord-button {
-  padding: 8px 16px;
-  background: #f1f5f9;
-  color: #1e293b;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 6px 12px;
+  background: var(--surface-subtle);
+  color: var(--ink);
+  border: 1px solid var(--secondary-bg-hover);
+  border-radius: 5px;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -184,86 +218,92 @@
 }
 
 .coord-button:hover {
-  background: #e2e8f0;
-  border-color: #94a3b8;
+  background: var(--secondary-bg);
+  border-color: var(--placeholder);
   transform: translateY(-1px);
 }
 
 .set-start-end-coord {
-  width: clamp(8rem, 8vw, 10rem);
-  font-size: clamp(0.8rem, 0.3vw, 2rem);
+  width: clamp(6.5rem, 7vw, 8.5rem);
+  font-size: clamp(0.75rem, 0.25vw, 1.1rem);
 }
 
 .set-start-end-coord:active {
   transform: translateY(0);
 }
 
+#auto-mode-routing-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-sm);
+  padding-top: .5rem;
+}
+
 .generate-button {
   width: 100%;
-  padding: 12px;
+  padding: 8px;
   background: var(--blue);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 12px;
+  margin-top: 8px;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  box-shadow: var(--action-shadow-sm);
   white-space: nowrap;
 }
 
 .generate-button:hover {
-  background: #1e40af;
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  background: var(--blue-dark);
+  box-shadow: var(--generate-button-hover-shadow);
   transform: translateY(-1px);
 }
 
 .generate-button:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+  box-shadow: var(--generate-button-active-shadow);
 }
 
 /* MANUAL ROUTE CREATION */
-
 #manual-mode-content {
   position: absolute;
-  top: 60px;
+  top: 48px;
   left: 70px;
   z-index: 1000;
-  background: rgb(255 255 255 / 0.65);
+  background: var(--panel-glass-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  min-width: 280px;
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  border: 1px solid var(--border-alt);
+  min-width: 240px;
+  max-width: calc(100vw - 90px);
   font-family: var(--font-sans);
 }
 
 .manual-instruction {
-  font-size: 13px;
-  color: #475569;
-  margin-bottom: 12px;
-  padding: 8px;
-  background: #f1f5f9;
+  font-size: 12px;
+  color: var(--muted-strong);
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: var(--surface-subtle);
   border-radius: 4px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-alt);
 }
 
 /* SAVE / LOAD ROUTE PANEL */
-
 #save-route-container {
   position: static;
 }
 
-/* wrapper for both the toggle button and the panel underneath it */
 #save-route-button-container {
   z-index: 1000;
   position: absolute;
   right: 9rem;
-  width: 15rem;
+  width: 13rem;
+  max-width: calc(100vw - 2rem);
   display: flex;
   flex-direction: column;
 }
@@ -273,16 +313,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgb(255 255 255 / 0.65);
+  background: var(--panel-glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 var(--panel-radius) var(--panel-radius);
   border: none;
-  color: #1f2937;
-  padding: 8px 14px;
-  font-size: 14px;
+  color: var(--ink);
+  padding: 6px 12px;
+  font-size: 13px;
   cursor: pointer;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.15s ease-in-out;
 }
 
@@ -298,27 +338,27 @@
   border-radius: 0;
 }
 
-/* panel sits below the button, inside the same container */
 #save-route {
   overflow: hidden;
   height: 0;
   margin-right: 0.5rem;
-  background: rgb(255 255 255 / 0.65);
+  background: var(--panel-glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 var(--panel-radius) var(--panel-radius);
   border: none;
   border-top: none;
-  width: 15rem;
+  width: 13rem;
+  max-width: 100%;
   transition: all 0.15s ease-in-out;
 }
 
 #save-route-toggle-button:hover {
-  background: rgba(223, 221, 221, 0.65);
+  background: var(--panel-glass-bg-hover);
 }
 
 #save-route-toggle-button:hover + #save-route {
-  background: rgba(223, 221, 221, 0.65);
+  background: var(--panel-glass-bg-hover);
 }
 
 /* Generate Button positioning anchor */
@@ -328,30 +368,30 @@
 
 /* Home Button */
 .home-button {
-  background: rgb(100 116 139 / 0.65);
+  background: var(--home-button-bg);
   color: white;
-  border-radius: 6px;
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
+  border-radius: 5px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--home-button-shadow);
   border: none;
 }
 
 .home-button i {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .home-button:hover {
-  background: #475569;
+  background: var(--muted-alt);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--home-button-hover-shadow);
 }
 
 .home-button:active {
@@ -363,115 +403,173 @@
   display: none;
 }
 
-/* DELETE POINT MODAL (page-specific content styling only;
-   overlay/card/button styling lives in components/modal.css) */
-
+/* DELETE POINT MODAL */
 #point-name-display {
   font-weight: 700;
-  color: #ef4444;
+  color: var(--point-name-color);
 }
 
-/* DARK MODE */
-/* Only the actual map tiles / #map are excluded from theming */
+/* RESPONSIVE STYLES */
 
-html.dark #start-end,
-html.dark #manual-mode-content,
-html.dark #route-stats,
-html.dark #mode-toggle,
-html.dark #remove-point {
-  background: rgb(31 41 55 / 0.75);
-  border-color: #4b5563;
-  color: #f3f4f6;
+@media (max-width: 1024px) {
+  #mode-toggle,
+  #start-end,
+  #manual-mode-content {
+    left: 14px;
+    max-width: calc(100vw - 28px);
+  }
+
+  #save-route-button-container {
+    right: 1rem;
+    width: 12rem;
+  }
+
+  #save-route {
+    width: 12rem;
+  }
 }
 
-html.dark #save-route,
-html.dark #save-route-toggle-button {
-  background: rgb(31 41 55 / 0.75);
-  color: #f3f4f6;
+@media (max-width: 768px) {
+  #mode-toggle {
+    top: 6px;
+    left: 10px;
+    padding: 4px;
+    max-width: calc(100vw - 20px);
+  }
+
+  .mode-button {
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+
+  #start-end,
+  #manual-mode-content {
+    top: 42px;
+    left: 10px;
+    min-width: 0;
+    width: calc(100vw - 20px);
+    max-width: 300px;
+  }
+
+  .coords-header,
+  .coords-content {
+    padding: 7px 10px;
+  }
+
+  .coords-title {
+    font-size: 12px;
+  }
+
+  .coord-label {
+    font-size: 11px;
+  }
+
+  .coord-input {
+    width: auto;
+    min-width: 110px;
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .coord-input-group {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .coord-button {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .set-start-end-coord {
+    width: 100%;
+    font-size: 0.8rem;
+  }
+
+  .generate-button {
+    padding: 7px;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  .manual-instruction {
+    font-size: 11px;
+    padding: 5px 7px;
+    margin-bottom: 6px;
+  }
+
+  #save-route-button-container {
+    right: 10px;
+    width: min(12rem, calc(100vw - 20px));
+  }
+
+  #save-route {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  #save-route-toggle-button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
 }
 
-html.dark #save-route-toggle-button:hover + #save-route,
-html.dark #save-route-toggle-button:hover {
-  background: rgba(18, 25, 34, 0.75);
-  color: #f3f4f6;
-}
-
-html.dark .coords-header,
-html.dark .stats-header {
-  background: rgb(55 65 81 / 0.75);
-  border-bottom-color: #4b5563;
-}
-
-html.dark .coords-title,
-html.dark .stats-title {
-  color: #f3f4f6;
-}
-
-html.dark .coord-label,
-html.dark .stat-label,
-html.dark .manual-instruction {
-  color: #9ca3af;
-}
-
-html.dark .manual-instruction {
-  background-color: #1e293b;
-  border-color: #1e293b;
-}
+/* DARK MODE
+   Backgrounds/text now inherit from --panel-glass-bg, --panel-glass-bg-hover,
+   --surface-subtle and --muted-strong (all redefined in html.dark in tokens.css),
+   so the panel containers no longer need page-local dark overrides here — only
+   the values with no token equivalent remain. */
 
 html.dark .coord-input {
-  background: #374151;
-  color: #f3f4f6;
-  border-color: #4b5563;
+  background: var(--coord-input-bg);
+  color: var(--coord-input-text);
+  border-color: var(--coord-input-border);
 }
 
 html.dark .coord-input:focus,
 html.dark .coord-input.is-active {
-  border-color: #3b82f6;
-  box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.2),
-    0 0 12px 4px rgba(59, 130, 246, 0.1);
+  border-color: var(--coord-input-focus-border);
+  box-shadow: var(--coord-input-focus-ring);
   outline: none;
 }
 
 html.dark .coord-input.input-error {
-  border-color: #fc4646;
+  border-color: var(--error-accent);
 }
 
 html.dark .coord-input::placeholder {
-  color: #6b7280;
+  color: var(--coord-input-placeholder);
 }
 
 html.dark .coord-button {
-  background: #4b5563;
-  color: #f3f4f6;
-  border-color: #6b7280;
+  background: var(--coord-button-bg);
+  color: var(--coord-input-text);
+  border-color: var(--coord-button-border);
 }
 
 html.dark .coord-button:hover {
-  background: #6b7280;
-  border-color: #9ca3af;
-}
-
-html.dark .generate-button {
-  background: var(--blue);
-  color: #ffffff;
+  background: var(--coord-button-hover-bg);
+  border-color: var(--coord-button-hover-border);
 }
 
 html.dark .mode-button {
-  background: #374151;
-  color: #d1d5db;
-  border-color: #4b5563;
+  background: var(--mode-button-bg);
+  color: var(--mode-button-text);
+  border-color: var(--mode-button-border);
 }
 
 html.dark .mode-button.active {
   background: var(--blue);
   color: #ffffff;
-  border-color: #3b82f6;
+  border-color: var(--coord-input-focus-border);
 }
 
 html.dark .mode-button:hover {
-  background: #4b5563;
+  background: var(--mode-button-hover-bg);
 }
 
 html.dark .error-message {
-  color: #f87171;
+  color: var(--error-message-color);
 }

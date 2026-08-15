@@ -27,16 +27,21 @@
   /* Surfaces */
   --bg: #ffffff;
   --surface-bg: rgba(255, 255, 255, 0.92);
+  --surface-subtle: #f1f5f9;
   --field-bg: #ffffff;
-  --glass-bg: rgba(249, 250, 251, 0.4);   /* the frosted slide-panel background */
+  --glass-bg: rgba(249, 250, 251, 0.4);   /* the glassmorphism slide-panel background */
   --secondary-bg: #e2e8f0;
   --secondary-bg-hover: #cbd5e1;
+
+  --panel-glass-bg: rgb(255 255 255 / 0.65); /* the glassmorphism routing panel background */
+  --panel-glass-bg-hover: rgba(223, 221, 221, 0.65);
 
   /* Text */
   --ink: #1f2937;
   --secondary-ink: #ffffff;
   --ink-strong: #111827;
   --muted: #64748b;
+  --muted-strong: #475569;
   --muted-alt: #4b5563;
   --placeholder: #94a3b8;
 
@@ -47,22 +52,37 @@
 
   --btn-bg: #3c3c3c;
   --btn-bg-hover: #454545;
-  --secondary-btn-bg: #FFFFFF;
+  --secondary-btn-bg: #9d9797;
+  --secondary-btn-bg-hover: #888484;
   --btn-disabled-bg: #93b4f2;
   --btn-disabled-text: #ffffff;
 
-  /* Solid card surface (opaque alternative to the frosted --glass-bg) */
+  /* Solid card surface (opaque alternative to the glassmorphism bg) */
   --card-bg: #ffffff;
   --card-border: #b9b8b8;
 
   /* Layout and shapes */
+  --panel-radius: 7px;
+
   --radius-lg: 20px;
   --radius-md: 12px;
   --radius-sm: 8px;
   --radius-pill: 9999px;
 
+  /* Spacing */
+  --space-3xs: 0.125rem; 
+  --space-2xs: 0.25rem; 
+  --space-xs:  0.5rem;  
+  --space-sm:  0.75rem; 
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
   --shadow-surface: 0 10px 35px rgba(15, 23, 42, 0.06);
   --shadow-lift: 0 4px 12px rgba(37, 99, 235, 0.28);
+  --panel-shadow: 0 2px 6px rgba(0,0,0,0.1);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -89,16 +109,22 @@
 html.dark {
   --bg: #212224;
   --surface-bg: rgba(35, 36, 38, 0.8);
+  --surface-subtle: rgb(55 65 81 / 0.75);
   --field-bg: #1c1c1e;
   --secondary-field-bg: #2c3038;
   --glass-bg: rgba(17, 24, 39, 0.85);
+
   --secondary-bg: rgb(69, 68, 68);
   --secondary-bg-hover: rgb(87, 87, 87);
+
+  --panel-glass-bg: rgb(31 41 55 / 0.75);
+  --panel-glass-bg-hover: rgba(18, 25, 34, 0.75);
 
   --ink: #f8fafc;
   --secondary-ink: #ffffff;
   --ink-strong: #f3f4f6;
   --muted: #94a3b8;
+  --muted-strong: #9ca3af;
   --muted-alt: #9ca3af;
   --placeholder: #64748b;
 

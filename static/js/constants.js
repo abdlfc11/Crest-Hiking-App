@@ -1,0 +1,1 @@
+export const MAP_VIEW_PADDING = [300, 340, 300, 430]

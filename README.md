@@ -1,12 +1,13 @@
-# Crestr — Hiking Route Finder
+# Crestr - Hiking Route Finder
 
-[![GitHub stars](https://img.shields.io/github/stars/abdlfc11/Crest-Hiking-App?style=social)](https://github.com/abdlfc11/Crest-Hiking-App/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/abdlfc11/Crest-Hiking-App?style=social)](https://github.com/abdlfc11/Crest-Hiking-App/network/members)
-[![GitHub last commit](https://img.shields.io/github/last-commit/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/commits/main)
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/commits/main)
-[![GitHub release](https://img.shields.io/github/v/release/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/releases)
-[![GitHub issues](https://img.shields.io/github/issues/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/abdlfc11/Crest-Hiking-App)](https://github.com/abdlfc11/Crest-Hiking-App/pulls)
+[![Stars](https://img.shields.io/github/stars/abdlfc11/Crest-Hiking-App?style=for-the-badge&logo=github&color=blue)](https://github.com/abdlfc11/Crest-Hiking-App/stargazers)
+[![Forks](https://img.shields.io/github/forks/abdlfc11/Crest-Hiking-App?style=for-the-badge&logo=github&color=blue)](https://github.com/abdlfc11/Crest-Hiking-App/network/members)
+[![Last Commit](https://img.shields.io/github/last-commit/abdlfc11/Crest-Hiking-App?style=for-the-badge&logo=github)](https://github.com/abdlfc11/Crest-Hiking-App/commits/main)
+[![Commit Activity](https://img.shields.io/github/commit-activity/m/abdlfc11/Crest-Hiking-App?style=for-the-badge&logo=github)](https://github.com/abdlfc11/Crest-Hiking-App/commits/main)
+[![Release](https://img.shields.io/github/v/release/abdlfc11/Crest-Hiking-App?style=for-the-badge&logo=github)](https://github.com/abdlfc11/Crest-Hiking-App/releases)
+[![Issues](https://img.shields.io/github/issues/abdlfc11/Crest-Hiking-App?style=for-the-badge&logo=github)](https://github.com/abdlfc11/Crest-Hiking-App/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/abdlfc11/Crest-Hiking-App?style=for-the-badge&logo=github)](https://github.com/abdlfc11/Crest-Hiking-App/pulls)
+[![Liberapay Receives](https://img.shields.io/liberapay/receives/abd_ulll16.svg?style=for-the-badge&logo=liberapay)](https://liberapay.com/abd_ulll16/)
 
 **An open-source hiking route planner for Cumbria.** Generate optimal routes with elevation awareness, save points of interest, and export to GPX or GeoJSON, without any subscriptions.
 

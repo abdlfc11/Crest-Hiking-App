@@ -62,6 +62,22 @@
   box-shadow: none;
 }
 
+/* SECONDARY BUTTON */
+
+.btn-secondary {
+  background-color: var(--secondary-btn-bg);
+  color: #FFFFFF;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-btn-bg-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(1px);
+}
+
 /* BTN GHOST */
 
 .btn-ghost {
