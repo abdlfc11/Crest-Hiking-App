@@ -6,6 +6,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
 from src.Pathfinding.Nodefinder import NodeFinder as n
+from src.Routes.helpers import naismith_helper
 import rasterio as r
 import pickle as p
 import math
@@ -80,42 +81,6 @@ for i, elev in enumerate(elev_samples):
 print(f"Elevation added to all vertices\nTest: {graph.vs[100]['elev']}")
 
 #region HELPER FUNCTIONS
-def naismith_helper(horizontal_distance_metres: float, elevation_difference_metres: float, slope_ratio: float) -> dict:
-    """
-    PURPOSE : this is a function used to calculate the weight of an edge using Naismith's rule
-
-    PARAMS : takes euclidean distance, elevation difference and slope ratio as parameters
-        - euclidean distance + elevation difference --> used in naismith formula
-        - slope ratio --> used to determine which avg speed (in mph) to use
-
-    RETURN VALUE : dictionary of ascent and descent value (assinged to edges depending on if the edge is going up or down)
-    """
-
-    # group of logic conditions to set walking speed based on elevation gain (in the form of the slope ratio)
-    # absoloute val used as it doesn't matter if the value is negative or positive --> reduces number of conditions and likelihood of errors
-    abs_slope = abs(slope_ratio) 
-
-    if abs_slope < 0.09: # flat / gentle grade (Under 5°)
-        avg_walking_speed_metres = 1.4  
-    elif abs_slope < 0.21: # moderate grade (5° - 12°)
-        avg_walking_speed_metres = 1.1  
-    elif abs_slope < 0.46: # steep mountain grade (12° - 25°)
-        avg_walking_speed_metres = 0.8  
-    else: # extreme / scramble grade (+ 25°)
-        avg_walking_speed_metres = 0.5  
-
-    # distance calculations
-    ascent_metres = max(0, elevation_difference_metres) # max is used to ensure there is only a positive value, rather than a negative value for the ASCENT
-    descent_metres = abs(min(0, elevation_difference_metres)) # min is used to ensure there is only a negative, or zero, value for the DESCENT
-
-    # ETA calculations
-    flat_time = horizontal_distance_metres / avg_walking_speed_metres # this is the time taken to walk the distance if it was a straight line
-    climb_time = (ascent_metres / 10) * 60 # this is the time taken to walk UP the slope caused by the difference in elevation
-    descent_time = (descent_metres / 7.5) * 60 # this is the time taken to walk DOWN the slope caused by the difference in elevation
-    return { # dict is used to reference the helper function more effectively
-        "ascent" : flat_time + climb_time,
-        "descent" : flat_time + descent_time
-    }
 
 # this is a function used to calculate the addition to edge costs based on their surface, sac_scale and visibility tag values
 def get_terrain_factor(sac_scale: str, trail_visibility: str, surface: str) -> float:
