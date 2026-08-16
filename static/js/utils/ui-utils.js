@@ -284,32 +284,35 @@ export function createNoRouteCard() {
  * @returns {string} HTML string for the stats panel showing key route details 
  */
 export function createStatsPanel(distanceDisplay, etaDisplay, elevationGain) {
-  return `
-      <div class="stats-header">
-          <span class="stats-title">Route Information</span>
-          <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
-      </div>
-      <div id="stat-content-and-chart-container">
-          <div class="stats-content">
-              <div class="stat-row">
-                  <span class="stat-label">Distance:</span>
-                  <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">ETA:</span>
-                  <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
-              </div>
-              <div class="stat-row">
-                  <span class="stat-label">Elevation Gain:</span>
-                  <span class="stat-value" id="route-elevation-gain-display">${elevationGain}</span>
-              </div>
-          </div>
 
-          <div class="chart-wrapper"> 
-              <div id="elevation-chart-container">
-                  <canvas id="elevation-chart"></canvas>
-              </div>
-          </div>
-      </div>
-  `
+    const elevationGainDisplay = elevationGain == "+0 m" ? "No Data" : elevationGain
+
+    return `
+        <div class="stats-header">
+            <span class="stats-title">Route Information</span>
+            <button id="toggle-elevation-chart" class="stats-button">Elevation Profile</button>
+        </div>
+        <div id="stat-content-and-chart-container">
+            <div class="stats-content">
+                <div class="stat-row">
+                    <span class="stat-label">Distance:</span>
+                    <span class="stat-value" id="route-distance-display">${distanceDisplay}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">ETA:</span>
+                    <span class="stat-value" id="route-eta-display">${etaDisplay}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Elevation Gain:</span>
+                    <span class="stat-value" id="route-elevation-gain-display">${elevationGainDisplay}</span>
+                </div>
+            </div>
+
+            <div class="chart-wrapper"> 
+                <div id="elevation-chart-container">
+                    <canvas id="elevation-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    `
 }

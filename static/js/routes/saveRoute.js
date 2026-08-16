@@ -152,8 +152,10 @@ async function handleSaveRoute(e) {
           "month": "2-digit",
           "year": "numeric"
         }).format(today);
+
+        console.log(routeInfo)
         
-        elevDisplayValue = formatElevation(routeInfo.elevation_gain_metres);
+        elevDisplayValue = routeInfo.elevation_gain_metres === 0 ? "No Data" : formatElevation(routeInfo.elevation_gain_metres);
 
         eta = formatETA(routeInfo.eta_seconds);
         
