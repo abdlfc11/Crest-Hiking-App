@@ -93,22 +93,31 @@ def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
 
     converted_coords = []
 
-    if not coordinates or len(coordinates) < 2:
-        return({"success": False, "message": "Route is too small"})
+    if not coordinates:
+        return({"success": False, "message": "No coordinates passed in."})
+    
+    if len(coordinates) < 2:
+        return {
+            "distance_m": 0.0,
+            "distance_km": 0.0,
+            "elevation_gain_m": 0,
+            "eta_seconds": 0
+        }
 
     total_distance_m = 0.0
     total_elevation_gain_m = 0.0
     total_seconds = 0.0
 
-    has_elevation = len(coordinates[0]) == 3
-
     for i in range(len(coordinates) - 1):
+
+        has_elevation = len(coordinates[i]) == 3 and len(coordinates[i+1]) == 3
+
         lon1, lat1 = coordinates[i][0], coordinates[i][1]
         lon2, lat2 = coordinates[i + 1][0], coordinates[i + 1][1]
 
-        segement_distance = haversine(lon1, lat1, lon2, lat2)
+        segment_distance = haversine(lon1, lat1, lon2, lat2)
 
-        total_distance_m += segement_distance
+        total_distance_m += segment_distance
 
         # elevation gain (only if available)
         if has_elevation:
@@ -118,10 +127,10 @@ def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
             if e1 is not None and e2 is not None:
                 elevation_difference = e2 - e1
 
-                slope_ratio = elevation_difference / segement_distance if total_distance_m > 0 else 0.0 
+                slope_ratio = elevation_difference / segment_distance if segment_distance > 0 else 0.0 
 
                 segment_eta = naismith_helper(
-                    horizontal_distance_metres=segement_distance,
+                    horizontal_distance_metres=segment_distance,
                     elevation_difference_metres=elevation_difference,
                     slope_ratio=slope_ratio
                 )

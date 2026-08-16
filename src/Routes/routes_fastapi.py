@@ -35,7 +35,8 @@ from src.Routes.routes_schemas import (
     SaveRouteModel,
     LoadRouteModel,
     DeleteRouteModel,
-    DownloadRouteModel
+    DownloadRouteModel,
+    NormaliseRouteModel
 )
 
 from src.Routes.helpers import (
@@ -52,6 +53,37 @@ router = APIRouter()
 
 # FASTAPI ROUTES 
 
+#region Normalised Stats
+@router.post(
+    '/routing/normalise-route-stats',
+    dependencies=[
+        Depends(
+            RateLimiter(
+                limiter=Limiter(Rate(60, Duration.MINUTE)),
+                callback=rate_limit_exceeded_callback
+            )
+        )
+    ]
+)
+def calculate_path(
+    data: NormaliseRouteModel
+):
+    try: 
+        routeStats = normalise_route(data.coordinates)
+
+        return routeStats
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "message": "There was an error normalising route stats. "
+            }
+        )
+#endregion
+
 #region Calculating Path 
 
 @router.post(
@@ -59,7 +91,7 @@ router = APIRouter()
     dependencies=[
         Depends(
             RateLimiter(
-                limiter=Limiter(Rate(10, Duration.MINUTE)),
+                limiter=Limiter(Rate(60, Duration.MINUTE)),
                 callback=rate_limit_exceeded_callback
             )
         )

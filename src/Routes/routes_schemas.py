@@ -17,3 +17,6 @@ class DeleteRouteModel(BaseModel):
 class DownloadRouteModel(BaseModel):
     route_name: str
     route_type: str
+
+class NormaliseRouteModel(BaseModel):
+    coordinates: list
