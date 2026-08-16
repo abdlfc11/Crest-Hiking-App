@@ -270,6 +270,8 @@ export function getClickMode() {
   return clickMode;
 }
 
+//#region MOBILE CHECK
+
 /**
  * Checks if user is on mobile device and advices to use Crestr on desktop / laptop instead 
  * 
@@ -300,6 +302,7 @@ function checkIfMobile() {
   }
 }
 //#endregion
+
 //#region DONATE MODAL
 
 //#region GENERAL MODAL
@@ -1393,7 +1396,7 @@ async function handleLoadAutoCachedRoute() {
       const parsedStats = typeof cachedRouteStats === "string" ? JSON.parse(cachedRouteStats) : cachedRouteStats;
       setLastAutoRouteStats(parsedStats)
 
-      setLastKnownDistanceKm(cachedRouteStats.total_distance);
+      setLastKnownDistanceKm(parsedStats.total_distance);
       startCoordEntry.value = formatLatLon(toLonLat(startWebMercator))
       endCoordEntry.value = formatLatLon(toLonLat(endWebMercator))
 
