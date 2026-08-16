@@ -88,7 +88,6 @@ export async function getPathSegment(start, end) {
   });
 
   if (!response.ok) {
-    logError("Calculating Path", response, null, "NO_PATH_FOUND")
     throw new Error("Sorry, there was an unexpected error whilst calculating the path.");
   }
 
@@ -116,7 +115,7 @@ export async function addManualPoint(x, y) {
   const lonLatCoords = toLonLat(currentClick);
   const isInCumbria = isPointInPolygon(lonLatCoords, cumbriaBoundary);
   if (!isInCumbria) {
-      return {"success": false, "message": "Please click on a point within Cumbria"};
+    throw new Error("Please click on a point within Cumbria", {cause: "Please click on a point within Cumbria."});
   }
 
   // this restores the redo stack
@@ -173,10 +172,7 @@ export async function addManualPoint(x, y) {
       const data = await getPathSegment(lastLonLat, finalLonLat);
 
       if (!data.success) {
-        return {
-          "success": false,
-          "message": "Sorry, we could not find a path to that location."
-        };
+        throw new Error("Could not find path", {cause : "Sorry, we could not find a path to that location."})
       };
 
       segment = data.coordinates;
@@ -197,7 +193,6 @@ export async function addManualPoint(x, y) {
     }
   }
   catch (error) {
-    logError("Calculating Path", error.message, null, "NO_PATH_FOUND");
     throw error;
   }
 

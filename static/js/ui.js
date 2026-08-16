@@ -1814,8 +1814,13 @@ async function manualRouteClickHandler(event) {
       throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
     }
   } catch (error) {
-    showToast("Sorry, there was an error whilst creating the path.");
-    logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
+    if (error.cause) {
+      showToast(error.cause, "error", null);
+    }
+    else {
+      showToast("Sorry, there was an error whilst creating the path", "error", null);
+      logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
+    }
     return;
   }
 }
