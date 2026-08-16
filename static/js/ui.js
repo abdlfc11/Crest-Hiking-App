@@ -896,7 +896,6 @@ async function handleRouteImport() {
     }
 
     clearImportRouteInput();
-    console.log(`Importing route from URL: ${url}`);
     return url;
   }
 }
@@ -1248,8 +1247,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
 
-    console.log(`AUTO ROUTE STATS : ${routeStats}`);
-
     displayAutoRouteStats(getLastAutoRouteStats());
     
     resetElevationChart();
@@ -1317,7 +1314,6 @@ async function displayPath(data) {
       await localforage.setItem("cachedAutoRouteStartPointCoords", startMercatorCoord);
       await localforage.setItem("cachedAutoRouteEndPointCoords", endMercatorCoord);
       await localforage.setItem("cachedAutoRouteStats", data.route_stats);
-      console.log(data.route_stats);
     }
   }
 
@@ -1335,8 +1331,8 @@ async function displayPath(data) {
   return data.route_stats;
   } 
   catch(error) {
-    console.log(error.message);
     showToast('Sorry, there was an unexpected error when calculating your route, please try again later.')
+    throw new Error(error.message)
   }
 };
 
@@ -1376,8 +1372,8 @@ async function handleLoadCachedRoute() {
     }
   }
   catch(error) {
-    console.log(error.message)
     showToast("There was an error loading you last route", "error", null);
+    throw new Error(error.message)
   }
   finally {
     localforage.clear();
@@ -1498,10 +1494,6 @@ async function displayAutoCachedRouteStats(routeStats) {
     if (statsDiv) {
       statsDiv.remove();
     };
-    
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
-    console.log(`AUTO CACHED ROUTES : ${JSON.stringify(routeStats)}`)
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
 
     statsDiv = document.createElement("div");
     statsDiv.id = "route-stats";
@@ -1516,7 +1508,6 @@ async function displayAutoCachedRouteStats(routeStats) {
 
 async function handleLoadManualCachedRoute() {
 
-  console.log('updating route state')
   const updateManualRouteState = (newUserClicks, newPathCoords, newSegmentCache) => {
     manualRouteState.userClicks = newUserClicks;
     manualRouteState.pathCoords = newPathCoords;
@@ -1670,8 +1661,6 @@ export async function updateManualRoute() {
 
     const routeStats = await routeStatsResponse.json();
 
-    console.log(JSON.stringify(routeStats));
-
     const distanceDisplay = formatDistance(routeStats.distance_km);
     const etaDisplay = formatETA(routeStats.eta_seconds);
     const isSnappedToEnd = checkIfCircularRoute();
@@ -1735,7 +1724,7 @@ export async function updateManualRoute() {
     createElevationProfile(pathCoords);
   }
   catch (error) {
-    console.log(error.message);
+    throw new Error(error.message);
   }
 };
 
