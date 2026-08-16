@@ -64,22 +64,23 @@ def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
     has_elevation = len(coordinates[0]) == 3
 
     for i in range(len(coordinates) - 1):
-        x1, y1 = coordinates[i][0], coordinates[i][1]
-        x2, y2 = coordinates[i + 1][0], coordinates[i + 1][1]
+        lon1, lat1 = coordinates[i][0], coordinates[i][1]
+        lon2, lat2 = coordinates[i + 1][0], coordinates[i + 1][1]
 
         # distance calculation
         if converted_coords and converted_coords != []:
             total_distance_m += haversine(converted_coords[i][0], converted_coords[i][1], converted_coords[i + 1][0], converted_coords[i + 1][1])
         else:
-            total_distance_m += haversine(x1, y1, x2, y2)
+            total_distance_m += haversine(lon1, lat1, lon2, lat2)
 
         # elevation gain (only if available)
         if has_elevation:
             e1 = coordinates[i][2]
             e2 = coordinates[i + 1][2]
 
-            if e2 > e1:
-                total_elevation_gain_m += (e2 - e1)
+            if e1 is not None and e2 is not None:
+                if e2 > e1:
+                    total_elevation_gain_m += (e2 - e1)
 
     distance_km = total_distance_m / 1000.0
     eta_hours = distance_km / avg_speed_kmh

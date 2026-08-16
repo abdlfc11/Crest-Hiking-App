@@ -907,6 +907,8 @@ async function handleRouteImport() {
  */
 function validateFileInput(file) {
 
+  const fileName = file?.name;
+
     // this checks if a file is selected
     if (!file) {
         showToast("Please select a file to import.");
@@ -914,7 +916,7 @@ function validateFileInput(file) {
     }
 
     // this checks if the file is of the correct type
-    if (!allowedFileTypes.some(type => file.name.endsWith(type))) {
+    if (!allowedFileTypes.some(type => fileName.endsWith(type))) {
         showToast("Please select a valid file to import.");
         return false;
     }
@@ -2231,7 +2233,12 @@ export function initUi() {
 
 
   // These event listeners are for route import.
-  addClickListener(importRouteFileInput, validateFileInput, "change");
+  importRouteFileInput.addEventListener("change", (e) => {
+    const file = event.target.files[0];
+    validateFileInput(file);
+  });
+
+
   addClickListener(importRouteSubmitButton, handleRouteImport, "click");
   routeInputTypes.forEach(radio => {
     radio.addEventListener('change', handleRouteImportType);
