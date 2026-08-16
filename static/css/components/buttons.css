@@ -46,7 +46,7 @@
 .btn-primary:hover:not(:disabled) {
   background: var(--blue-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--shadow-lift-blue);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -72,6 +72,7 @@
 .btn-secondary:hover {
   background-color: var(--secondary-btn-bg-hover);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-lift-normal);
 }
 
 .btn-secondary:active {

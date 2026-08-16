@@ -270,6 +270,8 @@ export function getClickMode() {
   return clickMode;
 }
 
+//#region MOBILE CHECK
+
 /**
  * Checks if user is on mobile device and advices to use Crestr on desktop / laptop instead 
  * 
@@ -300,6 +302,7 @@ function checkIfMobile() {
   }
 }
 //#endregion
+
 //#region DONATE MODAL
 
 //#region GENERAL MODAL
@@ -363,7 +366,7 @@ export function showLoginModal(show, actionName = 'perform this action') {
  */
 function loginModalLogin() {
   showLoginModal(false);
-  window.location.href = 'https://app.crestr.co.uk/login-page';
+  window.location.href = '/login-page';
   return;
 };
 
@@ -904,6 +907,8 @@ async function handleRouteImport() {
  */
 function validateFileInput(file) {
 
+  const fileName = file?.name;
+
     // this checks if a file is selected
     if (!file) {
         showToast("Please select a file to import.");
@@ -911,7 +916,7 @@ function validateFileInput(file) {
     }
 
     // this checks if the file is of the correct type
-    if (!allowedFileTypes.some(type => file.name.endsWith(type))) {
+    if (!allowedFileTypes.some(type => fileName.endsWith(type))) {
         showToast("Please select a valid file to import.");
         return false;
     }
@@ -1393,7 +1398,7 @@ async function handleLoadAutoCachedRoute() {
       const parsedStats = typeof cachedRouteStats === "string" ? JSON.parse(cachedRouteStats) : cachedRouteStats;
       setLastAutoRouteStats(parsedStats)
 
-      setLastKnownDistanceKm(cachedRouteStats.total_distance);
+      setLastKnownDistanceKm(parsedStats.total_distance);
       startCoordEntry.value = formatLatLon(toLonLat(startWebMercator))
       endCoordEntry.value = formatLatLon(toLonLat(endWebMercator))
 
@@ -2221,14 +2226,19 @@ export function initUi() {
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(importRouteCancelButton, cancelRouteImport, "click");
 
-  addClickListener(loginNavBarButton, () => window.location.href = "https://app.crestr.co.uk/login-page", 'click')
+  addClickListener(loginNavBarButton, () => window.location.href = "/login-page", 'click')
   addClickListener(logoutNavBarButton, logout, 'click')
 
   addClickListener(reportIssueOpenButton, () => showReportIssueModal(true), "click");
 
 
   // These event listeners are for route import.
-  addClickListener(importRouteFileInput, validateFileInput, "change");
+  importRouteFileInput.addEventListener("change", (e) => {
+    const file = event.target.files[0];
+    validateFileInput(file);
+  });
+
+
   addClickListener(importRouteSubmitButton, handleRouteImport, "click");
   routeInputTypes.forEach(radio => {
     radio.addEventListener('change', handleRouteImportType);

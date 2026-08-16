@@ -23,6 +23,44 @@ def isRoughlyInCumbria(x: float, y: float) -> bool:
 
     return x >= MIN_X and x <= MAX_X and y >= MIN_Y and y <= MAX_Y 
 
+def naismith_helper(horizontal_distance_metres: float, elevation_difference_metres: float, slope_ratio: float) -> dict:
+    """
+    PURPOSE : this is a function used to calculate the weight of an edge using Naismith's rule
+
+    PARAMS : takes euclidean distance, elevation difference and slope ratio as parameters
+        - euclidean distance + elevation difference --> used in naismith formula
+        - slope ratio --> used to determine which avg speed (in mph) to use
+
+    RETURN VALUE : dictionary of ascent and descent value (assinged to edges depending on if the edge is going up or down)
+    """
+
+    # group of logic conditions to set walking speed based on elevation gain (in the form of the slope ratio)
+    # absoloute val used as it doesn't matter if the value is negative or positive --> reduces number of conditions and likelihood of errors
+    abs_slope = abs(slope_ratio) 
+
+    if abs_slope < 0.09: # flat / gentle grade (Under 5°)
+        avg_walking_speed_metres = 1.4  
+    elif abs_slope < 0.21: # moderate grade (5° - 12°)
+        avg_walking_speed_metres = 1.1  
+    elif abs_slope < 0.46: # steep mountain grade (12° - 25°)
+        avg_walking_speed_metres = 0.8  
+    else: # extreme / scramble grade (+ 25°)
+        avg_walking_speed_metres = 0.5  
+
+    # distance calculations
+    ascent_metres = max(0, elevation_difference_metres) # max is used to ensure there is only a positive value, rather than a negative value for the ASCENT
+    descent_metres = abs(min(0, elevation_difference_metres)) # min is used to ensure there is only a negative, or zero, value for the DESCENT
+
+    # ETA calculations
+    flat_time = horizontal_distance_metres / avg_walking_speed_metres # this is the time taken to walk the distance if it was a straight line
+    climb_time = (ascent_metres / 10) * 60 # this is the time taken to walk UP the slope caused by the difference in elevation
+    descent_time = (descent_metres / 7.5) * 60 # this is the time taken to walk DOWN the slope caused by the difference in elevation
+    return { # dict is used to reference the helper function more effectively
+        "ascent" : flat_time + climb_time,
+        "descent" : flat_time + descent_time
+    }
+
+
 def haversine(x1: float, y1: float, x2: float, y2: float) -> float:
 
     # NOTE : coords need to be in lon/lat 
@@ -60,36 +98,53 @@ def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
 
     total_distance_m = 0.0
     total_elevation_gain_m = 0.0
+    total_seconds = 0.0
 
     has_elevation = len(coordinates[0]) == 3
 
     for i in range(len(coordinates) - 1):
-        x1, y1 = coordinates[i][0], coordinates[i][1]
-        x2, y2 = coordinates[i + 1][0], coordinates[i + 1][1]
+        lon1, lat1 = coordinates[i][0], coordinates[i][1]
+        lon2, lat2 = coordinates[i + 1][0], coordinates[i + 1][1]
 
-        # distance calculation
-        if converted_coords and converted_coords != []:
-            total_distance_m += haversine(converted_coords[i][0], converted_coords[i][1], converted_coords[i + 1][0], converted_coords[i + 1][1])
-        else:
-            total_distance_m += haversine(x1, y1, x2, y2)
+        segement_distance = haversine(lon1, lat1, lon2, lat2)
+
+        total_distance_m += segement_distance
 
         # elevation gain (only if available)
         if has_elevation:
             e1 = coordinates[i][2]
             e2 = coordinates[i + 1][2]
 
-            if e2 > e1:
-                total_elevation_gain_m += (e2 - e1)
+            if e1 is not None and e2 is not None:
+                elevation_difference = e2 - e1
+
+                slope_ratio = elevation_difference / segement_distance if total_distance_m > 0 else 0.0 
+
+                segment_eta = naismith_helper(
+                    horizontal_distance_metres=segement_distance,
+                    elevation_difference_metres=elevation_difference,
+                    slope_ratio=slope_ratio
+                )
+
+                if elevation_difference > 0:
+                    total_seconds += segment_eta['ascent']
+                    total_elevation_gain_m += elevation_difference
+                else:
+                    total_seconds += segment_eta['descent']
+                    
 
     distance_km = total_distance_m / 1000.0
-    eta_hours = distance_km / avg_speed_kmh
-    eta_seconds = round(eta_hours * 60 * 60, 2)
+    if not has_elevation:
+        eta_hours = distance_km / avg_speed_kmh
+        final_seconds = round(eta_hours * 3600, 2)
+    else:
+        final_seconds = round(total_seconds, 2)
 
     return {
         "distance_m": total_distance_m,
         "distance_km": distance_km,
         "elevation_gain_m": total_elevation_gain_m,
-        "eta_seconds": eta_seconds
+        "eta_seconds": final_seconds
     }
 
 # helper function which returns true if the first coordinate has 3 values (i.e x, y and z)

@@ -240,6 +240,7 @@ html.dark {
 }
 
 .generate-button {
+  position: relative;
   width: 100%;
   padding: 8px;
   background: var(--blue);

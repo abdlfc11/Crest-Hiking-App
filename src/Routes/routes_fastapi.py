@@ -243,7 +243,7 @@ def calculate_path(
         
         # Calculates ETA 
         # NOTE : this is in SECONDS
-        eta_seconds = service.calculate_eta(path, graph)
+        eta_seconds = normalise_route(wgs84_coordinates)['eta_seconds']
 
         path_geojson = {
             "type": "Feature",
