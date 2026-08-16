@@ -366,7 +366,7 @@ export function showLoginModal(show, actionName = 'perform this action') {
  */
 function loginModalLogin() {
   showLoginModal(false);
-  window.location.href = 'https://app.crestr.co.uk/login-page';
+  window.location.href = '/login-page';
   return;
 };
 
@@ -2224,7 +2224,7 @@ export function initUi() {
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(importRouteCancelButton, cancelRouteImport, "click");
 
-  addClickListener(loginNavBarButton, () => window.location.href = "https://app.crestr.co.uk/login-page", 'click')
+  addClickListener(loginNavBarButton, () => window.location.href = "/login-page", 'click')
   addClickListener(logoutNavBarButton, logout, 'click')
 
   addClickListener(reportIssueOpenButton, () => showReportIssueModal(true), "click");
