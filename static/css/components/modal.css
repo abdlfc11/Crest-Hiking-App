@@ -86,12 +86,12 @@
    meant for regular low-risk actions
    such as exiting */
 .modal-btn-secondary {
-  background-color: var(--secondary-bg);
-  color: var(--ink);
+  background-color: var(--secondary-btn-bg);
+  color: #FFFFFF;
 }
 
 .modal-btn-secondary:hover {
-  background-color: var(--secondary-bg-hover);
+  background-color: var(--secondary-btn-bg-hover);
   transform: translateY(-1.5px);
 }
 
