@@ -896,7 +896,6 @@ async function handleRouteImport() {
     }
 
     clearImportRouteInput();
-    console.log(`Importing route from URL: ${url}`);
     return url;
   }
 }
@@ -1248,8 +1247,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
 
-    console.log(`AUTO ROUTE STATS : ${routeStats}`);
-
     displayAutoRouteStats(getLastAutoRouteStats());
     
     resetElevationChart();
@@ -1317,7 +1314,6 @@ async function displayPath(data) {
       await localforage.setItem("cachedAutoRouteStartPointCoords", startMercatorCoord);
       await localforage.setItem("cachedAutoRouteEndPointCoords", endMercatorCoord);
       await localforage.setItem("cachedAutoRouteStats", data.route_stats);
-      console.log(data.route_stats);
     }
   }
 
@@ -1335,8 +1331,8 @@ async function displayPath(data) {
   return data.route_stats;
   } 
   catch(error) {
-    console.log(error.message);
     showToast('Sorry, there was an unexpected error when calculating your route, please try again later.')
+    throw new Error(error.message)
   }
 };
 
@@ -1376,8 +1372,8 @@ async function handleLoadCachedRoute() {
     }
   }
   catch(error) {
-    console.log(error.message)
     showToast("There was an error loading you last route", "error", null);
+    throw new Error(error.message)
   }
   finally {
     localforage.clear();
@@ -1498,10 +1494,6 @@ async function displayAutoCachedRouteStats(routeStats) {
     if (statsDiv) {
       statsDiv.remove();
     };
-    
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
-    console.log(`AUTO CACHED ROUTES : ${JSON.stringify(routeStats)}`)
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
 
     statsDiv = document.createElement("div");
     statsDiv.id = "route-stats";
@@ -1516,7 +1508,6 @@ async function displayAutoCachedRouteStats(routeStats) {
 
 async function handleLoadManualCachedRoute() {
 
-  console.log('updating route state')
   const updateManualRouteState = (newUserClicks, newPathCoords, newSegmentCache) => {
     manualRouteState.userClicks = newUserClicks;
     manualRouteState.pathCoords = newPathCoords;
@@ -1650,68 +1641,91 @@ export async function updateManualRoute() {
 
   if (saveContainer) saveContainer.style.display = "flex";
 
-  const { userClicks, pathCoords } = manualRouteState;
-  const totalDistanceKm = calculateTotalDistance(pathCoords) / 1000;
-  const distanceDisplay = formatDistance(totalDistanceKm);
-  const etaDisplay = calculateEta(totalDistanceKm);
-  const isSnappedToEnd = checkIfCircularRoute();
-  const features = [];
-  const elevationGainDisplay = formatElevation(calculateElevationGain(pathCoords));
+  try {
 
-  if (!window.appConfig.loggedIn) {
-    await localforage.setItem('cachedUserClicks', userClicks);
-    await localforage.setItem('cachedPathCoords', pathCoords);
-    await localforage.setItem('cachedManualRouteStats', {"total_distance": totalDistanceKm, "elevation_gain": calculateElevationGain(pathCoords)});
-  }
-  setLastKnownDistanceKm(totalDistanceKm);
+    const { userClicks, pathCoords } = manualRouteState;
 
-  userClicks.forEach((point, index) => {
-    const feature = new Feature({
-      geometry: new Point(point),
-      type: "point",
+    const transformedPathCoords = pathCoords.map(coord => {
+      const [lon, lat] = toLonLat(coord);
+
+      return coord.length === 3 ? [lon, lat, coord[2]] : [lon, lat]
     });
-    feature.set("index", index);
-    features.push(feature);
-  });
 
-  if (pathCoords.length > 1) {
-    features.push(
-      new Feature({
-        geometry: new LineString(pathCoords),
-        type: "line",
+    const routeStatsResponse = await fetch("/routing/normalise-route-stats", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        coordinates: transformedPathCoords
       }),
-    );
-  }
+    });
 
-  manualRouteLayer = new VectorLayer({
-    source: new VectorSource({ features }),
-    style(feature) {
-      const featureType = feature.get("type");
-      if (featureType === "point") {
-        const index = feature.get("index");
-        const isStart = index === 0;
-        const isEnd = index === userClicks.length - 1;
+    const routeStats = await routeStatsResponse.json();
 
-        if (isSnappedToEnd) {
-          if (isStart) return getSavedPointStyle("Start/End", "#00A86B");
-          if (isEnd) return getSavedPointStyle("", "#00A86B");
-        }
-        if (isStart) return getSavedPointStyle("Start", "#00A86B");
-        if (isEnd) return getSavedPointStyle("End", "#D32F2F");
-        return createManualPointStyle("", "#000", 6.5);
-      }
-      return new Style({
-        stroke: new Stroke(getRouteStrokeStyle()),
+    const distanceDisplay = formatDistance(routeStats.distance_km);
+    const etaDisplay = formatETA(routeStats.eta_seconds);
+    const isSnappedToEnd = checkIfCircularRoute();
+    const features = [];
+    const elevationGainDisplay = formatElevation(routeStats.elevation_gain_m);
+
+
+    if (!window.appConfig.loggedIn) {
+      await localforage.setItem('cachedUserClicks', userClicks);
+      await localforage.setItem('cachedPathCoords', pathCoords);
+      await localforage.setItem('cachedManualRouteStats', {"total_distance": routeStats.distance_km, "elevation_gain": calculateElevationGain(pathCoords)});
+    }
+    setLastKnownDistanceKm(routeStats.distance_km);
+
+    userClicks.forEach((point, index) => {
+      const feature = new Feature({
+        geometry: new Point(point),
+        type: "point",
       });
-    },
-  });
+      feature.set("index", index);
+      features.push(feature);
+    });
 
-  map.addLayer(manualRouteLayer);
+    if (pathCoords.length > 1) {
+      features.push(
+        new Feature({
+          geometry: new LineString(pathCoords),
+          type: "line",
+        }),
+      );
+    }
 
-  const isOnePoint = pathCoords.length === 1;
+    manualRouteLayer = new VectorLayer({
+      source: new VectorSource({ features }),
+      style(feature) {
+        const featureType = feature.get("type");
+        if (featureType === "point") {
+          const index = feature.get("index");
+          const isStart = index === 0;
+          const isEnd = index === userClicks.length - 1;
 
-  updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords);
-  createElevationProfile(pathCoords);
+          if (isSnappedToEnd) {
+            if (isStart) return getSavedPointStyle("Start/End", "#00A86B");
+            if (isEnd) return getSavedPointStyle("", "#00A86B");
+          }
+          if (isStart) return getSavedPointStyle("Start", "#00A86B");
+          if (isEnd) return getSavedPointStyle("End", "#D32F2F");
+          return createManualPointStyle("", "#000", 6.5);
+        }
+        return new Style({
+          stroke: new Stroke(getRouteStrokeStyle()),
+        });
+      },
+    });
+
+    map.addLayer(manualRouteLayer);
+
+    const isOnePoint = pathCoords.length === 1;
+
+    updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords);
+    createElevationProfile(pathCoords);
+  }
+  catch (error) {
+    throw new Error(error.message);
+  }
 };
 
 function updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords) {
