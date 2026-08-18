@@ -30,8 +30,7 @@ export async function processImportedRouteFile(file) {
     const data = await response.json();
 
     if (!response.ok) {
-        showToast(data.message || "There was an error on our end, try again later");
-        throw new Error(`HTTP Error: ${response.status}`);
+        throw new Error( data.message || `(IMPORT ROUTE) HTTP Error: ${data}`, {cause: "Sorry, there was an error importing your route."})
     }
 
     if (data.success) {
