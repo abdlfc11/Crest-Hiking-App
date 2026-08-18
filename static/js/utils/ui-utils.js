@@ -20,6 +20,8 @@
  * Parses a coordinate string in the form "X, Y" (or "X,Y").
  * Returns [x, y] as numbers or null if the format is invalid.
  * Never throws.
+ * @param {String} value
+ * @returns {Array}
  */
 export function parseCoordString(value) {
   if (typeof value !== "string") return null;
@@ -281,6 +283,9 @@ export function createNoRouteCard() {
 /**
  * This returns a stats panel showing key details of the currently-displayed route 
  * 
+ * @param {String} distanceDisplay
+ * @param {String} etaDisplay
+ * @param {String} elevationGain
  * @returns {string} HTML string for the stats panel showing key route details 
  */
 export function createStatsPanel(distanceDisplay, etaDisplay, elevationGain) {
