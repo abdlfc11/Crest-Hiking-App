@@ -21,7 +21,7 @@
  * Returns [x, y] as numbers or null if the format is invalid.
  * Never throws.
  * @param {String} value
- * @returns {Array}
+ * @returns {Array<number> | null}
  */
 export function parseCoordString(value) {
   if (typeof value !== "string") return null;
