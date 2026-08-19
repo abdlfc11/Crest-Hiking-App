@@ -29,8 +29,8 @@ export async function processImportedRouteFile(file) {
 
     const data = await response.json();
 
-    if (!response.ok) {
-        throw new Error( data.message || `(IMPORT ROUTE) HTTP Error: ${data}`, {cause: "Sorry, there was an error importing your route."})
+    if (!response.ok || !data.success) {
+        throw new Error( data.message || `(IMPORT ROUTE) HTTP Error: ${data}`, {cause: data.user_message || data.message || "Sorry, there was an error importing your route."})
     }
 
     if (data.success) {

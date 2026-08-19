@@ -59,7 +59,7 @@ router = APIRouter()
     dependencies=[
         Depends(
             RateLimiter(
-                limiter=Limiter(Rate(10, Duration.MINUTE)),
+                limiter=Limiter(Rate(60, Duration.MINUTE)),
                 callback=rate_limit_exceeded_callback
             )
         )
@@ -97,7 +97,8 @@ def calculate_path(
                 status_code=400,
                 detail={
                     "success": False,
-                    "message": "Please enter coordinates within Cumbria. "
+                    "message": "Coordinates outside of Cumbria entered",
+                    "user_message": "Please enter coordinates within Cumbria. "
                 }
             )
 
@@ -149,7 +150,8 @@ def calculate_path(
                 "success": False,
                 "map_centre": DEFAULT_CENTRE,
                 "available_routes": available_routes, 
-                "message": str(e)
+                "message": str(e),
+                "user_message": "Invalid coordinates, please try again."
             }
         ) from e
 
@@ -179,7 +181,8 @@ def calculate_path(
                         "success": False,
                         "map_centre": DEFAULT_CENTRE,
                         "available_routes": available_routes,
-                        "message": "No path could be created"
+                        "message": "No path could be created",
+                        "user_message": "Sorry, path could not be generated, please try again later."
                     }
                 ) 
 
@@ -336,7 +339,8 @@ def save_route(
                 status_code=401,
                 detail={
                     "success": False,
-                    "message": "Please log in to save routes. "
+                    "message": "Unauthenticated attempt to save a route.",
+                    "user_message": "Please log in to save routes. "
                 }
             )
 
@@ -349,7 +353,8 @@ def save_route(
                 status_code=422,
                 detail={
                     "success": False,
-                    "message": "Route name required"
+                    "message": "A route name is required. ",
+                    "user_message": "A route name is required, please try again."
                 }
             )
         
@@ -360,7 +365,8 @@ def save_route(
                 status_code=422,
                 detail={
                     "success": False,
-                    "message": "Invalid route data"
+                    "message": "Invalid route data",
+                    "user_message": "File error. Please try uploading a different file."
                 }
             )
         
@@ -402,10 +408,14 @@ def save_route(
 
         log_action('Saving Route', False, short_traceback, None, 'SAVE_ROUTE')
 
-        return {
-            "success" : False,
-            "message" : "A route with this name already exists. Please pick a new name."
-        }
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "success": False,
+                "message": "ERROR : route name cannot be the same as other routes.",
+                "user_message": "A route with this name already exists. Please pick a new name."
+            }
+        )
 
     except HTTPException:
         raise
@@ -451,7 +461,8 @@ def load_route(
             status_code=401,
             detail={
                 "success": False,
-                "message": "Please Login to load routes"
+                "message": "Unauthenticated attempt to load a route.",
+                "user_message": "Please Login to load routes."
             }
         )
 
@@ -463,7 +474,8 @@ def load_route(
             status_code=422,
             detail={
                 "success": False,
-                "message": "Route name is required. "
+                "message": "Route name is required.",
+                "user_message": "A route name is required, please try again."
             }
         )
     
@@ -479,7 +491,8 @@ def load_route(
             status_code=404,
             detail={
                 "success": False,
-                "message": "The route could not be found in the server. "
+                "message": "The route could not be found in the server. ",
+                "user_message": "Sorry, the route could not be found in the server."
             }
         )
     
@@ -515,7 +528,8 @@ def load_route(
                 status_code=422,
                 detail={
                     "success": False,
-                    "message": "There are no valid coordinates within the route file. "
+                    "message": "There are no valid coordinates within the route file. ",
+                    "user_message": "Sorry, the coordinates in the file are not valid. "
                 }
             )
         
@@ -601,7 +615,8 @@ def delete_route(
             status_code=401,
             detail={
                 "success": False,
-                "message": "Unauthenticated attmept to delete route"
+                "message": "Unauthenticated attmept to delete route",
+                "user_message": "You do not own this route."
             }
         )
 
@@ -612,7 +627,8 @@ def delete_route(
             status_code=422,
             detail={
                 "success": False,
-                "message": "Route name is required."
+                "message": "Route name is required.",
+                "user_message": "A route name is required, please try again."
             }
         )
 
@@ -629,7 +645,8 @@ def delete_route(
                 status_code=404,
                 detail={
                     "success": False,
-                    "message": "Route to be deleted could not be found"
+                    "message": "Route to be deleted could not be found",
+                    "user_message": "Could not find the route you want to delete."
                 }
             )
         deleted_route_name = route.name
@@ -709,7 +726,8 @@ async def import_route(
             status_code=422,
             detail={
                 "success": False,
-                "message": "Cannot receive uploaded file"
+                "message": "Cannot receive uploaded file",
+                "user_message": "We could not receive the uploaded file, please try again later."
             }
         )
     
@@ -718,7 +736,8 @@ async def import_route(
             status_code=422,
             detail={
                 "success": False,
-                "message": "Imported route is too large, please pick a route under 5MB in size. "
+                "message": "Imported route is too large. ",
+                "user_message": "Imported route is too large, please pick a route under 5MB in size. "
             }
         )
     
@@ -735,7 +754,8 @@ async def import_route(
                 status_code=400,
                 detail={
                     "success": False,
-                    "message": "Please upload a file of the supported types. "
+                    "message": "ERROR : Unsupported file type",
+                    "user_message": "Please upload a file of the supported types. "
                 }
             )
         
@@ -964,20 +984,22 @@ def download_route_file(
             status_code=422,
             detail={
                 "success": False,
-                "message": "Route name and file type is required. "
+                "message": "Route name and file type is required. ",
+                "user_message": "Both the route name and route file type are required, please try again."
             }
         )
 
     # ensures that routes have a file type 
-    # also impossible that this is the case since download occurs through either a gpx or a geojson button and not path / query params, but this may be implemented in a later version
-    # so it is kept + it is a good habit 
+    # also impossible that this is the case since download occurs through either a gpx or a geojson button and not path / query params
+    # as path / query params may be implemented in the future, it is kept + it is a good habit 
     if file_type not in ["gpx", "geojson"]:
 
         raise HTTPException(
             status_code=422,
             detail={
                 "success": False,
-                "message": "Invalid file type. Use 'gpx' or 'geojson' format. "
+                "message": "Invalid file type. Use 'gpx' or 'geojson' format. ",
+                "user_message": "Invalid file type. Download routes as 'gpx' or 'geojson'."
             }
         )
 
@@ -996,7 +1018,8 @@ def download_route_file(
             status_code=404,
             detail={
                 "success": False,
-                "message": "Route not found or you don't own it"
+                "message": "Route not found or you don't own it",
+                "user_message": "Could not delete route as you do not own it."
             }
         )
 

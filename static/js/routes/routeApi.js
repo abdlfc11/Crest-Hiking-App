@@ -23,23 +23,18 @@ export async function deleteRoute(routeName) {
     }),
   });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}`);
-  }
-
   const data = await response.json();
 
-  if (data.success) {
-    return data;
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || `Load Route Error : ${response.status}`, {cause: data.user_message || "Sorry, there was an error downloading your route, please try again later."});
   }
-  else {
-    throw new Error(data.message || "Route deletion failed")
-  }
+
+  return data
 }
 
 /**
  * @param {string} routeName
- * @returns {Promise<{ success: boolean, path_geojson?: object, coordinates?: number[][], route_stats?: object, message?: string }>}
+ * @returns {Promise<{ success: boolean, path_geojson?: object, coordinates?: Array<Array<number>>, route_stats?: object, message?: string }>}
  */
 export async function loadRoute(routeName) {
   const url = window.appConfig.apiLoadRouteUrl;
@@ -52,18 +47,13 @@ export async function loadRoute(routeName) {
     }),
   });
 
-  if (!response.ok) {
-    throw new Error(`HTTP Error: ${response.status}`);
-  }
-
   const data = await response.json();
 
-  if (data.success) {
-    return data;
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || `Load Route Error : ${response.status}`, {cause: data.user_message || "Sorry, there was an error loading your route, please try again later."});
   }
-  else {
-    throw new Error(data.message || "Loading the route failed")
-  }
+
+  return data;
 }
 
 /**
@@ -87,9 +77,9 @@ export async function downloadRoute(routeName, format, DOMElement) {
   })
 
   if (!response.ok) {
-    console.log(response.message || "no message from backend")
-    throw new Error(`HTTP Error, ${response.status}`)
+    throw new Error(data.message || `Download Route Error : ${response.status}`, {cause: data.user_message || "Sorry, there was an error downloading your route, please try again later."});
   }
+
   DOMElement.classList.remove('loading')
   return response
 }

@@ -849,9 +849,6 @@ async function handleRouteImport() {
       };
     }
     catch (error) {
-      console.log(error)
-      console.log(error.stack); // Shows the exact function and line causing the SyntaxError
-      console.log(error.cause)
       showToast(error.cause)
       return;
     }
@@ -869,13 +866,16 @@ async function handleRouteImport() {
 
       const result = await response.json(); 
 
+      if (response.status === 422) {
+        throw new Error(`(IMPORT ROUTE) Incorrect Imput Error : ${result}`, { cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
+      }
 
       if (!response.ok) {
-        throw new Error(`(IMPORT ROUTE) HTTP Error: ${result}`, {cause: "Sorry, there was an error importing your route."})
+        throw new Error(`(IMPORT ROUTE) HTTP Error: ${result}`, {cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
       }
 
       if (!result.success) {
-        throw new Error(`(IMPORT ROUTE) Error: ${result}`, {cause: "Sorry, there was an error importing your route."})
+        throw new Error(`(IMPORT ROUTE) Error: ${result}`, {cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
       }
 
       displayImportedRouteCard(result);
