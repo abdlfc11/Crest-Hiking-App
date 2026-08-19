@@ -324,11 +324,11 @@
         </dialog>
 
         <!-- ##### DELETE POINT MODAL ##### -->
-        <dialog id="shortcuts-dialog" class="modal-overlay">
+        <dialog id="shortcuts-dialog" class="modal-overlay" aria-labelledby="shortcuts-dialog-heading">
             <div class="modal-wrapper">
                 <div class="modal-content shortcuts-modal-content">
                     <div class="modal-header">
-                        <h2>Keyboard Shortcuts</h2>
+                        <h2 id="shortcuts-dialog-heading">Keyboard Shortcuts</h2>
                     </div>
                     <div class="modal-body shortcuts-modal-body">
                         <div class="shortcuts-group">
@@ -401,72 +401,62 @@
     <!-- ##### SIDE NAV RAIL ##### -->
     <div id="the-sidenav" class="sidenav" aria-label="Main navigation">
         <div class="sidenav-inner">
-            <ul class="sidenav-links">
+            <button
+                type="button"
+                id="saved-routes-dash-open-button"
+                class="sidenav-button"
+                aria-label="Saved Routes"
+            >
+                <i data-lucide="waypoints"></i>
+                <span class="nav-label">Saved Routes</span>
+            </button>
 
-                <li>
-                    <a
-                        id="saved-routes-dash-open-button"
-                        class="sidenav-link"
-                        aria-label="Saved Routes"
-                    >
-                        <i data-lucide="waypoints"></i>
-                        <span class="nav-label">Saved Routes</span>
-                    </a>
-                </li>
+            <button
+                type="button"
+                id="import-route-open-button"
+                class="sidenav-button"
+                aria-label="Import Route"
+            >
+                <i data-lucide="import"></i>
+                <span class="nav-label">Import Route</span>
+            </button>
 
-                <li>
-                    <a
-                        id="import-route-open-button"
-                        class="sidenav-link"
-                        aria-label="Import Route"
-                    >
-                        <i data-lucide="import"></i>
-                        <span class="nav-label">Import Route</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a
-                        id="settings-open-button"
-                        class="sidenav-link"
-                        aria-label="Settings"
-                    >
-                        <i data-lucide="settings"></i>
-                        <span class="nav-label">Settings</span>
-                    </a>
-                </li>
-            </ul>
+            <button
+                type="button"
+                id="settings-open-button"
+                class="sidenav-button"
+                aria-label="Settings"
+            >
+                <i data-lucide="settings"></i>
+                <span class="nav-label">Settings</span>
+            </button>
 
             <div class="sidenav-lower">
-                <ul class="sidenav-links">
-                    <li>
-                        <a
-                            id="report-issues-open-button"
-                            class="sidenav-link"
-                            aria-label="Report Issues"
-                        >
-                            <i data-lucide="bug"></i>
-                            <span class="nav-label">Report Issues</span>
-                        </a>
-                    </li>
+                <button
+                    type="button"
+                    id="report-issues-open-button"
+                    class="sidenav-button"
+                    aria-label="Report Issues"
+                >
+                    <i data-lucide="bug"></i>
+                    <span class="nav-label">Report Issues</span>
+                </button>
 
-                    <li>
-                        <a
-                            class="sidenav-link"
-                            id="donate-button"
-                            href="javascript:void(0)"
-                        >
-                            <i data-lucide="heart"></i>
-                            <span class="nav-label">Donate</span>
-                        </a>
-                    </li>
-                </ul>
+                <button
+                    type="button"
+                    class="sidenav-button lower-sidenav-button"
+                    id="donate-button"
+                    aria-label="Donate"
+                >
+                    <i data-lucide="heart"></i>
+                    <span class="nav-label">Donate</span>
+                </button>
 
                 <button
                     type="button"
                     id="sidenav-shortcuts-button"
-                    class="sidenav-link lower-sidenav-button"
-                    aria-label="keyboard shortcuts"
+                    class="sidenav-button lower-sidenav-button"
+                    aria-label="Keyboard Shortcuts"
                 >
                     <i data-lucide="keyboard"></i>
                     <span class="nav-label">Shortcuts</span>
@@ -476,7 +466,7 @@
                     <button
                         type="button"
                         id="sidenav-login-button"
-                        class="sidenav-link lower-sidenav-button"
+                        class="sidenav-button lower-sidenav-button"
                         aria-label="Log In"
                     >
                         <i data-lucide="log-in"></i>
@@ -486,7 +476,7 @@
                     <button
                         type="button"
                         id="sidenav-logout-button"
-                        class="sidenav-link lower-sidenav-button"
+                        class="sidenav-button lower-sidenav-button"
                         aria-label="Log Out"
                     >
                         <i data-lucide="log-out"></i>

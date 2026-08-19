@@ -258,7 +258,7 @@ let savingRoutesTourDriver;
 
 // grouped elements
 const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
-const modals = [donateModal, reportIssueModal, shortcutsModal, loginModal]
+const modals = [donateModal, reportIssueModal, shortcutsModal, loginModal, loadLastRouteModal, deletePointModal]
 
 const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
@@ -1062,7 +1062,7 @@ async function switchToManualMode() {
   const map = getMap();
   if (!map) return;
 
-  if (getCurrentMode() === 'manual');
+  if (getCurrentMode() === 'manual') return;
 
   await localforage.setItem("lastRoutingMode", "manual");
   
@@ -2230,8 +2230,7 @@ function manualRouteShortcuts(e, key) {
  * @returns {void}
  */
 function navigationShortcuts(e, key) {
-  e.preventDefault();
-
+  
   // saved routes dash
   if (key === '1') {
     handlePanelShortcut(
@@ -2346,7 +2345,7 @@ function handleModalShortcut(e, modal) {
   }
   else {
     closeModals();
-    modal.show();
+    showModal(true, modal)
   }
 }
 //#endregion
