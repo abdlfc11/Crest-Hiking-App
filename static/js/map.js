@@ -34,7 +34,8 @@ import {
   LogIn,
   LogOut,
   Coffee,
-  MoveRight
+  MoveRight,
+  Keyboard
 } from 'lucide';
 
 export let map = null;
@@ -54,7 +55,8 @@ createIcons({
     LogIn,
     LogOut,
     Coffee,
-    MoveRight
+    MoveRight,
+    Keyboard
   }
 });
 

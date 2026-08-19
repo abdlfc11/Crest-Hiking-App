@@ -162,9 +162,6 @@ const searchForAreaButton = document.getElementById("search-for-area-button");
 
 const mapElement = document.getElementById("map");
 
-const reportIssueOpenButton = document.getElementById('report-issues-open-button')
-const loginNavBarButton = document.getElementById('sidenav-login-button');
-const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
 // automatic mode + manual mode contents i.e mode-specific panels
 const autoModeContent = document.getElementById("auto-mode-content");
@@ -176,6 +173,13 @@ const routeNameEntry = document.getElementById("route-name");
 const saveContainer = document.getElementById('save-route-container');
 const saveRouteToggleButton = document.getElementById("save-route-toggle-button");
 const saveRouteContainer = document.getElementById('save-route-container');
+
+// Navigation Rail Buttons 
+const donateModalOpenButton = document.getElementById('donate-button');
+const reportIssueOpenButton = document.getElementById('report-issues-open-button')
+const shortcutsModalOpenButton = document.getElementById('sidenav-shortcuts-button');
+const loginNavBarButton = document.getElementById('sidenav-login-button');
+const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
 // delete point modal
 const deletePointModal = document.getElementById("delete-point-confirmation-dialog");
@@ -200,8 +204,6 @@ const reportIssueTitleInput = document.getElementById("report-issue-title");
 const reportIssueTextAreaInput = document.getElementById("report-issue-description");
 
 // donate modal
-const donateButton = document.getElementById('donate-button');
-
 const donateModal = document.getElementById('donate-modal');
 const donateModalContent = document.getElementById('donate-modal-content');
 const donateModalCloseButton = document.getElementById('donate-modal-close-button');
@@ -216,6 +218,10 @@ const loadLastRouteModalRouteName = document.getElementById('load-last-route-mod
 const loadLastRouteModalRouteDistance = document.getElementById('load-last-route-modal-route-distance');
 const loadLastRouteModalRouteElevationGain = document.getElementById('load-last-route-modal-route-elevation-gain');
 
+// Keyboard Shortcuts Modal
+const shortcutsModal = document.getElementById('shortcuts-dialog');
+const shortcutsModalContent = shortcutsModal.querySelector('.modal-content');
+const shortcutsModalCloseButton = document.getElementById('shortcuts-dialog-close-button');
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -252,7 +258,7 @@ let savingRoutesTourDriver;
 
 // grouped elements
 const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
-const modals = [donateModal, reportIssueModal]
+const modals = [donateModal, reportIssueModal, shortcutsModal]
 
 const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
@@ -1034,6 +1040,8 @@ async function switchToAutoMode() {
   const map = getMap();
   if (!map) return;
 
+  if (getCurrentMode() === 'auto') return;
+
   await localforage.setItem("lastRoutingMode", "auto");
 
   setCurrentMode("auto");
@@ -1053,6 +1061,8 @@ async function switchToAutoMode() {
 async function switchToManualMode() {
   const map = getMap();
   if (!map) return;
+
+  if (getCurrentMode() === 'manual');
 
   await localforage.setItem("lastRoutingMode", "manual");
   
@@ -2134,6 +2144,7 @@ function handleDistanceUnitToggle() {
  * @returns {void}
  */
 function handleKeyboardShortcuts(e) {
+  e.preventDefault();
 
   // this returns if the user is typing 
   if (document.activeElement.tagName === "INPUT" || 
@@ -2165,20 +2176,23 @@ function handleKeyboardShortcuts(e) {
  * @returns 
  */
 function appShortcuts(e, key) {
+
+  const isModifier = e.metaKey || e.ctrlKey;
+
   // this switches to auto mode if ctrl/cmd + a is pressed
-  if (key === 'a') {
+  if (isModifier && e.shiftKey && key === 'a') {
     e.preventDefault();
     switchToAutoMode();
     return;
   };
 
-  if (key === 'k') {
+  if (isModifier && e.shiftKey && key === 'k') {
     e.preventDefault();
     searchEntry.focus();
   }
     
   // this switches to manual mode if ctrl/cmd + m is pressed
-  if ((e.metaKey && key === 'm' && e.shiftKey) || (e.ctrlKey && key === 'm')) {
+  if (isModifier && e.shiftKey && key === 'm') {
     e.preventDefault();
     switchToManualMode();
     return;
@@ -2266,8 +2280,17 @@ function navigationShortcuts(e, key) {
       e,
       donateModal
     )
+    return;
   }
 
+  // shortcuts modal
+  if (key === '6') {
+    handleModalShortcut(
+      e,
+      shortcutsModal
+    )
+    return;
+  };
 }
 
 /**
@@ -2447,25 +2470,30 @@ export function initUi() {
   // These event listeners are for keyboard shortcuts.
   addClickListener(document, handleKeyboardShortcuts, "keydown");
 
-  // These event listeners are for the login modal
+  // Login Modal
   addClickListener(loginModalExitButton, () => showModal(false, loginModal), 'click');
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
   addClickListener(loginModal, (e) => closeModalUponOutsideClick(e, loginModalContent, loginModal), 'click');
 
-  // These event listeners are for the report issue modal
+  // Report Issue Modal
   addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click");
   addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
 
-  // These event listeners are for the donate modal
+  // Donate Modal
   addClickListener(donateModalCloseButton, () => showModal(false, donateModal), "click");
   addClickListener(donateModalMaybeLaterButton, () => showModal(false, donateModal), "click");
-  addClickListener(donateButton, () => showModal(true, donateModal), "click");
+  addClickListener(donateModalOpenButton, () => showModal(true, donateModal), "click");
   addClickListener(donateModal, (e) => closeModalUponOutsideClick(e, donateModalContent, donateModal), "click");
 
-  // These event listeners are for the load last route modal
+  // Load Last Route Modal
   addClickListener(loadLastRouteModalDismissButton, discardLastLoadedRoute, "click");
   addClickListener(loadLastRouteModalLoadButton, handleLoadCachedRoute, "click");
   addClickListener(loadLastRouteModal, (e) => closeModalUponOutsideClick(e, loadLastRouteModalContent, loadLastRouteModal), "click");
+
+  // Keyboard Shortcuts Modal
+  addClickListener(shortcutsModalOpenButton, () => showModal(true, shortcutsModal), "click");
+  addClickListener(shortcutsModalCloseButton, () => showModal(false, shortcutsModal), "click");
+  addClickListener(shortcutsModal, (e) => closeModalUponOutsideClick(e, shortcutsModalContent, shortcutsModal), "click");
 
   onMapClick(mapClickHandler);
 

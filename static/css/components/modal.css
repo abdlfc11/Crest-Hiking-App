@@ -87,6 +87,7 @@
    such as exiting */
 .modal-btn-secondary {
   background-color: var(--secondary-btn-bg);
+  
   color: #FFFFFF;
 }
 
