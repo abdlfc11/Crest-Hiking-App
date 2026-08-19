@@ -127,7 +127,7 @@ html.dark {
 }
 
 /* Auth button container (placed at the bottom of the sidenav) */
-.sidenav-auth {
+.sidenav-lower {
   margin-top: auto;
   padding: 12px 0 16px;
   flex-shrink: 0;
@@ -136,7 +136,7 @@ html.dark {
 }
 
 /* login / logout buttons */
-.sidenav-auth-button {
+.lower-sidenav-button {
   border: none;
   background: transparent;
   font-family: inherit;

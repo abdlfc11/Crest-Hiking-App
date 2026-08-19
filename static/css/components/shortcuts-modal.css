@@ -1,0 +1,96 @@
+/*
+  KEYBOARD SHORTCUTS MODAL COMPONENT
+
+  Extends the base .modal-overlay / .modal-content pattern from modal.css with a list of keyboard shortcuts
+
+  Depends on:
+    - modal.css (base overlay/content/actions)
+    - tokens.css
+    - buttons.css (.modal-btn-secondary)
+*/
+
+/* defines the general structure of the modal + the container */
+.shortcuts-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  max-height: 60vh;
+  margin: 5vh auto;
+}
+
+.shortcuts-modal-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  text-align: left;
+  padding-top: var(--space-xs);
+  padding-right: var(--space-2xs);
+}
+
+.shortcuts-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.shortcuts-group + .shortcuts-group {
+  margin-top: var(--space-md);
+}
+
+.shortcuts-group-title {
+  margin: 0 0 var(--space-2xs);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.shortcut-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.shortcut-key {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex-shrink: 0;
+}
+
+.shortcut-key kbd {
+  display: inline-block;
+  min-width: 1.75rem;
+  padding: 2px 8px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--ink-strong);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.shortcut-key-plus {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}

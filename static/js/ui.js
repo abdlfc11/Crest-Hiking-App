@@ -123,7 +123,7 @@ import {
   createSettingsTour
 } from "./tours/tours.js";
 
-import { logout } from "./auth/auth.js";
+import { login, logout } from "./auth/auth.js";
 import { logError } from "./utils/logError-utils.js";
 import { Vector } from "ol/source.js";
 import Style from "ol/style/Style.js";
@@ -162,9 +162,6 @@ const searchForAreaButton = document.getElementById("search-for-area-button");
 
 const mapElement = document.getElementById("map");
 
-const reportIssueOpenButton = document.getElementById('report-issues-open-button')
-const loginNavBarButton = document.getElementById('sidenav-login-button');
-const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
 // automatic mode + manual mode contents i.e mode-specific panels
 const autoModeContent = document.getElementById("auto-mode-content");
@@ -176,6 +173,13 @@ const routeNameEntry = document.getElementById("route-name");
 const saveContainer = document.getElementById('save-route-container');
 const saveRouteToggleButton = document.getElementById("save-route-toggle-button");
 const saveRouteContainer = document.getElementById('save-route-container');
+
+// Navigation Rail Buttons 
+const donateModalOpenButton = document.getElementById('donate-button');
+const reportIssueOpenButton = document.getElementById('report-issues-open-button')
+const shortcutsModalOpenButton = document.getElementById('sidenav-shortcuts-button');
+const loginNavBarButton = document.getElementById('sidenav-login-button');
+const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
 // delete point modal
 const deletePointModal = document.getElementById("delete-point-confirmation-dialog");
@@ -200,8 +204,6 @@ const reportIssueTitleInput = document.getElementById("report-issue-title");
 const reportIssueTextAreaInput = document.getElementById("report-issue-description");
 
 // donate modal
-const donateButton = document.getElementById('donate-button');
-
 const donateModal = document.getElementById('donate-modal');
 const donateModalContent = document.getElementById('donate-modal-content');
 const donateModalCloseButton = document.getElementById('donate-modal-close-button');
@@ -216,6 +218,10 @@ const loadLastRouteModalRouteName = document.getElementById('load-last-route-mod
 const loadLastRouteModalRouteDistance = document.getElementById('load-last-route-modal-route-distance');
 const loadLastRouteModalRouteElevationGain = document.getElementById('load-last-route-modal-route-elevation-gain');
 
+// Keyboard Shortcuts Modal
+const shortcutsModal = document.getElementById('shortcuts-dialog');
+const shortcutsModalContent = shortcutsModal.querySelector('.modal-content');
+const shortcutsModalCloseButton = document.getElementById('shortcuts-dialog-close-button');
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -250,7 +256,10 @@ let automaticRoutingTourDriver;
 let savingRoutesTourDriver;
 
 
-// this is an array of allowed file types for route import
+// grouped elements
+const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
+const modals = [donateModal, reportIssueModal, shortcutsModal, loginModal]
+
 const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
 let clickMode = null;
@@ -303,12 +312,10 @@ function checkIfMobile() {
 }
 //#endregion
 
-//#region DONATE MODAL
-
 //#region GENERAL MODAL
 
 /**
- * Function used to catch clicks outside of a modal in order to close the modal upon these clicks. 
+ * Catches clicks outside of a modal in order to close the modal upon these clicks. 
  * 
  * @param {Event} e 
  * @param {HTMLDivElement} modalContent 
@@ -335,6 +342,17 @@ export function showModal(show, modal) {
     modal.close();
   }
 };
+
+/**
+ * Closes all modals within the application
+ * 
+ * @returns {void}
+ */
+function closeModals() {
+  modals.forEach(modal => {
+    modal.close();
+  })
+}
 
 //#endregion
 
@@ -720,6 +738,19 @@ function noRouteCreateFunction() {
   closeSavedRoutesDash()
 }
 
+/**
+ * Closes all panels accessible from the navigation raile
+ * @returns {void}
+ */
+function closePanels() {
+  const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
+
+  panels.forEach(panel => {
+    if (panel.style.width)
+    panel.style.width = "0";
+  });
+};
+
 function openSavedRoutesDash() {
 
   // This prevents non-logged in and registered users from opening the save route panel
@@ -1009,6 +1040,8 @@ async function switchToAutoMode() {
   const map = getMap();
   if (!map) return;
 
+  if (getCurrentMode() === 'auto') return;
+
   await localforage.setItem("lastRoutingMode", "auto");
 
   setCurrentMode("auto");
@@ -1028,6 +1061,8 @@ async function switchToAutoMode() {
 async function switchToManualMode() {
   const map = getMap();
   if (!map) return;
+
+  if (getCurrentMode() === 'manual');
 
   await localforage.setItem("lastRoutingMode", "manual");
   
@@ -2102,6 +2137,12 @@ function handleDistanceUnitToggle() {
 
 //#region KEYBOARD SHORTCUTS
 
+/**
+ * Orchestrates keyboard shortcuts process and order of events  
+ * 
+ * @param {Event} e 
+ * @returns {void}
+ */
 function handleKeyboardShortcuts(e) {
 
   // this returns if the user is typing 
@@ -2114,53 +2155,201 @@ function handleKeyboardShortcuts(e) {
   const key = e.key.toLowerCase();
   const mode = getCurrentMode();
 
-  // if ctrl / cmd key is pressed
+  // cmd / ctrl signals a routing action rather than navigation
   if (e.ctrlKey || e.metaKey) {
-    
-    // this switches to auto mode if ctrl/cmd + a is pressed
-    if (key === 'a') {
-      e.preventDefault();
-      switchToAutoMode();
-      return;
-    };
-
-    if (key === 'k') {
-      e.preventDefault();
-      searchEntry.focus();
-    }
-     
-    // this switches to manual mode if ctrl/cmd + m is pressed
-    if ((e.metaKey && key === 'm' && e.shiftKey) || (e.ctrlKey && key === 'm')) {
-      e.preventDefault();
-      switchToManualMode();
-      return;
-    };
-
+    appShortcuts(e, key)
     if (mode === "manual") {
-
-      // this un-does the last point if ctrl/cmd + z is clicked
-      if (key === "z") {
-        e.preventDefault();
-        undoManualRoutePoint();
-        return;
-      };
-       
-      
-      // this re-does the last undone point if ctrl/cmd + y is clicked
-      if (key === "y") {
-        e.preventDefault();
-        redoManualRoutePoint();
-        return;
-      };
-       
+      manualRouteShortcuts(e, key) 
     };
-
-  };
-
+  }
+  else {
+    navigationShortcuts(e, key)
+  }
 };
 
-//#endregion
+/**
+ * Handles general shortcuts
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns 
+ */
+function appShortcuts(e, key) {
 
+  const isModifier = e.metaKey || e.ctrlKey;
+
+  // this switches to auto mode if ctrl/cmd + a is pressed
+  if (isModifier && e.shiftKey && key === 'a') {
+    e.preventDefault();
+    switchToAutoMode();
+    return;
+  };
+
+  if (isModifier && e.shiftKey && key === 'k') {
+    e.preventDefault();
+    searchEntry.focus();
+  }
+    
+  // this switches to manual mode if ctrl/cmd + m is pressed
+  if (isModifier && e.shiftKey && key === 'm') {
+    e.preventDefault();
+    switchToManualMode();
+    return;
+  };
+}
+
+/**
+ * Handles shortcuts for manual routing 
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns {void}
+ */
+function manualRouteShortcuts(e, key) {
+  // this un-does the last point if ctrl/cmd + z is clicked
+  if (key === "z") {
+    e.preventDefault();
+    undoManualRoutePoint();
+    return;
+  };
+    
+  
+  // this re-does the last undone point if ctrl/cmd + y is clicked
+  if (key === "y") {
+    e.preventDefault();
+    redoManualRoutePoint();
+    return;
+  };
+}
+
+/**
+ * Handles shortcuts for opening/closing panels and modals 
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns {void}
+ */
+function navigationShortcuts(e, key) {
+  e.preventDefault();
+
+  // saved routes dash
+  if (key === '1') {
+    handlePanelShortcut(
+      e, 
+      savedRoutesDashContent, 
+      () => openSavedRoutesDash(),
+      () => closeSavedRoutesDash()
+    );
+    return;
+  }
+
+  // import route panel
+  if (key === '2') {
+    handlePanelShortcut(
+      e, 
+      importRoutePanel, 
+      () => openImportRoute(),
+      () => closeImportRoute()
+    );
+    return;
+  }
+  
+  // settings panel
+  if (key === '3') {
+    handlePanelShortcut(
+      e,
+      settingPanel,
+      () => openSettings(),
+      () => closeSettings()
+    );
+    return;
+  }
+
+  // report issue modal
+  if (key === '4') {
+    handleModalShortcut(
+      e,
+      reportIssueModal
+    );
+    return;
+  }
+
+  // donate modal
+  if (key === '5') {
+    handleModalShortcut(
+      e,
+      donateModal
+    )
+    return;
+  }
+
+  // shortcuts modal
+  if (key === '6') {
+    handleModalShortcut(
+      e,
+      shortcutsModal
+    )
+    return;
+  };
+}
+
+/**
+ * @param {Event} e
+ * @param {HTMLDivElement} panel 
+ * @param {Function} open 
+ * @param {Function} close 
+ * @returns {void}
+ */
+function handlePanelShortcut(e, panel, open, close) {
+  e.preventDefault();
+
+  if (loginModal.open) {
+    loginModal.close();
+    return;
+  };
+
+  closeModals();
+
+  /**
+  * Helper to tell if any other panels are open
+  * 
+  * @param {HTMLDivElement} currentPanel 
+  * @returns {Boolean} 
+  */
+  const isOtherPanelOpen = (currentPanel) => {
+    return panels.some(panel => panel.style.width === "100vw" && panel !== currentPanel);
+  };
+
+
+  if (panel.style.width === "100vw") {
+    close();
+  } else {
+    closePanels();
+    open();
+  }
+}
+
+/**
+ * Helper to open/close modals
+ * 
+ * @param {Event} e 
+ * @param {HTMLDialogElement} modal 
+ * @returns {void}
+ */
+function handleModalShortcut(e, modal) {
+  e.preventDefault();
+
+  closePanels();
+
+  if (modal.open) {
+    modal.close();
+  }
+  else {
+    closeModals();
+    modal.show();
+  }
+}
+//#endregion
 
 //#region EVENT LISTENERS / INIT
 
@@ -2285,25 +2474,30 @@ export function initUi() {
   // These event listeners are for keyboard shortcuts.
   addClickListener(document, handleKeyboardShortcuts, "keydown");
 
-  // These event listeners are for the login modal
+  // Login Modal
   addClickListener(loginModalExitButton, () => showModal(false, loginModal), 'click');
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
   addClickListener(loginModal, (e) => closeModalUponOutsideClick(e, loginModalContent, loginModal), 'click');
 
-  // These event listeners are for the report issue modal
+  // Report Issue Modal
   addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click");
   addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
 
-  // These event listeners are for the donate modal
+  // Donate Modal
   addClickListener(donateModalCloseButton, () => showModal(false, donateModal), "click");
   addClickListener(donateModalMaybeLaterButton, () => showModal(false, donateModal), "click");
-  addClickListener(donateButton, () => showModal(true, donateModal), "click");
+  addClickListener(donateModalOpenButton, () => showModal(true, donateModal), "click");
   addClickListener(donateModal, (e) => closeModalUponOutsideClick(e, donateModalContent, donateModal), "click");
 
-  // These event listeners are for the load last route modal
+  // Load Last Route Modal
   addClickListener(loadLastRouteModalDismissButton, discardLastLoadedRoute, "click");
   addClickListener(loadLastRouteModalLoadButton, handleLoadCachedRoute, "click");
   addClickListener(loadLastRouteModal, (e) => closeModalUponOutsideClick(e, loadLastRouteModalContent, loadLastRouteModal), "click");
+
+  // Keyboard Shortcuts Modal
+  addClickListener(shortcutsModalOpenButton, () => showModal(true, shortcutsModal), "click");
+  addClickListener(shortcutsModalCloseButton, () => showModal(false, shortcutsModal), "click");
+  addClickListener(shortcutsModal, (e) => closeModalUponOutsideClick(e, shortcutsModalContent, shortcutsModal), "click");
 
   onMapClick(mapClickHandler);
 

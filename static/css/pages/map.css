@@ -369,7 +369,7 @@ html.dark {
 
 /* Home Button */
 .home-button {
-  background: var(--home-button-bg);
+  background: var(--secondary-btn-bg);
   color: white;
   border-radius: 5px;
   width: 28px;
@@ -390,7 +390,7 @@ html.dark {
 }
 
 .home-button:hover {
-  background: var(--muted-alt);
+  background: var(--secondary-btn-bg-hover);
   transform: translateY(-1px);
   box-shadow: var(--home-button-hover-shadow);
 }
