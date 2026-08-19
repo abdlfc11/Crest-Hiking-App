@@ -2230,8 +2230,7 @@ function manualRouteShortcuts(e, key) {
  * @returns {void}
  */
 function navigationShortcuts(e, key) {
-  e.preventDefault();
-
+  
   // saved routes dash
   if (key === '1') {
     handlePanelShortcut(
