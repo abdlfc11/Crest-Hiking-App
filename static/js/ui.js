@@ -1062,7 +1062,7 @@ async function switchToManualMode() {
   const map = getMap();
   if (!map) return;
 
-  if (getCurrentMode() === 'manual');
+  if (getCurrentMode() === 'manual') return;
 
   await localforage.setItem("lastRoutingMode", "manual");
   
