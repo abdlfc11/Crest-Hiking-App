@@ -2345,7 +2345,7 @@ function handleModalShortcut(e, modal) {
   }
   else {
     closeModals();
-    modal.show();
+    showModal(true, modal)
   }
 }
 //#endregion
