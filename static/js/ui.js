@@ -258,7 +258,7 @@ let savingRoutesTourDriver;
 
 // grouped elements
 const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
-const modals = [donateModal, reportIssueModal, shortcutsModal, loginModal]
+const modals = [donateModal, reportIssueModal, shortcutsModal, loginModal, loadLastRouteModal, deletePointModal]
 
 const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
