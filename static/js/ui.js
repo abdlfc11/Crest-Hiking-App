@@ -250,7 +250,10 @@ let automaticRoutingTourDriver;
 let savingRoutesTourDriver;
 
 
-// this is an array of allowed file types for route import
+// grouped elements
+const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
+const modals = [donateModal, reportIssueModal]
+
 const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
 let clickMode = null;
@@ -303,12 +306,10 @@ function checkIfMobile() {
 }
 //#endregion
 
-//#region DONATE MODAL
-
 //#region GENERAL MODAL
 
 /**
- * Function used to catch clicks outside of a modal in order to close the modal upon these clicks. 
+ * Catches clicks outside of a modal in order to close the modal upon these clicks. 
  * 
  * @param {Event} e 
  * @param {HTMLDivElement} modalContent 
@@ -335,6 +336,17 @@ export function showModal(show, modal) {
     modal.close();
   }
 };
+
+/**
+ * Closes all modals within the application
+ * 
+ * @returns {void}
+ */
+function closeModals() {
+  modals.forEach(modal => {
+    modal.close();
+  })
+}
 
 //#endregion
 
@@ -719,6 +731,19 @@ export function mapClickHandler(event) {
 function noRouteCreateFunction() {
   closeSavedRoutesDash()
 }
+
+/**
+ * Closes all panels accessible from the navigation raile
+ * @returns {void}
+ */
+function closePanels() {
+  const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
+
+  panels.forEach(panel => {
+    if (panel.style.width)
+    panel.style.width = "0";
+  });
+};
 
 function openSavedRoutesDash() {
 
@@ -2102,6 +2127,12 @@ function handleDistanceUnitToggle() {
 
 //#region KEYBOARD SHORTCUTS
 
+/**
+ * Orchestrates keyboard shortcuts process and order of events  
+ * 
+ * @param {Event} e 
+ * @returns {void}
+ */
 function handleKeyboardShortcuts(e) {
 
   // this returns if the user is typing 
@@ -2114,53 +2145,184 @@ function handleKeyboardShortcuts(e) {
   const key = e.key.toLowerCase();
   const mode = getCurrentMode();
 
-  // if ctrl / cmd key is pressed
+  // cmd / ctrl signals a routing action rather than navigation
   if (e.ctrlKey || e.metaKey) {
-    
-    // this switches to auto mode if ctrl/cmd + a is pressed
-    if (key === 'a') {
-      e.preventDefault();
-      switchToAutoMode();
-      return;
-    };
-
-    if (key === 'k') {
-      e.preventDefault();
-      searchEntry.focus();
-    }
-     
-    // this switches to manual mode if ctrl/cmd + m is pressed
-    if ((e.metaKey && key === 'm' && e.shiftKey) || (e.ctrlKey && key === 'm')) {
-      e.preventDefault();
-      switchToManualMode();
-      return;
-    };
-
+    appShortcuts(e, key)
     if (mode === "manual") {
-
-      // this un-does the last point if ctrl/cmd + z is clicked
-      if (key === "z") {
-        e.preventDefault();
-        undoManualRoutePoint();
-        return;
-      };
-       
-      
-      // this re-does the last undone point if ctrl/cmd + y is clicked
-      if (key === "y") {
-        e.preventDefault();
-        redoManualRoutePoint();
-        return;
-      };
-       
+      manualRouteShortcuts(e, key) 
     };
-
-  };
-
+  }
+  else {
+    navigationShortcuts(e, key)
+  }
 };
 
-//#endregion
+/**
+ * Handles general shortcuts
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns 
+ */
+function appShortcuts(e, key) {
+  // this switches to auto mode if ctrl/cmd + a is pressed
+  if (key === 'a') {
+    e.preventDefault();
+    switchToAutoMode();
+    return;
+  };
 
+  if (key === 'k') {
+    e.preventDefault();
+    searchEntry.focus();
+  }
+    
+  // this switches to manual mode if ctrl/cmd + m is pressed
+  if ((e.metaKey && key === 'm' && e.shiftKey) || (e.ctrlKey && key === 'm')) {
+    e.preventDefault();
+    switchToManualMode();
+    return;
+  };
+}
+
+/**
+ * Handles shortcuts for manual routing 
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns {void}
+ */
+function manualRouteShortcuts(e, key) {
+  // this un-does the last point if ctrl/cmd + z is clicked
+  if (key === "z") {
+    e.preventDefault();
+    undoManualRoutePoint();
+    return;
+  };
+    
+  
+  // this re-does the last undone point if ctrl/cmd + y is clicked
+  if (key === "y") {
+    e.preventDefault();
+    redoManualRoutePoint();
+    return;
+  };
+}
+
+/**
+ * Handles shortcuts for opening/closing panels and modals 
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns {void}
+ */
+function navigationShortcuts(e, key) {
+
+  // saved routes dash
+  if (key === '1') {
+    handlePanelShortcut(
+      e, 
+      savedRoutesDashContent, 
+      () => openSavedRoutesDash(),
+      () => closeSavedRoutesDash()
+    );
+    return;
+  }
+
+  // import route panel
+  if (key === '2') {
+    handlePanelShortcut(
+      e, 
+      importRoutePanel, 
+      () => openImportRoute(),
+      () => closeImportRoute()
+    );
+    return;
+  }
+  
+  // settings panel
+  if (key === '3') {
+    handlePanelShortcut(
+      e,
+      settingPanel,
+      () => openSettings(),
+      () => closeSettings()
+    );
+    return;
+  }
+
+  // report issue modal
+  if (key === '4') {
+    handleModalShortcut(
+      e,
+      reportIssueModal
+    );
+    return;
+  }
+
+  // donate modal
+  if (key === '5') {
+    handleModalShortcut(
+      e,
+      donateModal
+    )
+  }
+
+}
+
+/**
+ * @param {Event} e
+ * @param {HTMLDivElement} panel 
+ * @param {Function} open 
+ * @param {Function} close 
+ * @returns {void}
+ */
+function handlePanelShortcut(e, panel, open, close) {
+  e.preventDefault();
+
+  closeModals();
+
+  /**
+  * Helper to tell if any other panels are open
+  * 
+  * @param {HTMLDivElement} currentPanel 
+  * @returns {Boolean} 
+  */
+  const isOtherPanelOpen = (currentPanel) => {
+    return panels.some(panel => panel.style.width === "100vw" && panel !== currentPanel);
+  };
+
+
+  if (panel.style.width === "100vw") {
+    close();
+  } else {
+    closePanels();
+    open();
+  }
+}
+
+/**
+ * Helper to open/close modals
+ * 
+ * @param {Event} e 
+ * @param {HTMLDialogElement} modal 
+ * @returns {void}
+ */
+function handleModalShortcut(e, modal) {
+  e.preventDefault();
+
+  closePanels();
+
+  if (modal.open) {
+    modal.close();
+    return;
+  }
+  else {
+    closeModals();
+    modal.show();
+  }
+}
+//#endregion
 
 //#region EVENT LISTENERS / INIT
 
