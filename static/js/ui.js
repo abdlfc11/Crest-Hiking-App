@@ -123,7 +123,7 @@ import {
   createSettingsTour
 } from "./tours/tours.js";
 
-import { logout } from "./auth/auth.js";
+import { login, logout } from "./auth/auth.js";
 import { logError } from "./utils/logError-utils.js";
 import { Vector } from "ol/source.js";
 import Style from "ol/style/Style.js";
@@ -258,7 +258,7 @@ let savingRoutesTourDriver;
 
 // grouped elements
 const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
-const modals = [donateModal, reportIssueModal, shortcutsModal]
+const modals = [donateModal, reportIssueModal, shortcutsModal, loginModal]
 
 const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
@@ -2144,7 +2144,6 @@ function handleDistanceUnitToggle() {
  * @returns {void}
  */
 function handleKeyboardShortcuts(e) {
-  e.preventDefault();
 
   // this returns if the user is typing 
   if (document.activeElement.tagName === "INPUT" || 
@@ -2231,6 +2230,7 @@ function manualRouteShortcuts(e, key) {
  * @returns {void}
  */
 function navigationShortcuts(e, key) {
+  e.preventDefault();
 
   // saved routes dash
   if (key === '1') {
@@ -2303,6 +2303,11 @@ function navigationShortcuts(e, key) {
 function handlePanelShortcut(e, panel, open, close) {
   e.preventDefault();
 
+  if (loginModal.open) {
+    loginModal.close();
+    return;
+  };
+
   closeModals();
 
   /**
@@ -2338,7 +2343,6 @@ function handleModalShortcut(e, modal) {
 
   if (modal.open) {
     modal.close();
-    return;
   }
   else {
     closeModals();
