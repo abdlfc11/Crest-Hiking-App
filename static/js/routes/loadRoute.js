@@ -55,9 +55,6 @@ export function displayLoadedRouteOnMap(data) {
   const vectorSource = routeLayer.getSource();
   vectorSource.clear();
 
-  console.log(JSON.stringify(data));
-  console.log(data);
-
   const format = new GeoJSON();
   const features = format.readFeatures(data.pathGeoJSON, {
     dataProjection: "EPSG:4326",

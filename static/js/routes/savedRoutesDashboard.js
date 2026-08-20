@@ -71,7 +71,7 @@ async function onLoadClick(event) {
     await setCurrentPathData(data.coordinates);
     await closeSavedRoutesDash();
   } catch (error) {
-    showToast(error.cause)
+    showToast(error.cause || "Sorry, there was an error loading your route, please try again later.")
   }
 
   event.preventDefault();
@@ -104,7 +104,7 @@ async function onDeleteClick(event) {
 
     }
   } catch (error) {
-    showToast(error.user_message || error.message || "Sorry, there was an error downloading your route, please try again later.")
+    showToast(error.cause || "Sorry, there was an error downloading your route, please try again later.")
   }
 
   event.preventDefault();
@@ -165,7 +165,7 @@ async function onDownloadClick(event, format, DOMElement) {
   } 
   catch(error) {
 
-    showToast(error.user_message || error.message || "Sorry, there was an error downloading your route, please try again later.")
+    showToast(error.cause || "Sorry, there was an error downloading your route, please try again later.")
   }
   finally {
     DOMElement.disabled = false;

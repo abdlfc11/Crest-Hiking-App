@@ -77,6 +77,7 @@ export async function downloadRoute(routeName, format, DOMElement) {
   })
 
   if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
     throw new Error(data.message || `Download Route Error : ${response.status}`, {cause: data.user_message || "Sorry, there was an error downloading your route, please try again later."});
   }
 

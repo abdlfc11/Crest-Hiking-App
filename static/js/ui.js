@@ -849,7 +849,7 @@ async function handleRouteImport() {
       };
     }
     catch (error) {
-      showToast(error.cause)
+      showToast(error.cause || "Sorry, there was an error importing your route, please try again later.")
       return;
     }
 
@@ -884,7 +884,7 @@ async function handleRouteImport() {
       return true;
 
     } catch (err) {
-      showToast(err.cause);
+      showToast(err.cause || "Sorry, there was an error importing your route, please try again later.");
     }
   }
   else if (selectedInputType === "url") {
@@ -1262,8 +1262,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    const allKeys = Reflect.ownKeys(error); 
-    showToast(error.cause);
+    showToast(error.cause || "Sorry, there was an error calculating your route, please try again later.");
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;   

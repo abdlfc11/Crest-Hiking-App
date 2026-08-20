@@ -367,7 +367,7 @@ def save_route(
                 detail={
                     "success": False,
                     "message": "Invalid route data",
-                    "user_message": "File error. Please try uploading a different file."
+                    "user_message": "The route data is invalid. Please try again."
                 }
             )
         
@@ -617,7 +617,7 @@ def delete_route(
             detail={
                 "success": False,
                 "message": "Unauthenticated attmept to delete route",
-                "user_message": "You do not own this route."
+                "user_message": "Please log in to delete routes."
             }
         )
 
@@ -1020,7 +1020,7 @@ def download_route_file(
             detail={
                 "success": False,
                 "message": "Route not found or you don't own it",
-                "user_message": "Could not delete route as you do not own it."
+                "user_message": "Could not download the route. Check that it exists and belongs to you."
             }
         )
 
