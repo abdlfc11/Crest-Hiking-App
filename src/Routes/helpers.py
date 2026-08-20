@@ -78,7 +78,7 @@ def haversine(x1: float, y1: float, x2: float, y2: float) -> float:
 
     return R * c
 
-def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
+def normalise_route(coordinates: list, avg_speed_kmh: float = 3) -> dict:
     """Converts raw route geometry into metrics like ETA and elevation data.
 
     Parameters:
@@ -140,14 +140,11 @@ def normalise_route(coordinates: list, avg_speed_kmh: float = 4.5) -> dict:
                     total_elevation_gain_m += elevation_difference
                 else:
                     total_seconds += segment_eta['descent']
-                    
+                continue
+        total_seconds += segment_distance / (avg_speed_kmh * 1000 / 3600) # for segments which don't have elevation the avg speed is used 
 
     distance_km = total_distance_m / 1000.0
-    if not has_elevation:
-        eta_hours = distance_km / avg_speed_kmh
-        final_seconds = round(eta_hours * 3600, 2)
-    else:
-        final_seconds = round(total_seconds, 2)
+    final_seconds = round(total_seconds, 2)
 
     return {
         "distance_m": total_distance_m,
