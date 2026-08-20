@@ -1,19 +1,14 @@
 from pydantic import BaseModel
-from typing import Optional
-
-class Coordinate(BaseModel):
-    lon: float
-    lat: float
-    elevation: Optional[int] = None
-
 
 class CalculateRouteModel(BaseModel):
-    start_point: list
-    end_point: list
+    start_point: list[float, float]
+    end_point: list[float, float]
 
 class SaveRouteModel(BaseModel):
     route_name: str
-    coordinates: list
+    coordinates: list[
+        tuple[float, float] | tuple[float, float, float]
+    ]
 
 class LoadRouteModel(BaseModel):
     route_name: str
@@ -26,4 +21,6 @@ class DownloadRouteModel(BaseModel):
     route_type: str
 
 class NormaliseRouteModel(BaseModel):
-    coordinates: list[Coordinate]
+    coordinates: list[
+        tuple[float, float] | tuple[float, float, float]
+    ]

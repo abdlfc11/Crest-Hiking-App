@@ -128,6 +128,7 @@ import { logError } from "./utils/logError-utils.js";
 import { Vector } from "ol/source.js";
 import Style from "ol/style/Style.js";
 import Stroke from "ol/style/Stroke.js";
+import { ERROR_MESSAGES } from "./utils/error-contants.js";
 
 //#endregion
 
@@ -1299,7 +1300,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    showToast(error.cause || "Sorry, there was an error calculating your route, please try again later.");
+    showToast(error.cause || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED);
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;   
@@ -1373,8 +1374,7 @@ async function displayPath(data) {
   return data.route_stats;
   } 
   catch(error) {
-    showToast('Sorry, there was an unexpected error when calculating your route, please try again later.')
-    throw new Error(error.message)
+    throw new Error(error.message, {cause : ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED})
   }
 };
 
@@ -1697,7 +1697,7 @@ export async function updateManualRoute() {
       return coord.length === 3 ? [lon, lat, coord[2]] : [lon, lat]
     });
 
-    const routeStatsResponse = await fetch("/routing/normalise-route-stats", {
+    const routeStatsResponse = await fetch(window.appConfig.apiNormaliseRouteStatsUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1705,21 +1705,31 @@ export async function updateManualRoute() {
       }),
     });
 
-    const routeStats = await routeStatsResponse.json();
+    const routeStats = await routeStatsResponse.json().catch(() => ({}));
 
+    if (!routeStatsResponse.ok || !routeStats) {
+      throw new Error(routeStats.message || "ERROR : updateManualRoute()", {cause : routeStats.user_message || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED})
+    };
+
+    // sets the source of truth for distance values 
+    setLastKnownDistanceKm(routeStats.distance_km);
+
+
+    // sets display values 
     const distanceDisplay = formatDistance(routeStats.distance_km);
     const etaDisplay = formatETA(routeStats.eta_seconds);
     const isSnappedToEnd = checkIfCircularRoute();
-    const features = [];
     const elevationGainDisplay = formatElevation(routeStats.elevation_gain_m);
 
+    const features = []; 
 
+
+    // caches route info if not logged in, used to allow user to continue routing if they login 
     if (!window.appConfig.loggedIn) {
       await localforage.setItem('cachedUserClicks', userClicks);
       await localforage.setItem('cachedPathCoords', pathCoords);
       await localforage.setItem('cachedManualRouteStats', {"total_distance": routeStats.distance_km, "elevation_gain": calculateElevationGain(pathCoords)});
     }
-    setLastKnownDistanceKm(routeStats.distance_km);
 
     userClicks.forEach((point, index) => {
       const feature = new Feature({
@@ -1770,7 +1780,7 @@ export async function updateManualRoute() {
     createElevationProfile(pathCoords);
   }
   catch (error) {
-    throw new Error(error.message);
+    throw new Error(error.message || "ERROR : updateManualRoute()", {cause : error.cause || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED});
   }
 };
 
@@ -1873,14 +1883,14 @@ async function manualRouteClickHandler(event) {
     // This checks success status
     if (!response || !response.success) {
 
-      throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
+      throw new Error(response?.message || "Error : manualRouteClickHandler()")
     }
   } catch (error) {
     if (error.cause) {
       showToast(error.cause, "error", null);
     }
     else {
-      showToast("Sorry, there was an error whilst creating the path", "error", null);
+      showToast(ERROR_MESSAGES.ROUTING.NO_PATH_FOUND, "error", null);
       logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
     }
     return;

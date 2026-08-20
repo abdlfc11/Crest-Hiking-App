@@ -1,15 +1,7 @@
 import { manualRouteState,
-  hasElevation,
-  extractElevation,
-  extractElevationProfile,
-  getElevationRange,
   cumbriaBoundary,
   isPointInPolygon
 } from "../routes/routeState.js";
-
-import {
-  showToast
-} from "../utils/ui-utils.js"
 
 import {
   updateManualRoute
@@ -19,6 +11,7 @@ import { logError } from "../utils/logError-utils.js";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere.js";
 import localforage from "localforage";
+import { ERROR_MESSAGES } from "../utils/error-contants.js";
 
 /**
  * Function used to calculate and return a path (and associated information) between two given points in projection EPSG: 4326 (Lon, Lat)
@@ -52,8 +45,8 @@ export async function calculatePath(startPoint, endPoint) {
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({})); 
-      const errorMessage = data.message || `Routing Error: ${response.status}`;
-      const userMessage = data.user_message || "Sorry, there was an unexpected error when calculating your route, please try again later."
+      const errorMessage = data.message || `ERROR : calculatePath()`;
+      const userMessage = data.user_message || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED
 
       logError("Calculating Path", errorMessage, null, "NO_PATH_FOUND");
 
@@ -66,8 +59,8 @@ export async function calculatePath(startPoint, endPoint) {
     const data = await response.json();
 
     if (!data.success) {
-      const errorMessage = data.message || "Routing Error";
-      const userMessage = data.user_message || "Sorry, there was an unexpected error when calculating your route, please try again later.";
+      const errorMessage = data.message || "ERROR : calculatePath()";
+      const userMessage = data.user_message || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED;
 
       throw new Error(
         errorMessage,
@@ -103,7 +96,7 @@ export async function getPathSegment(start, end) {
   });
 
   if (!response.ok) {
-    throw new Error("Sorry, there was an unexpected error whilst calculating the path.");
+    throw new Error("ERROR : getPathSegment()", {cause : ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED});
   }
 
   const data = await response.json();
@@ -112,7 +105,7 @@ export async function getPathSegment(start, end) {
     return data;
   }
   // no logging needed as the backend already logs errors if data.success if False 
-  throw new Error("Sorry, there was an unexpected error whilst calculating the path.");
+  throw new Error( data.message || "ERROR : getPathSegment()", {cause : ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED});
 }
 
 /**
@@ -130,7 +123,7 @@ export async function addManualPoint(x, y) {
   const lonLatCoords = toLonLat(currentClick);
   const isInCumbria = isPointInPolygon(lonLatCoords, cumbriaBoundary);
   if (!isInCumbria) {
-    throw new Error("Please click on a point within Cumbria", {cause: "Please click on a point within Cumbria."});
+    throw new Error("User clicked outside Cumbria", {cause: ERROR_MESSAGES.ROUTING.OUTSIDE_CUMBRIA});
   }
 
   // this restores the redo stack
@@ -140,7 +133,7 @@ export async function addManualPoint(x, y) {
   if (userClicks.length === 0) {
     userClicks.push(currentClick);
     pathCoords.push(currentClick);
-    updateManualRoute();
+    await updateManualRoute();
     return {"success": true};
   }
  
@@ -174,20 +167,18 @@ export async function addManualPoint(x, y) {
 
   let segment;
 
-  try {
-
-    if (segmentCache[key]) { // this checks if the segment already exists in cache
+  if (segmentCache[key]) { // this checks if the segment already exists in cache
       segment = segmentCache[key]; // if yes, it just retrieves it
-    }
-    // otherwise, it calculates it and adds it to the cache 
-    else {
+  }
+  // otherwise, it calculates it and adds it to the cache 
+  else {
       // conversion to lon lat as the API expects coordinates in the form [Lon, Lat]
       const lastLonLat = toLonLat(lastClickedPoint);
       const finalLonLat = toLonLat(finalClick);
       const data = await getPathSegment(lastLonLat, finalLonLat);
 
       if (!data.success) {
-        throw new Error("Could not find path", {cause : "Sorry, we could not find a path to that location."})
+        throw new Error(data.message || "ERROR : addManualPoint()", {cause : ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED})
       };
 
       segment = data.coordinates;
@@ -205,10 +196,6 @@ export async function addManualPoint(x, y) {
       // this updates elevation change
       manualRouteState.initialElevation += data.route_stats.elevation_change;
 
-    }
-  }
-  catch (error) {
-    throw error;
   }
 
   await localforage.setItem('cachedSegmentCache', segmentCache)
@@ -219,7 +206,7 @@ export async function addManualPoint(x, y) {
   userClicks.push(finalClick);
   manualRouteState.isSnapped = true;
 
-  updateManualRoute();
+  await updateManualRoute();
 
   return {"success": true};
 }
