@@ -1858,7 +1858,9 @@ function redoManualRoutePoint() {
   
   if (!restoredPoint) return;
 
-  addManualPoint(restoredPoint[0], restoredPoint[1]);
+  addManualPoint(restoredPoint[0], restoredPoint[1]).catch((error) => {
+    showToast(error.cause || "Sorry, we couldn't redo your point.", "error", null);
+  });
 };
 
 async function manualRouteClickHandler(event) {
