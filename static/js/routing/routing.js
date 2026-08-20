@@ -50,20 +50,35 @@ export async function calculatePath(startPoint, endPoint) {
       }),
     });
 
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({})); 
+      const errorMessage = data.message || `Routing Error: ${response.status}`;
+      const userMessage = data.user_message || "Sorry, there was an unexpected error when calculating your route, please try again later."
+
+      logError("Calculating Path", errorMessage, null, "NO_PATH_FOUND");
+
+      throw new Error(
+        errorMessage,
+        {cause : userMessage}
+      )
+    };
+
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.")
+    if (!data.success) {
+      const errorMessage = data.message || "Routing Error";
+      const userMessage = data.user_message || "Sorry, there was an unexpected error when calculating your route, please try again later.";
+
+      throw new Error(
+        errorMessage,
+        {cause : userMessage}
+      );
+
     };
 
-    if (data.success) {
-      return data;
-    };
-
-    throw new Error(data.message || "Sorry, there was an unexpected error when calculating your route, please try again later.");
+    return data;
   }
   catch(error) {
-    logError("Calculating Path", error.message, null, "NO_PATH_FOUND");
     throw error;
   };
 };

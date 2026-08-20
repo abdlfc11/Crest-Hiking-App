@@ -1260,8 +1260,11 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    showToast("Sorry, there was an unexpected error when calculating your route, please try again later.");
-    return;
+    console.log(error);
+    console.log(error.cause);
+    const allKeys = Reflect.ownKeys(error); 
+    console.log(allKeys); 
+    showToast(error.cause);
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;   

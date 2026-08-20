@@ -307,7 +307,8 @@ def calculate_path(
                 "success": False,
                 "map_centre": DEFAULT_CENTRE,
                 "available_routes": [],
-                "message": "Sorry, there was an unexpected error whilst creating your route. "
+                "message": "Routing : HTTP 500 Error",
+                "user_message": "Sorry, there was an unexpected error whilst creating your route, please try again later."
             }
         )
 
