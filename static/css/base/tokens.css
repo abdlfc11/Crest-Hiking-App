@@ -52,8 +52,8 @@
 
   --btn-bg: #3c3c3c;
   --btn-bg-hover: #454545;
-  --secondary-btn-bg: #b4b0b0;
-  --secondary-btn-bg-hover: #7e7b7b;
+  --secondary-btn-bg: #595959;
+  --secondary-btn-bg-hover: #4b4a4a;
   --btn-disabled-bg: #93b4f2;
   --btn-disabled-text: #ffffff;
 
@@ -140,8 +140,8 @@ html.dark {
 
   --btn-bg: #374151;
   --btn-bg-hover: #4b5563;
-  --secondary-btn-bg: #7c7a7a;
-  --secondary-btn-bg-hover: #6a6868;
+  --secondary-btn-bg: #3d3c3c;
+  --secondary-btn-bg-hover: #313131;
   --btn-disabled-bg: #1e293b;
   --btn-disabled-text: #64748b;
 
@@ -149,6 +149,8 @@ html.dark {
   --card-border: #374151;
 
   --shadow-surface: 0 10px 35px rgba(0, 0, 0, 0.3);
+  --shadow-lift-blue: 0 4px 12px rgba(37, 99, 235, 0.28);
+  --shadow-lift-normal: 0 4px 12px rgba(86, 86, 87, 0.28);
   --shadow-lift: 0 4px 12px rgba(59, 130, 246, 0.2);
 
   /* Toast tokens */
