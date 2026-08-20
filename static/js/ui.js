@@ -1401,18 +1401,18 @@ async function handleLoadCachedRoute() {
 
   try {
     if (routeType === "auto") {
-      handleLoadAutoCachedRoute();
+      await handleLoadAutoCachedRoute();
     }
     else if (routeType === "manual") {
       switchToManualMode();
-      handleLoadManualCachedRoute();
+      await handleLoadManualCachedRoute();
     }
     else {
       throw new Error("Invalid route type given")
     }
   }
   catch(error) {
-    showToast("There was an error loading you last route", "error", null);
+    showToast("There was an error loading your last route", "error", null);
     throw new Error(error.message)
   }
   finally {
@@ -1433,6 +1433,10 @@ async function handleLoadAutoCachedRoute() {
 
       const parsedStats = typeof cachedRouteStats === "string" ? JSON.parse(cachedRouteStats) : cachedRouteStats;
       setLastAutoRouteStats(parsedStats)
+
+      console.log(cachedRouteStats)
+      console.log(parsedStats)
+      console.log(JSON.stringify(parsedStats))
 
       setLastKnownDistanceKm(parsedStats.total_distance);
       startCoordEntry.value = formatLatLon(toLonLat(startWebMercator))
