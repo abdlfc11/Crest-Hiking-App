@@ -1253,8 +1253,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
 
-    console.log(`AUTO ROUTE STATS : ${routeStats}`);
-
     displayAutoRouteStats(getLastAutoRouteStats());
     
     resetElevationChart();
@@ -1264,10 +1262,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    console.log(error);
-    console.log(error.cause);
     const allKeys = Reflect.ownKeys(error); 
-    console.log(allKeys); 
     showToast(error.cause);
   } finally {
     generatePathButton.classList.remove("loading");
@@ -1325,7 +1320,6 @@ async function displayPath(data) {
       await localforage.setItem("cachedAutoRouteStartPointCoords", startMercatorCoord);
       await localforage.setItem("cachedAutoRouteEndPointCoords", endMercatorCoord);
       await localforage.setItem("cachedAutoRouteStats", data.route_stats);
-      console.log(data.route_stats);
     }
   }
 
@@ -1506,10 +1500,6 @@ async function displayAutoCachedRouteStats(routeStats) {
     if (statsDiv) {
       statsDiv.remove();
     };
-    
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
-    console.log(`AUTO CACHED ROUTES : ${JSON.stringify(routeStats)}`)
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
 
     statsDiv = document.createElement("div");
     statsDiv.id = "route-stats";
@@ -1524,7 +1514,6 @@ async function displayAutoCachedRouteStats(routeStats) {
 
 async function handleLoadManualCachedRoute() {
 
-  console.log('updating route state')
   const updateManualRouteState = (newUserClicks, newPathCoords, newSegmentCache) => {
     manualRouteState.userClicks = newUserClicks;
     manualRouteState.pathCoords = newPathCoords;
