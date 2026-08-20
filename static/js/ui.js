@@ -1722,13 +1722,15 @@ export async function updateManualRoute() {
     const elevationGainDisplay = formatElevation(routeStats.elevation_gain_m);
 
     const features = []; 
+    
+    console.log(JSON.stringify(routeStats));
 
 
     // caches route info if not logged in, used to allow user to continue routing if they login 
     if (!window.appConfig.loggedIn) {
       await localforage.setItem('cachedUserClicks', userClicks);
       await localforage.setItem('cachedPathCoords', pathCoords);
-      await localforage.setItem('cachedManualRouteStats', {"total_distance": routeStats.distance_km, "elevation_gain": calculateElevationGain(pathCoords)});
+      await localforage.setItem('cachedManualRouteStats', {"total_distance": routeStats.distance_km, "elevation_gain": formatElevation(routeStats.elevation_gain_m)});
     }
 
     userClicks.forEach((point, index) => {
