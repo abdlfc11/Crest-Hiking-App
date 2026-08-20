@@ -145,20 +145,6 @@ class NodeFinder:
                 
         return total_distance_metres
 
-    def calculate_eta(self, path, graph):
-        # 'path' now contains coordinate tuples, this is mapped back to vertex IDs to extract edge cost values.
-        total_seconds = 0
-        for start_coord, end_coord in zip(path, path[1:]):
-            u = self.node_to_id[start_coord]
-            v = self.node_to_id[end_coord]
-            
-            # This retrieves the edge index connecting vertex u to v
-            edge_id = graph.get_eid(u, v, directed=True, error=False)
-            if edge_id != -1:
-                total_seconds += graph.es[edge_id]['cost']
-                
-        return total_seconds
-
     def calculate_map_center_and_zoom(self, web_mercator_coordinates):
         if len(web_mercator_coordinates) > 1:
             x_coords = [coord[0] for coord in web_mercator_coordinates]

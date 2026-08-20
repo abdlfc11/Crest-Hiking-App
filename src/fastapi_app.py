@@ -145,7 +145,11 @@ def format_distance(
 def format_elevation(elevation_gain):
     if not isinstance(elevation_gain, int) or isinstance(elevation_gain, float):
         elevation_gain = int(float(elevation_gain))
-    return f"+{elevation_gain} m" if elevation_gain >= 0 else f"{elevation_gain} m"
+    
+    if elevation_gain == 0:
+        return "No Data"
+    else: 
+        return f"+{elevation_gain} m" if elevation_gain > 0 else f"{elevation_gain} m"
 
 def format_eta(seconds):
     hours = seconds // 3600

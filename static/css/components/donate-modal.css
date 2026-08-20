@@ -16,6 +16,12 @@
   text-align: left;
 }
 
+.donate-modal-content svg {
+  width: 20px;
+  height: 20px;
+  color: var(--ink);
+}
+
 .donate-modal-content .modal-header h2 {
   text-align: center;
 }
@@ -110,11 +116,6 @@
   justify-content: center;
   background: var(--blue-soft);
   color: var(--blue);
-}
-
-.donate-option-icon svg {
-  width: 20px;
-  height: 20px;
 }
 
 .donate-option-text {

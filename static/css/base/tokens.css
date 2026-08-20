@@ -52,8 +52,8 @@
 
   --btn-bg: #3c3c3c;
   --btn-bg-hover: #454545;
-  --secondary-btn-bg: #9d9797;
-  --secondary-btn-bg-hover: #888484;
+  --secondary-btn-bg: #595959;
+  --secondary-btn-bg-hover: #4b4a4a;
   --btn-disabled-bg: #93b4f2;
   --btn-disabled-text: #ffffff;
 
@@ -81,7 +81,8 @@
   --space-3xl: 4rem;
 
   --shadow-surface: 0 10px 35px rgba(15, 23, 42, 0.06);
-  --shadow-lift: 0 4px 12px rgba(37, 99, 235, 0.28);
+  --shadow-lift-blue: 0 4px 12px rgba(37, 99, 235, 0.28);
+  --shadow-lift-normal: 0 4px 12px rgba(86, 86, 87, 0.28);
   --panel-shadow: 0 2px 6px rgba(0,0,0,0.1);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
@@ -133,13 +134,14 @@ html.dark {
   --secondary-border: #FFFFFF;
 
   --blue: #3b82f6;
-  --blue-dark: #60a5fa;
+  --blue-dark: #226bc3;
   --blue-soft: rgba(59, 130, 246, 0.15);
   --blue-ring: rgba(59, 130, 246, 0.4);
 
   --btn-bg: #374151;
   --btn-bg-hover: #4b5563;
-  --secondary-btn-bg: #FFFFFF;
+  --secondary-btn-bg: #3d3c3c;
+  --secondary-btn-bg-hover: #313131;
   --btn-disabled-bg: #1e293b;
   --btn-disabled-text: #64748b;
 
@@ -147,6 +149,8 @@ html.dark {
   --card-border: #374151;
 
   --shadow-surface: 0 10px 35px rgba(0, 0, 0, 0.3);
+  --shadow-lift-blue: 0 4px 12px rgba(37, 99, 235, 0.28);
+  --shadow-lift-normal: 0 4px 12px rgba(86, 86, 87, 0.28);
   --shadow-lift: 0 4px 12px rgba(59, 130, 246, 0.2);
 
   /* Toast tokens */

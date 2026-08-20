@@ -37,6 +37,8 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/buttons.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/donate-modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/load-last-route-modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components/shortcuts-modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components/form-fields.css') }}">
 
     <!-- Layout CSS Files -->
@@ -321,7 +323,76 @@
             </div>
         </dialog>
 
+        <!-- ##### DELETE POINT MODAL ##### -->
+        <dialog id="shortcuts-dialog" class="modal-overlay" aria-labelledby="shortcuts-dialog-heading">
+            <div class="modal-wrapper">
+                <div class="modal-content shortcuts-modal-content">
+                    <div class="modal-header">
+                        <h2 id="shortcuts-dialog-heading">Keyboard Shortcuts</h2>
+                    </div>
+                    <div class="modal-body shortcuts-modal-body">
+                        <div class="shortcuts-group">
+                            <h3 class="shortcuts-group-title">Routing</h3>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Switch to Auto Mode</span>
+                                <span class="shortcut-key"><kbd>Ctrl/⌘</kbd><span class="shortcut-key-plus">+</span><kbd>Shift</kbd><span class="shortcut-key-plus">+</span><kbd>A</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Switch to Manual Mode</span>
+                                <span class="shortcut-key"><kbd>Ctrl/⌘</kbd><span class="shortcut-key-plus">+</span><kbd>Shift</kbd><span class="shortcut-key-plus">+</span><kbd>M</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Focus Map Search</span>
+                                <span class="shortcut-key"><kbd>Ctrl/⌘</kbd><span class="shortcut-key-plus">+</span><kbd>Shift</kbd><span class="shortcut-key-plus">+</span><kbd>K</kbd></span>
+                            </div>
+                        </div>
 
+                        <div class="shortcuts-group">
+                            <h3 class="shortcuts-group-title">Manual Routing</h3>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Undo Last Point</span>
+                                <span class="shortcut-key"><kbd>Ctrl/⌘</kbd><span class="shortcut-key-plus">+</span><kbd>Z</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Redo Last Point</span>
+                                <span class="shortcut-key"><kbd>Ctrl/⌘</kbd><span class="shortcut-key-plus">+</span><kbd>Y</kbd></span>
+                            </div>
+                        </div>
+
+                        <div class="shortcuts-group">
+                            <h3 class="shortcuts-group-title">Navigation</h3>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Saved Routes</span>
+                                <span class="shortcut-key"><kbd>1</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Import Route</span>
+                                <span class="shortcut-key"><kbd>2</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Settings</span>
+                                <span class="shortcut-key"><kbd>3</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Report Issue</span>
+                                <span class="shortcut-key"><kbd>4</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Donate</span>
+                                <span class="shortcut-key"><kbd>5</kbd></span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-name">Keyboard Shortcuts</span>
+                                <span class="shortcut-key"><kbd>6</kbd></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="shortcuts-dialog-close-button" class="modal-btn modal-btn-secondary">Close</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
 
 
         <div id="map"></div>
@@ -330,94 +401,90 @@
     <!-- ##### SIDE NAV RAIL ##### -->
     <div id="the-sidenav" class="sidenav" aria-label="Main navigation">
         <div class="sidenav-inner">
-            <ul class="sidenav-links">
-                <li>
-                    <a
-                        id="saved-routes-dash-open-button"
-                        class="sidenav-link"
-                        aria-label="Saved Routes"
-                    >
-                        <i data-lucide="waypoints"></i>
-                        <span class="nav-label">Saved Routes</span>
-                    </a>
-                </li>
+            <button
+                type="button"
+                id="saved-routes-dash-open-button"
+                class="sidenav-button"
+                aria-label="Saved Routes"
+            >
+                <i data-lucide="waypoints"></i>
+                <span class="nav-label">Saved Routes</span>
+            </button>
 
-                <li>
-                    <a
-                        id="import-route-open-button"
-                        class="sidenav-link"
-                        aria-label="Import Route"
-                    >
-                        <i data-lucide="import"></i>
-                        <span class="nav-label">Import Route</span>
-                    </a>
-                </li>
+            <button
+                type="button"
+                id="import-route-open-button"
+                class="sidenav-button"
+                aria-label="Import Route"
+            >
+                <i data-lucide="import"></i>
+                <span class="nav-label">Import Route</span>
+            </button>
 
-                <li>
-                    <a
-                        id="settings-open-button"
-                        class="sidenav-link"
-                        aria-label="Settings"
-                    >
-                        <i data-lucide="settings"></i>
-                        <span class="nav-label">Settings</span>
-                    </a>
-                </li>
+            <button
+                type="button"
+                id="settings-open-button"
+                class="sidenav-button"
+                aria-label="Settings"
+            >
+                <i data-lucide="settings"></i>
+                <span class="nav-label">Settings</span>
+            </button>
 
-                <li>
-                    <a
-                        id="report-issues-open-button"
-                        class="sidenav-link"
-                        aria-label="Report Issues"
-                    >
-                        <i data-lucide="bug"></i>
-                        <span class="nav-label">Report Issues</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a
-                        class="sidenav-link"
-                        id="donate-button"
-                        href="javascript:void(0)"
-                    >
-                        <i data-lucide="heart"></i>
-                        <span class="nav-label">Donate</span>
-                    </a>
-                </li>
-            </ul>
-
-            {% if user is none or not user.preferred_name %}
-                <div
-                    id="sidenav-login-logout-button-container"
-                    class="sidenav-auth"
+            <div class="sidenav-lower">
+                <button
+                    type="button"
+                    id="report-issues-open-button"
+                    class="sidenav-button"
+                    aria-label="Report Issues"
                 >
+                    <i data-lucide="bug"></i>
+                    <span class="nav-label">Report Issues</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="sidenav-button lower-sidenav-button"
+                    id="donate-button"
+                    aria-label="Donate"
+                >
+                    <i data-lucide="heart"></i>
+                    <span class="nav-label">Donate</span>
+                </button>
+
+                <button
+                    type="button"
+                    id="sidenav-shortcuts-button"
+                    class="sidenav-button lower-sidenav-button"
+                    aria-label="Keyboard Shortcuts"
+                >
+                    <i data-lucide="keyboard"></i>
+                    <span class="nav-label">Shortcuts</span>
+                </button>
+
+                {% if user is none or not user.preferred_name %} 
                     <button
                         type="button"
                         id="sidenav-login-button"
-                        class="sidenav-link sidenav-auth-button"
+                        class="sidenav-button lower-sidenav-button"
                         aria-label="Log In"
                     >
                         <i data-lucide="log-in"></i>
                         <span class="nav-label">Log In</span>
                     </button>
-                </div>
-            {% else %}
-                <div
-                    id="sidenav-login-logout-button-container"
-                    class="sidenav-auth"
-                >
+                {% else %}
                     <button
                         type="button"
                         id="sidenav-logout-button"
-                        class="sidenav-link sidenav-auth-button"
+                        class="sidenav-button lower-sidenav-button"
                         aria-label="Log Out"
                     >
                         <i data-lucide="log-out"></i>
                         <span class="nav-label">Log Out</span>
                     </button>
-                </div>
-            {% endif %}
+                {% endif %}
+
+            </div>
         </div>
     </div>
 
@@ -746,6 +813,7 @@
             apiDeleteRouteUrl: "/routing/delete-route",
             apiDownloadRouteFileUrl: "/routing/download-route",
             apiImportRouteUrl: "/routing/import-route-file",
+            apiNormaliseRouteStatsUrl: "/routing/normalise-route-stats",
 
             // points + search API endpoints
             apiSearchAreaUrl: "/search/search-area",

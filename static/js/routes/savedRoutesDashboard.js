@@ -61,7 +61,6 @@ async function onLoadClick(event) {
   if (!route) return;
 
   try {
-    await closeSavedRoutesDash();
     const data = await loadRoute(route.routeName);
     await displayLoadedRouteOnMap(data);
     await initChartToggleListener();
@@ -70,8 +69,9 @@ async function onLoadClick(event) {
     // both set calls could set coords whereby each coord is formed of 3 elements i.e (x, y and elevation)
     await setLoadedRouteCoordinates(data.coordinates);
     await setCurrentPathData(data.coordinates);
+    await closeSavedRoutesDash();
   } catch (error) {
-    showE
+    showToast(error.cause || "Sorry, there was an error loading your route, please try again later.")
   }
 
   event.preventDefault();
@@ -104,8 +104,7 @@ async function onDeleteClick(event) {
 
     }
   } catch (error) {
-
-    showToast("Sorry, there was an unexpected error, try again later. ")
+    showToast(error.cause || "Sorry, there was an error downloading your route, please try again later.")
   }
 
   event.preventDefault();
@@ -134,7 +133,11 @@ async function onDownloadClick(event, format, DOMElement) {
   
   try {
 
+    console.log('BEFORE DOWNLOAD ROUTE')
+
     const response = await downloadRoute(route.routeName, format, DOMElement); 
+
+    console.log('AFTER DOWNLOAD ROUTE')
     
     const blob = await response.blob(); // this gets binary file
 
@@ -161,10 +164,8 @@ async function onDownloadClick(event, format, DOMElement) {
 
   } 
   catch(error) {
-  
-    logError("Downloading Route", error.message, null, "DOWNLOAD_ROUTE")
 
-    showToast("Sorry, there was an unexpected error, try again later. ")
+    showToast(error.cause || "Sorry, there was an error downloading your route, please try again later.")
   }
   finally {
     DOMElement.disabled = false;

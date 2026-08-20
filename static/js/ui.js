@@ -123,11 +123,12 @@ import {
   createSettingsTour
 } from "./tours/tours.js";
 
-import { logout } from "./auth/auth.js";
+import { login, logout } from "./auth/auth.js";
 import { logError } from "./utils/logError-utils.js";
 import { Vector } from "ol/source.js";
 import Style from "ol/style/Style.js";
 import Stroke from "ol/style/Stroke.js";
+import { ERROR_MESSAGES } from "./utils/error-contants.js";
 
 //#endregion
 
@@ -162,9 +163,6 @@ const searchForAreaButton = document.getElementById("search-for-area-button");
 
 const mapElement = document.getElementById("map");
 
-const reportIssueOpenButton = document.getElementById('report-issues-open-button')
-const loginNavBarButton = document.getElementById('sidenav-login-button');
-const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
 // automatic mode + manual mode contents i.e mode-specific panels
 const autoModeContent = document.getElementById("auto-mode-content");
@@ -176,6 +174,13 @@ const routeNameEntry = document.getElementById("route-name");
 const saveContainer = document.getElementById('save-route-container');
 const saveRouteToggleButton = document.getElementById("save-route-toggle-button");
 const saveRouteContainer = document.getElementById('save-route-container');
+
+// Navigation Rail Buttons 
+const donateModalOpenButton = document.getElementById('donate-button');
+const reportIssueOpenButton = document.getElementById('report-issues-open-button')
+const shortcutsModalOpenButton = document.getElementById('sidenav-shortcuts-button');
+const loginNavBarButton = document.getElementById('sidenav-login-button');
+const logoutNavBarButton = document.getElementById('sidenav-logout-button');
 
 // delete point modal
 const deletePointModal = document.getElementById("delete-point-confirmation-dialog");
@@ -200,8 +205,6 @@ const reportIssueTitleInput = document.getElementById("report-issue-title");
 const reportIssueTextAreaInput = document.getElementById("report-issue-description");
 
 // donate modal
-const donateButton = document.getElementById('donate-button');
-
 const donateModal = document.getElementById('donate-modal');
 const donateModalContent = document.getElementById('donate-modal-content');
 const donateModalCloseButton = document.getElementById('donate-modal-close-button');
@@ -216,6 +219,10 @@ const loadLastRouteModalRouteName = document.getElementById('load-last-route-mod
 const loadLastRouteModalRouteDistance = document.getElementById('load-last-route-modal-route-distance');
 const loadLastRouteModalRouteElevationGain = document.getElementById('load-last-route-modal-route-elevation-gain');
 
+// Keyboard Shortcuts Modal
+const shortcutsModal = document.getElementById('shortcuts-dialog');
+const shortcutsModalContent = shortcutsModal.querySelector('.modal-content');
+const shortcutsModalCloseButton = document.getElementById('shortcuts-dialog-close-button');
 
 // saved route dash panel
 const openSavedRoutesDashButton = document.getElementById('saved-routes-dash-open-button');
@@ -250,7 +257,10 @@ let automaticRoutingTourDriver;
 let savingRoutesTourDriver;
 
 
-// this is an array of allowed file types for route import
+// grouped elements
+const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
+const modals = [donateModal, reportIssueModal, shortcutsModal, loginModal, loadLastRouteModal, deletePointModal]
+
 const allowedFileTypes = ['.gpx', '.kml', '.geojson', '.fit'];
 
 let clickMode = null;
@@ -269,6 +279,8 @@ let interactivePointLayer = null; // stores the vector layer which holds the poi
 export function getClickMode() {
   return clickMode;
 }
+
+//#region MOBILE CHECK
 
 /**
  * Checks if user is on mobile device and advices to use Crestr on desktop / laptop instead 
@@ -300,12 +312,13 @@ function checkIfMobile() {
   }
 }
 //#endregion
-//#region DONATE MODAL
+
+//#region GENERAL MODAL
 
 //#region GENERAL MODAL
 
 /**
- * Function used to catch clicks outside of a modal in order to close the modal upon these clicks. 
+ * Catches clicks outside of a modal in order to close the modal upon these clicks. 
  * 
  * @param {Event} e 
  * @param {HTMLDivElement} modalContent 
@@ -332,6 +345,17 @@ export function showModal(show, modal) {
     modal.close();
   }
 };
+
+/**
+ * Closes all modals within the application
+ * 
+ * @returns {void}
+ */
+function closeModals() {
+  modals.forEach(modal => {
+    modal.close();
+  })
+}
 
 //#endregion
 
@@ -363,7 +387,7 @@ export function showLoginModal(show, actionName = 'perform this action') {
  */
 function loginModalLogin() {
   showLoginModal(false);
-  window.location.href = 'https://app.crestr.co.uk/login-page';
+  window.location.href = '/login-page';
   return;
 };
 
@@ -717,6 +741,19 @@ function noRouteCreateFunction() {
   closeSavedRoutesDash()
 }
 
+/**
+ * Closes all panels accessible from the navigation raile
+ * @returns {void}
+ */
+function closePanels() {
+  const panels = [savedRoutesDashContent, importRoutePanel, settingPanel];
+
+  panels.forEach(panel => {
+    if (panel.style.width)
+    panel.style.width = "0";
+  });
+};
+
 function openSavedRoutesDash() {
 
   // This prevents non-logged in and registered users from opening the save route panel
@@ -812,7 +849,7 @@ function collapseSaveRouteContainer() {
 async function handleRouteImport() {
   const selectedInputType = whichInputTypeSelected();
   let routeName;
-  let data; // this will store the return value of the flask route 'import_route_file', it is initialised first as if done so in the try statement then the next try statement cannot use it
+  let data; 
 
   if (selectedInputType === "file") {
 
@@ -827,16 +864,15 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showToast(data || "There was an error on our end. Please try again later.");
-        return false;
+        throw new Error(`(IMPORT ROUTE) HTTP Error: ${data}`, {cause: "Sorry, there was an error importing your route."})
       }
 
       const today = new Date();
         
       const formattedToday = new Intl.DateTimeFormat('en-GB', {
-      "day": "2-digit",
-      "month": "2-digit",
-      "year": "numeric"
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
       }).format(today);
 
       if (!importRouteNameEntry.value) {
@@ -847,8 +883,8 @@ async function handleRouteImport() {
       };
     }
     catch (error) {
-      showToast("There was an error on our end. Please try again later.")
-      console.error(`ERROR whilst importing route : ${error}`)
+      showToast(error.cause || "Sorry, there was an error importing your route, please try again later.")
+      return;
     }
 
     try {
@@ -862,15 +898,18 @@ async function handleRouteImport() {
         }),
       });
 
-      if (!response.ok) {
-        showToast("There was an error on our end. Please try again later.");
-        return false;
+      const result = await response.json(); 
+
+      if (response.status === 422) {
+        throw new Error(`(IMPORT ROUTE) Incorrect Imput Error : ${result}`, { cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
       }
 
-      const result = await response.json(); 
+      if (!response.ok) {
+        throw new Error(`(IMPORT ROUTE) HTTP Error: ${result}`, {cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
+      }
+
       if (!result.success) {
-        showToast(result.message || "Failed to save route.");
-        return false;
+        throw new Error(`(IMPORT ROUTE) Error: ${result}`, {cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
       }
 
       displayImportedRouteCard(result);
@@ -879,9 +918,7 @@ async function handleRouteImport() {
       return true;
 
     } catch (err) {
-      showToast("There was an error on our end. Please try again later.");
-      console.error(`Error whilst trying to save imported route: ${err}`)
-      return false;
+      showToast(err.cause || "Sorry, there was an error importing your route, please try again later.");
     }
   }
   else if (selectedInputType === "url") {
@@ -893,7 +930,6 @@ async function handleRouteImport() {
     }
 
     clearImportRouteInput();
-    console.log(`Importing route from URL: ${url}`);
     return url;
   }
 }
@@ -904,31 +940,35 @@ async function handleRouteImport() {
  */
 function validateFileInput(file) {
 
+  try {
+
+    const fileName = file?.name;
+
     // this checks if a file is selected
     if (!file) {
-        showToast("Please select a file to import.");
-        return false;
+      throw new Error("Validation Error", {cause : "Please select a file to import."});
     }
 
     // this checks if the file is of the correct type
-    if (!allowedFileTypes.some(type => file.name.endsWith(type))) {
-        showToast("Please select a valid file to import.");
-        return false;
+    if (!allowedFileTypes.some(type => fileName.endsWith(type))) {
+      throw new Error("Validation Error", {cause : "Please select a valid file to import."});
     }
 
     // this checks if the file size is too large (greater than 5MB)
     if (file.size > 5 * 1024 * 1024) {
-        showToast("File size is too large. Please select a file smaller than 5MB.");
-        return false;
+      throw new Error("Validation Error", {cause : "File is too large. Please select a file smaller than 5MB."});
     }
 
     // this checks if the file is empty or not
     if (file.size === 0) {
-      showToast("The selected file is empty.")
-      return false;
+      throw new Error("Validation Error", {cause : "The chosen file is empty, please choose a different file."});
     }
 
     return true;
+  }
+  catch (error) {
+    throw new Error(error.message, {cause: error.cause || "Sorry, there was an error validating your file, please try again later."})
+  }
 }
 
 /**
@@ -1005,6 +1045,8 @@ async function switchToAutoMode() {
   const map = getMap();
   if (!map) return;
 
+  if (getCurrentMode() === 'auto') return;
+
   await localforage.setItem("lastRoutingMode", "auto");
 
   setCurrentMode("auto");
@@ -1024,6 +1066,8 @@ async function switchToAutoMode() {
 async function switchToManualMode() {
   const map = getMap();
   if (!map) return;
+
+  if (getCurrentMode() === 'manual') return;
 
   await localforage.setItem("lastRoutingMode", "manual");
   
@@ -1120,6 +1164,10 @@ export function clearManualRoute() {
 export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
+
+  if (map.getView().getAnimating()) {
+    return;
+  }
 
   // this resets the coordinate input UI state
   if (startCoordEntry) {
@@ -1243,8 +1291,6 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     setLastKnownDistanceKm(routeStats.total_distance);
     setLastAutoRouteStats(routeStats);
 
-    console.log(`AUTO ROUTE STATS : ${routeStats}`);
-
     displayAutoRouteStats(getLastAutoRouteStats());
     
     resetElevationChart();
@@ -1254,8 +1300,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    showToast("Sorry, there was an unexpected error when calculating your route, please try again later.");
-    return;
+    showToast(error.cause || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED);
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;   
@@ -1312,7 +1357,6 @@ async function displayPath(data) {
       await localforage.setItem("cachedAutoRouteStartPointCoords", startMercatorCoord);
       await localforage.setItem("cachedAutoRouteEndPointCoords", endMercatorCoord);
       await localforage.setItem("cachedAutoRouteStats", data.route_stats);
-      console.log(data.route_stats);
     }
   }
 
@@ -1330,8 +1374,7 @@ async function displayPath(data) {
   return data.route_stats;
   } 
   catch(error) {
-    console.log(error.message);
-    showToast('Sorry, there was an unexpected error when calculating your route, please try again later.')
+    throw new Error(error.message, {cause : ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED})
   }
 };
 
@@ -1360,19 +1403,19 @@ async function handleLoadCachedRoute() {
 
   try {
     if (routeType === "auto") {
-      handleLoadAutoCachedRoute();
+      await handleLoadAutoCachedRoute();
     }
     else if (routeType === "manual") {
       switchToManualMode();
-      handleLoadManualCachedRoute();
+      await handleLoadManualCachedRoute();
     }
     else {
       throw new Error("Invalid route type given")
     }
   }
   catch(error) {
-    console.log(error.message)
-    showToast("There was an error loading you last route", "error", null);
+    showToast("There was an error loading your last route", "error", null);
+    throw new Error(error.message)
   }
   finally {
     localforage.clear();
@@ -1393,7 +1436,11 @@ async function handleLoadAutoCachedRoute() {
       const parsedStats = typeof cachedRouteStats === "string" ? JSON.parse(cachedRouteStats) : cachedRouteStats;
       setLastAutoRouteStats(parsedStats)
 
-      setLastKnownDistanceKm(cachedRouteStats.total_distance);
+      console.log(cachedRouteStats)
+      console.log(parsedStats)
+      console.log(JSON.stringify(parsedStats))
+
+      setLastKnownDistanceKm(parsedStats.total_distance);
       startCoordEntry.value = formatLatLon(toLonLat(startWebMercator))
       endCoordEntry.value = formatLatLon(toLonLat(endWebMercator))
 
@@ -1493,10 +1540,6 @@ async function displayAutoCachedRouteStats(routeStats) {
     if (statsDiv) {
       statsDiv.remove();
     };
-    
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
-    console.log(`AUTO CACHED ROUTES : ${JSON.stringify(routeStats)}`)
-    console.log(`LAST AUTO ROUTE STATS : ${JSON.stringify(getLastAutoRouteStats())}`)
 
     statsDiv = document.createElement("div");
     statsDiv.id = "route-stats";
@@ -1511,7 +1554,6 @@ async function displayAutoCachedRouteStats(routeStats) {
 
 async function handleLoadManualCachedRoute() {
 
-  console.log('updating route state')
   const updateManualRouteState = (newUserClicks, newPathCoords, newSegmentCache) => {
     manualRouteState.userClicks = newUserClicks;
     manualRouteState.pathCoords = newPathCoords;
@@ -1645,68 +1687,103 @@ export async function updateManualRoute() {
 
   if (saveContainer) saveContainer.style.display = "flex";
 
-  const { userClicks, pathCoords } = manualRouteState;
-  const totalDistanceKm = calculateTotalDistance(pathCoords) / 1000;
-  const distanceDisplay = formatDistance(totalDistanceKm);
-  const etaDisplay = calculateEta(totalDistanceKm);
-  const isSnappedToEnd = checkIfCircularRoute();
-  const features = [];
-  const elevationGainDisplay = formatElevation(calculateElevationGain(pathCoords));
+  try {
 
-  if (!window.appConfig.loggedIn) {
-    await localforage.setItem('cachedUserClicks', userClicks);
-    await localforage.setItem('cachedPathCoords', pathCoords);
-    await localforage.setItem('cachedManualRouteStats', {"total_distance": totalDistanceKm, "elevation_gain": calculateElevationGain(pathCoords)});
-  }
-  setLastKnownDistanceKm(totalDistanceKm);
+    const { userClicks, pathCoords } = manualRouteState;
 
-  userClicks.forEach((point, index) => {
-    const feature = new Feature({
-      geometry: new Point(point),
-      type: "point",
+    const transformedPathCoords = pathCoords.map(coord => {
+      const [lon, lat] = toLonLat(coord);
+
+      return coord.length === 3 ? [lon, lat, coord[2]] : [lon, lat]
     });
-    feature.set("index", index);
-    features.push(feature);
-  });
 
-  if (pathCoords.length > 1) {
-    features.push(
-      new Feature({
-        geometry: new LineString(pathCoords),
-        type: "line",
+    const routeStatsResponse = await fetch(window.appConfig.apiNormaliseRouteStatsUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        coordinates: transformedPathCoords
       }),
-    );
-  }
+    });
 
-  manualRouteLayer = new VectorLayer({
-    source: new VectorSource({ features }),
-    style(feature) {
-      const featureType = feature.get("type");
-      if (featureType === "point") {
-        const index = feature.get("index");
-        const isStart = index === 0;
-        const isEnd = index === userClicks.length - 1;
+    const routeStats = await routeStatsResponse.json().catch(() => ({}));
 
-        if (isSnappedToEnd) {
-          if (isStart) return getSavedPointStyle("Start/End", "#00A86B");
-          if (isEnd) return getSavedPointStyle("", "#00A86B");
-        }
-        if (isStart) return getSavedPointStyle("Start", "#00A86B");
-        if (isEnd) return getSavedPointStyle("End", "#D32F2F");
-        return createManualPointStyle("", "#000", 6.5);
-      }
-      return new Style({
-        stroke: new Stroke(getRouteStrokeStyle()),
+    if (!routeStatsResponse.ok || !routeStats) {
+      throw new Error(routeStats.message || "ERROR : updateManualRoute()", {cause : routeStats.user_message || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED})
+    };
+
+    // sets the source of truth for distance values 
+    setLastKnownDistanceKm(routeStats.distance_km);
+
+
+    // sets display values 
+    const distanceDisplay = formatDistance(routeStats.distance_km);
+    const etaDisplay = formatETA(routeStats.eta_seconds);
+    const isSnappedToEnd = checkIfCircularRoute();
+    const elevationGainDisplay = formatElevation(routeStats.elevation_gain_m);
+
+    const features = []; 
+    
+    console.log(JSON.stringify(routeStats));
+
+
+    // caches route info if not logged in, used to allow user to continue routing if they login 
+    if (!window.appConfig.loggedIn) {
+      await localforage.setItem('cachedUserClicks', userClicks);
+      await localforage.setItem('cachedPathCoords', pathCoords);
+      await localforage.setItem('cachedManualRouteStats', {"total_distance": routeStats.distance_km, "elevation_gain": formatElevation(routeStats.elevation_gain_m)});
+    }
+
+    userClicks.forEach((point, index) => {
+      const feature = new Feature({
+        geometry: new Point(point),
+        type: "point",
       });
-    },
-  });
+      feature.set("index", index);
+      features.push(feature);
+    });
 
-  map.addLayer(manualRouteLayer);
+    if (pathCoords.length > 1) {
+      features.push(
+        new Feature({
+          geometry: new LineString(pathCoords),
+          type: "line",
+        }),
+      );
+    }
 
-  const isOnePoint = pathCoords.length === 1;
+    manualRouteLayer = new VectorLayer({
+      source: new VectorSource({ features }),
+      style(feature) {
+        const featureType = feature.get("type");
+        if (featureType === "point") {
+          const index = feature.get("index");
+          const isStart = index === 0;
+          const isEnd = index === userClicks.length - 1;
 
-  updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords);
-  createElevationProfile(pathCoords);
+          if (isSnappedToEnd) {
+            if (isStart) return getSavedPointStyle("Start/End", "#00A86B");
+            if (isEnd) return getSavedPointStyle("", "#00A86B");
+          }
+          if (isStart) return getSavedPointStyle("Start", "#00A86B");
+          if (isEnd) return getSavedPointStyle("End", "#D32F2F");
+          return createManualPointStyle("", "#000", 6.5);
+        }
+        return new Style({
+          stroke: new Stroke(getRouteStrokeStyle()),
+        });
+      },
+    });
+
+    map.addLayer(manualRouteLayer);
+
+    const isOnePoint = pathCoords.length === 1;
+
+    updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords);
+    createElevationProfile(pathCoords);
+  }
+  catch (error) {
+    throw new Error(error.message || "ERROR : updateManualRoute()", {cause : error.cause || ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED});
+  }
 };
 
 function updateManualRouteStats(isOnePoint, distanceDisplay, etaDisplay, elevationGainDisplay, pathCoords) {
@@ -1793,7 +1870,9 @@ function redoManualRoutePoint() {
   
   if (!restoredPoint) return;
 
-  addManualPoint(restoredPoint[0], restoredPoint[1]);
+  addManualPoint(restoredPoint[0], restoredPoint[1]).catch((error) => {
+    showToast(error.cause || "Sorry, we couldn't redo your point.", "error", null);
+  });
 };
 
 async function manualRouteClickHandler(event) {
@@ -1806,11 +1885,16 @@ async function manualRouteClickHandler(event) {
     // This checks success status
     if (!response || !response.success) {
 
-      throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
+      throw new Error(response?.message || "Error : manualRouteClickHandler()")
     }
   } catch (error) {
-    showToast("Sorry, there was an error whilst creating the path.");
-    logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
+    if (error.cause) {
+      showToast(error.cause, "error", null);
+    }
+    else {
+      showToast(ERROR_MESSAGES.ROUTING.NO_PATH_FOUND, "error", null);
+      logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
+    }
     return;
   }
 }
@@ -2083,6 +2167,12 @@ function handleDistanceUnitToggle() {
 
 //#region KEYBOARD SHORTCUTS
 
+/**
+ * Orchestrates keyboard shortcuts process and order of events  
+ * 
+ * @param {Event} e 
+ * @returns {void}
+ */
 function handleKeyboardShortcuts(e) {
 
   // this returns if the user is typing 
@@ -2095,53 +2185,200 @@ function handleKeyboardShortcuts(e) {
   const key = e.key.toLowerCase();
   const mode = getCurrentMode();
 
-  // if ctrl / cmd key is pressed
+  // cmd / ctrl signals a routing action rather than navigation
   if (e.ctrlKey || e.metaKey) {
-    
-    // this switches to auto mode if ctrl/cmd + a is pressed
-    if (key === 'a') {
-      e.preventDefault();
-      switchToAutoMode();
-      return;
-    };
-
-    if (key === 'k') {
-      e.preventDefault();
-      searchEntry.focus();
-    }
-     
-    // this switches to manual mode if ctrl/cmd + m is pressed
-    if ((e.metaKey && key === 'm' && e.shiftKey) || (e.ctrlKey && key === 'm')) {
-      e.preventDefault();
-      switchToManualMode();
-      return;
-    };
-
+    appShortcuts(e, key)
     if (mode === "manual") {
-
-      // this un-does the last point if ctrl/cmd + z is clicked
-      if (key === "z") {
-        e.preventDefault();
-        undoManualRoutePoint();
-        return;
-      };
-       
-      
-      // this re-does the last undone point if ctrl/cmd + y is clicked
-      if (key === "y") {
-        e.preventDefault();
-        redoManualRoutePoint();
-        return;
-      };
-       
+      manualRouteShortcuts(e, key) 
     };
-
-  };
-
+  }
+  else {
+    navigationShortcuts(e, key)
+  }
 };
 
-//#endregion
+/**
+ * Handles general shortcuts
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns 
+ */
+function appShortcuts(e, key) {
 
+  const isModifier = e.metaKey || e.ctrlKey;
+
+  // this switches to auto mode if ctrl/cmd + a is pressed
+  if (isModifier && e.shiftKey && key === 'a') {
+    e.preventDefault();
+    switchToAutoMode();
+    return;
+  };
+
+  if (isModifier && e.shiftKey && key === 'k') {
+    e.preventDefault();
+    searchEntry.focus();
+  }
+    
+  // this switches to manual mode if ctrl/cmd + m is pressed
+  if (isModifier && e.shiftKey && key === 'm') {
+    e.preventDefault();
+    switchToManualMode();
+    return;
+  };
+}
+
+/**
+ * Handles shortcuts for manual routing 
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns {void}
+ */
+function manualRouteShortcuts(e, key) {
+  // this un-does the last point if ctrl/cmd + z is clicked
+  if (key === "z") {
+    e.preventDefault();
+    undoManualRoutePoint();
+    return;
+  };
+    
+  
+  // this re-does the last undone point if ctrl/cmd + y is clicked
+  if (key === "y") {
+    e.preventDefault();
+    redoManualRoutePoint();
+    return;
+  };
+}
+
+/**
+ * Handles shortcuts for opening/closing panels and modals 
+ * 
+ * @param {Event} e 
+ * @param {String} key 
+ * @returns {void}
+ */
+function navigationShortcuts(e, key) {
+  
+  // saved routes dash
+  if (key === '1') {
+    handlePanelShortcut(
+      e, 
+      savedRoutesDashContent, 
+      () => openSavedRoutesDash(),
+      () => closeSavedRoutesDash()
+    );
+    return;
+  }
+
+  // import route panel
+  if (key === '2') {
+    handlePanelShortcut(
+      e, 
+      importRoutePanel, 
+      () => openImportRoute(),
+      () => closeImportRoute()
+    );
+    return;
+  }
+  
+  // settings panel
+  if (key === '3') {
+    handlePanelShortcut(
+      e,
+      settingPanel,
+      () => openSettings(),
+      () => closeSettings()
+    );
+    return;
+  }
+
+  // report issue modal
+  if (key === '4') {
+    handleModalShortcut(
+      e,
+      reportIssueModal
+    );
+    return;
+  }
+
+  // donate modal
+  if (key === '5') {
+    handleModalShortcut(
+      e,
+      donateModal
+    )
+    return;
+  }
+
+  // shortcuts modal
+  if (key === '6') {
+    handleModalShortcut(
+      e,
+      shortcutsModal
+    )
+    return;
+  };
+}
+
+/**
+ * @param {Event} e
+ * @param {HTMLDivElement} panel 
+ * @param {Function} open 
+ * @param {Function} close 
+ * @returns {void}
+ */
+function handlePanelShortcut(e, panel, open, close) {
+  e.preventDefault();
+
+  if (loginModal.open) {
+    loginModal.close();
+    return;
+  };
+
+  closeModals();
+
+  /**
+  * Helper to tell if any other panels are open
+  * 
+  * @param {HTMLDivElement} currentPanel 
+  * @returns {Boolean} 
+  */
+  const isOtherPanelOpen = (currentPanel) => {
+    return panels.some(panel => panel.style.width === "100vw" && panel !== currentPanel);
+  };
+
+
+  if (panel.style.width === "100vw") {
+    close();
+  } else {
+    closePanels();
+    open();
+  }
+}
+
+/**
+ * Helper to open/close modals
+ * 
+ * @param {Event} e 
+ * @param {HTMLDialogElement} modal 
+ * @returns {void}
+ */
+function handleModalShortcut(e, modal) {
+  e.preventDefault();
+
+  closePanels();
+
+  if (modal.open) {
+    modal.close();
+  }
+  else {
+    closeModals();
+    showModal(true, modal)
+  }
+}
+//#endregion
 
 //#region EVENT LISTENERS / INIT
 
@@ -2221,14 +2458,19 @@ export function initUi() {
   addClickListener(importRouteCloseButton, closeImportRoute, "click");
   addClickListener(importRouteCancelButton, cancelRouteImport, "click");
 
-  addClickListener(loginNavBarButton, () => window.location.href = "https://app.crestr.co.uk/login-page", 'click')
+  addClickListener(loginNavBarButton, () => window.location.href = "/login-page", 'click')
   addClickListener(logoutNavBarButton, logout, 'click')
 
   addClickListener(reportIssueOpenButton, () => showReportIssueModal(true), "click");
 
 
   // These event listeners are for route import.
-  addClickListener(importRouteFileInput, validateFileInput, "change");
+  importRouteFileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    validateFileInput(file);
+  });
+
+
   addClickListener(importRouteSubmitButton, handleRouteImport, "click");
   routeInputTypes.forEach(radio => {
     radio.addEventListener('change', handleRouteImportType);
@@ -2261,25 +2503,30 @@ export function initUi() {
   // These event listeners are for keyboard shortcuts.
   addClickListener(document, handleKeyboardShortcuts, "keydown");
 
-  // These event listeners are for the login modal
+  // Login Modal
   addClickListener(loginModalExitButton, () => showModal(false, loginModal), 'click');
   addClickListener(loginModalLoginButton, loginModalLogin, 'click');
   addClickListener(loginModal, (e) => closeModalUponOutsideClick(e, loginModalContent, loginModal), 'click');
 
-  // These event listeners are for the report issue modal
+  // Report Issue Modal
   addClickListener(reportIssueModalExit, () => showReportIssueModal(false), "click");
   addClickListener(reportIssueModalSubmit, () => handleReportIssueSubmission(reportIssueTitleInput.value.trim(), reportIssueTextAreaInput.value.trim()), "click");
 
-  // These event listeners are for the donate modal
+  // Donate Modal
   addClickListener(donateModalCloseButton, () => showModal(false, donateModal), "click");
   addClickListener(donateModalMaybeLaterButton, () => showModal(false, donateModal), "click");
-  addClickListener(donateButton, () => showModal(true, donateModal), "click");
+  addClickListener(donateModalOpenButton, () => showModal(true, donateModal), "click");
   addClickListener(donateModal, (e) => closeModalUponOutsideClick(e, donateModalContent, donateModal), "click");
 
-  // These event listeners are for the load last route modal
+  // Load Last Route Modal
   addClickListener(loadLastRouteModalDismissButton, discardLastLoadedRoute, "click");
   addClickListener(loadLastRouteModalLoadButton, handleLoadCachedRoute, "click");
   addClickListener(loadLastRouteModal, (e) => closeModalUponOutsideClick(e, loadLastRouteModalContent, loadLastRouteModal), "click");
+
+  // Keyboard Shortcuts Modal
+  addClickListener(shortcutsModalOpenButton, () => showModal(true, shortcutsModal), "click");
+  addClickListener(shortcutsModalCloseButton, () => showModal(false, shortcutsModal), "click");
+  addClickListener(shortcutsModal, (e) => closeModalUponOutsideClick(e, shortcutsModalContent, shortcutsModal), "click");
 
   onMapClick(mapClickHandler);
 

@@ -75,17 +75,8 @@ html.dark {
   padding-top: 16px;
 }
 
-/* A container for the sidenav links */
-.sidenav-links {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
 /* row styling which is shared between links and buttons */
-.sidenav-link {
+.sidenav-button {
   display: flex;
   align-items: center;
   gap: var(--nav-link-gap);
@@ -93,7 +84,9 @@ html.dark {
   padding: var(--nav-link-padding);
   margin: var(--nav-link-margin);
   border-radius: var(--nav-link-radius);
-  text-decoration: none;
+  border: none;
+  background: transparent;
+  font-family: inherit;
   color: var(--nav-link-colour);
   font-size: var(--nav-font-size);
   line-height: 1;
@@ -102,32 +95,32 @@ html.dark {
   transition: var(--nav-link-transition);
 }
 
-.sidenav-link:hover {
+.sidenav-button:hover {
   color: var(--nav-link-hover-colour);
   background-color: var(--nav-link-hover-bg);
 }
 
-.sidenav-link:focus-visible {
+.sidenav-button:focus-visible {
   outline: 2px solid var(--blue, #3b82f6);
   outline-offset: 2px;
 }
 
 /* Icon sizing + styling */
-.sidenav-link svg {
+.sidenav-button svg {
   width: var(--nav-icon-size);
   height: var(--nav-icon-size);
   flex-shrink: 0;
 }
 
 /* link text (i.e 'saved routes') styling */
-.sidenav-link .nav-label {
+.sidenav-button .nav-label {
   font-size: var(--nav-font-size);
   font-weight: var(--nav-font-weight);
   color: inherit;
 }
 
 /* Auth button container (placed at the bottom of the sidenav) */
-.sidenav-auth {
+.sidenav-lower {
   margin-top: auto;
   padding: 12px 0 16px;
   flex-shrink: 0;
@@ -135,19 +128,12 @@ html.dark {
   flex-direction: column;
 }
 
-/* login / logout buttons */
-.sidenav-auth-button {
-  border: none;
-  background: transparent;
-  font-family: inherit;
-}
-
 /* Nav limits for short viewports */
 @media screen and (max-height: 450px) {
   .sidenav-inner {
     padding-top: 8px;
   }
-  .sidenav-link {
+  .sidenav-button {
     height: var(--nav-link-height-compact);
   }
 }

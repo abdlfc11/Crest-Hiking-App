@@ -29,9 +29,8 @@ export async function processImportedRouteFile(file) {
 
     const data = await response.json();
 
-    if (!response.ok) {
-        showToast(data.message || "There was an error on our end, try again later");
-        throw new Error(`HTTP Error: ${response.status}`);
+    if (!response.ok || !data.success) {
+        throw new Error( data.message || `(IMPORT ROUTE) HTTP Error: ${data}`, {cause: data.user_message || data.message || "Sorry, there was an error importing your route."})
     }
 
     if (data.success) {
@@ -46,6 +45,7 @@ export async function processImportedRouteFile(file) {
 export function displayImportedRouteCard(data) {
 
     const routeInfo = data.route_info;
+    console.log(routeInfo)
     const today = new Date();
 
     const routeName = routeInfo.route_name
@@ -59,7 +59,7 @@ export function displayImportedRouteCard(data) {
     const distanceKm = routeInfo.distance_km;
     const formattedDistanceKm = formatDistance(distanceKm);
     const formattedETA = formatETA(routeInfo.eta_seconds);
-    const formattedElevation = formatElevation(routeInfo.elevation_gain_metres)
+    const formattedElevation = routeInfo.elevation_gain_metres === 0 ? "No Data" : formatElevation(routeInfo.elevation_gain_metres)
 
     
 

@@ -5,6 +5,10 @@
   Spinner markup/animation from https://cssloaders.github.io
 */
 
+.loading-button {
+  position: relative;
+}
+
 .loader {
   position: absolute;
   display: none;
@@ -14,33 +18,30 @@
   border-bottom-color: transparent;
   border-radius: 50%;
   box-sizing: border-box;
+  top: 50%;
+  left: 50%;
   animation: rotation 1s linear infinite;
-  top: 23%;
-  left: 48%;
-  transform: translate(-50%, -50%);
 }
 
 @keyframes rotation {
   0% {
-    transform: rotate(0deg);
+    transform: translate(-50%, -50%) rotate(0deg);
   }
   100% {
-    transform: rotate(360deg);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
 .loading-button.loading .loading-button-text {
   visibility: hidden;
 }
-
 .loading-button.loading .loader {
-  display: inline-block;
+  display: block;          /* or inline-block */
 }
 
 .route-btn.loading .route-btn-text {
   visibility: hidden;
 }
-
 .route-btn.loading .loader {
-  display: inline-block;
+  display: block;
 }
