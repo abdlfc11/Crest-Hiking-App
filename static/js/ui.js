@@ -966,7 +966,7 @@ function validateFileInput(file) {
     return true;
   }
   catch (error) {
-    throw new Error(error.message, {cause: "There was an error validating your file, please try again or import a different file. "})
+    throw new Error(error.message, {cause: error.cause || "Sorry, there was an error validating your file, please try again later."})
   }
 }
 
@@ -2454,7 +2454,7 @@ export function initUi() {
 
   // These event listeners are for route import.
   importRouteFileInput.addEventListener("change", (e) => {
-    const file = event.target.files[0];
+    const file = e.target.files[0];
     validateFileInput(file);
   });
 
