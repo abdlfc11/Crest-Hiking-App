@@ -846,7 +846,7 @@ function collapseSaveRouteContainer() {
 async function handleRouteImport() {
   const selectedInputType = whichInputTypeSelected();
   let routeName;
-  let data; // this will store the return value of the flask route 'import_route_file', it is initialised first as if done so in the try statement then the next try statement cannot use it
+  let data; 
 
   if (selectedInputType === "file") {
 
@@ -861,16 +861,15 @@ async function handleRouteImport() {
       data = await processImportedRouteFile(file); 
 
       if (!data || !data.coords) {
-        showToast(data || "There was an error on our end. Please try again later.");
-        return false;
+        throw new Error(`(IMPORT ROUTE) HTTP Error: ${data}`, {cause: "Sorry, there was an error importing your route."})
       }
 
       const today = new Date();
         
       const formattedToday = new Intl.DateTimeFormat('en-GB', {
-      "day": "2-digit",
-      "month": "2-digit",
-      "year": "numeric"
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
       }).format(today);
 
       if (!importRouteNameEntry.value) {
@@ -881,8 +880,8 @@ async function handleRouteImport() {
       };
     }
     catch (error) {
-      showToast("There was an error on our end. Please try again later.")
-      console.error(`ERROR whilst importing route : ${error}`)
+      showToast(error.cause || "Sorry, there was an error importing your route, please try again later.")
+      return;
     }
 
     try {
@@ -896,15 +895,18 @@ async function handleRouteImport() {
         }),
       });
 
-      if (!response.ok) {
-        showToast("There was an error on our end. Please try again later.");
-        return false;
+      const result = await response.json(); 
+
+      if (response.status === 422) {
+        throw new Error(`(IMPORT ROUTE) Incorrect Imput Error : ${result}`, { cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
       }
 
-      const result = await response.json(); 
+      if (!response.ok) {
+        throw new Error(`(IMPORT ROUTE) HTTP Error: ${result}`, {cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
+      }
+
       if (!result.success) {
-        showToast(result.message || "Failed to save route.");
-        return false;
+        throw new Error(`(IMPORT ROUTE) Error: ${result}`, {cause: result.user_message || result.message || "Sorry, there was an error importing your route."})
       }
 
       displayImportedRouteCard(result);
@@ -913,9 +915,7 @@ async function handleRouteImport() {
       return true;
 
     } catch (err) {
-      showToast("There was an error on our end. Please try again later.");
-      console.error(`Error whilst trying to save imported route: ${err}`)
-      return false;
+      showToast(err.cause || "Sorry, there was an error importing your route, please try again later.");
     }
   }
   else if (selectedInputType === "url") {
@@ -937,33 +937,35 @@ async function handleRouteImport() {
  */
 function validateFileInput(file) {
 
-  const fileName = file?.name;
+  try {
+
+    const fileName = file?.name;
 
     // this checks if a file is selected
     if (!file) {
-        showToast("Please select a file to import.");
-        return false;
+      throw new Error("Validation Error", {cause : "Please select a file to import."});
     }
 
     // this checks if the file is of the correct type
     if (!allowedFileTypes.some(type => fileName.endsWith(type))) {
-        showToast("Please select a valid file to import.");
-        return false;
+      throw new Error("Validation Error", {cause : "Please select a valid file to import."});
     }
 
     // this checks if the file size is too large (greater than 5MB)
     if (file.size > 5 * 1024 * 1024) {
-        showToast("File size is too large. Please select a file smaller than 5MB.");
-        return false;
+      throw new Error("Validation Error", {cause : "File is too large. Please select a file smaller than 5MB."});
     }
 
     // this checks if the file is empty or not
     if (file.size === 0) {
-      showToast("The selected file is empty.")
-      return false;
+      throw new Error("Validation Error", {cause : "The chosen file is empty, please choose a different file."});
     }
 
     return true;
+  }
+  catch (error) {
+    throw new Error(error.message, {cause: "There was an error validating your file, please try again or import a different file. "})
+  }
 }
 
 /**
@@ -1160,6 +1162,10 @@ export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
 
+  if (map.getView().getAnimating()) {
+    return;
+  }
+
   // this resets the coordinate input UI state
   if (startCoordEntry) {
     startCoordEntry.classList.remove("input-error", "is-active");
@@ -1291,8 +1297,7 @@ async function handleAutoRouteGeneration(start=null, end=null) {
     if (saveContainer) saveContainer.style.display = "flex";
 
   } catch (error) {
-    showToast("Sorry, there was an unexpected error when calculating your route, please try again later.");
-    return;
+    showToast(error.cause || "Sorry, there was an error calculating your route, please try again later.");
   } finally {
     generatePathButton.classList.remove("loading");
     generatePathButton.disabled = false;   
@@ -1863,8 +1868,13 @@ async function manualRouteClickHandler(event) {
       throw new Error(response?.message || "Sorry, there was an error whilst creating the path. ")
     }
   } catch (error) {
-    showToast("Sorry, there was an error whilst creating the path.");
-    logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
+    if (error.cause) {
+      showToast(error.cause, "error", null);
+    }
+    else {
+      showToast("Sorry, there was an error whilst creating the path", "error", null);
+      logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
+    }
     return;
   }
 }
