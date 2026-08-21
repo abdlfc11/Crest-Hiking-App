@@ -1163,13 +1163,13 @@ export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
 
-  if (map.getView().getAnimating()) {
-    return;
-  }
-
   // closes any modals / panels to return to the map view 
   closeModals();
   closePanels();
+
+  if (map.getView().getAnimating()) {
+    return;
+  }
 
   // this resets the coordinate input UI state
   if (startCoordEntry) {
