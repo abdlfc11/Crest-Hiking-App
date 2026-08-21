@@ -315,8 +315,6 @@ function checkIfMobile() {
 
 //#region GENERAL MODAL
 
-//#region GENERAL MODAL
-
 /**
  * Catches clicks outside of a modal in order to close the modal upon these clicks. 
  * 
@@ -1164,6 +1162,10 @@ export function clearManualRoute() {
 export function homeButtonFunction() {
   const map = getMap();
   if (!map) return;
+
+  // closes any modals / panels to return to the map view 
+  closeModals();
+  closePanels();
 
   if (map.getView().getAnimating()) {
     return;
@@ -2208,6 +2210,19 @@ function appShortcuts(e, key) {
 
   const isModifier = e.metaKey || e.ctrlKey;
 
+  // resets view and inputs 
+  if (isModifier && e.shiftKey && key === 'h') {
+    e.preventDefault();
+    homeButtonFunction();
+    return;
+  };
+
+  // focuses on the search input entry 
+  if (isModifier && e.shiftKey && key === 'k') {
+    e.preventDefault();
+    searchEntry.focus();
+  }
+
   // this switches to auto mode if ctrl/cmd + a is pressed
   if (isModifier && e.shiftKey && key === 'a') {
     e.preventDefault();
@@ -2215,17 +2230,14 @@ function appShortcuts(e, key) {
     return;
   };
 
-  if (isModifier && e.shiftKey && key === 'k') {
-    e.preventDefault();
-    searchEntry.focus();
-  }
-    
   // this switches to manual mode if ctrl/cmd + m is pressed
   if (isModifier && e.shiftKey && key === 'm') {
     e.preventDefault();
     switchToManualMode();
     return;
   };
+
+  return;
 }
 
 /**
