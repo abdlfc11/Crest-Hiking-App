@@ -315,8 +315,6 @@ function checkIfMobile() {
 
 //#region GENERAL MODAL
 
-//#region GENERAL MODAL
-
 /**
  * Catches clicks outside of a modal in order to close the modal upon these clicks. 
  * 
