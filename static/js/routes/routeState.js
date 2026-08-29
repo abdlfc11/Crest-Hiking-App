@@ -2,7 +2,7 @@
 
 let currentPathData = null;
 let loadedRouteCoordinates = null;
-let currentMode = "auto";
+let currentMode = "manual";
 let lastKnownDistanceKm = null;
 let lastAutoRouteStats = null;
 let lastLoadedRouteStats = null;

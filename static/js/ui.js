@@ -651,85 +651,6 @@ function setCoordEntry(entry, event) {
   updateCursor();
 }
 
-export function mapClickHandler(event) {
-  const map = getMap();
-  if (!map) return;
-
-  if (clickMode) {
-    updateCursor();
-  }
-
-  if (clickMode === "setStart") {
-    setCoordEntry(startCoordEntry, event);
-
-    // adding start point
-    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("Start", "#00A86B"), "start", "Start");
-    addStartEndPoint(pointFeature, interactivePointLayer, "start");
-    setUpPointInteraction([interactivePointLayer]);
-
-    if (interactivePointLayer.getSource().getFeatures().length > 1) {
-      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
-    };
-
-    return;
-  }
-  if (clickMode === "setEnd") {
-    setCoordEntry(endCoordEntry, event);
-
-    // adding end point 
-    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#D32F2F"), "end", "End")
-    addStartEndPoint(pointFeature, interactivePointLayer, "end");
-    setUpPointInteraction([interactivePointLayer]);
-
-    if (interactivePointLayer.getSource().getFeatures().length > 1) {
-      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
-    };
-
-    return;
-  }
-
-  if (getCurrentMode() !== "auto") return;
-
-  if (selectedPoint) {
-    selectedPoint.setStyle(getSavedPointStyle(selectedPoint.get("name")));
-    selectedPoint = null;
-  }
-
-  let featureClicked = false;
-  let newSelection = null;
-  const savedPointsLayer = getSavedPointsLayer();
-
-  map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
-    if (
-      layer === savedPointsLayer &&
-      feature.getGeometry() instanceof Point
-    ) {
-      newSelection = feature;
-      featureClicked = true;
-      return true;
-    }
-  });
-
-  if (newSelection) {
-    selectedPoint = newSelection;
-    const pointName = selectedPoint.get("name");
-    selectedPoint.setStyle(getSelectedPointStyle(pointName));
-    deletePointModalNameDisplay.textContent = pointName;
-    showModal(true, deletePointModal);
-  } 
-  else if (!featureClicked) {
-    const coordinate = event.coordinate;
-    const lonLat = toLonLat(coordinate);
-
-    // TO BE CHANGED TO CUSTOM MODAL 
-    const pointName = prompt(
-      `Do you want to save this coordinate: ${formatLatLon(lonLat, 6)}? \nEnter a name to save it:`,
-    );
-
-    if (pointName) saveNewPoint(coordinate, pointName);
-  }
-}
-
 //#endregion
 
 //#region OPEN/CLOSE PANEL FUNCTIONS
@@ -1028,6 +949,115 @@ function handleRouteImportType() {
         URLInputTypeContent.style.display = 'flex';
     }
 }
+
+//#endregion
+
+//#region MAP CLICK HANDLERS
+
+export function mapClickHandler(event) {
+  const map = getMap();
+  if (!map) return;
+
+  if (clickMode) {
+    updateCursor();
+  }
+
+  if (clickMode === "setStart") {
+    setCoordEntry(startCoordEntry, event);
+
+    // adding start point
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("Start", "#00A86B"), "start", "Start");
+    addStartEndPoint(pointFeature, interactivePointLayer, "start");
+    setUpPointInteraction([interactivePointLayer]);
+
+    if (interactivePointLayer.getSource().getFeatures().length > 1) {
+      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
+    };
+
+    return;
+  }
+  if (clickMode === "setEnd") {
+    setCoordEntry(endCoordEntry, event);
+
+    // adding end point 
+    const pointFeature = createPoint(event.coordinate, getSavedPointStyle("End", "#D32F2F"), "end", "End")
+    addStartEndPoint(pointFeature, interactivePointLayer, "end");
+    setUpPointInteraction([interactivePointLayer]);
+
+    if (interactivePointLayer.getSource().getFeatures().length > 1) {
+      handleAutoRouteGeneration(startCoordEntry.value, endCoordEntry.value);
+    };
+
+    return;
+  }
+
+  if (getCurrentMode() !== "auto") return;
+
+  if (selectedPoint) {
+    selectedPoint.setStyle(getSavedPointStyle(selectedPoint.get("name")));
+    selectedPoint = null;
+  }
+
+  let featureClicked = false;
+  let newSelection = null;
+  const savedPointsLayer = getSavedPointsLayer();
+
+  map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
+    if (
+      layer === savedPointsLayer &&
+      feature.getGeometry() instanceof Point
+    ) {
+      newSelection = feature;
+      featureClicked = true;
+      return true;
+    }
+  });
+
+  if (newSelection) {
+    selectedPoint = newSelection;
+    const pointName = selectedPoint.get("name");
+    selectedPoint.setStyle(getSelectedPointStyle(pointName));
+    deletePointModalNameDisplay.textContent = pointName;
+    showModal(true, deletePointModal);
+  } 
+  else if (!featureClicked) {
+    const coordinate = event.coordinate;
+    const lonLat = toLonLat(coordinate);
+
+    // TO BE CHANGED TO CUSTOM MODAL 
+    const pointName = prompt(
+      `Do you want to save this coordinate: ${formatLatLon(lonLat, 6)}? \nEnter a name to save it:`,
+    );
+
+    if (pointName) saveNewPoint(coordinate, pointName);
+  }
+}
+
+async function manualRouteClickHandler(event) {
+
+  try { 
+    const coordinate = event.coordinate;
+
+    const response = await addManualPoint(coordinate[0], coordinate[1]);
+
+    // This checks success status
+    if (!response || !response.success) {
+
+      throw new Error(response?.message || "Error : manualRouteClickHandler()")
+    }
+  } catch (error) {
+    if (error.cause) {
+      console.error(error);
+      showToast(error.cause, "error", null);
+    }
+    else {
+      showToast(ERROR_MESSAGES.ROUTING.NO_PATH_FOUND, "error", null);
+      logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
+    }
+    return;
+  }
+}
+
 
 //#endregion
 
@@ -1877,29 +1907,6 @@ function redoManualRoutePoint() {
   });
 };
 
-async function manualRouteClickHandler(event) {
-
-  try { 
-    const coordinate = event.coordinate;
-
-    const response = await addManualPoint(coordinate[0], coordinate[1]);
-
-    // This checks success status
-    if (!response || !response.success) {
-
-      throw new Error(response?.message || "Error : manualRouteClickHandler()")
-    }
-  } catch (error) {
-    if (error.cause) {
-      showToast(error.cause, "error", null);
-    }
-    else {
-      showToast(ERROR_MESSAGES.ROUTING.NO_PATH_FOUND, "error", null);
-      logError("Calculating Path", error.message || "Manual Route", null, "NO_PATH_FOUND");
-    }
-    return;
-  }
-}
 //#endregion
 
 //#region SAVE ROUTE PANEL
@@ -2540,7 +2547,7 @@ export function initUi() {
   addClickListener(shortcutsModalCloseButton, () => showModal(false, shortcutsModal), "click");
   addClickListener(shortcutsModal, (e) => closeModalUponOutsideClick(e, shortcutsModalContent, shortcutsModal), "click");
 
-  onMapClick(mapClickHandler);
+  onMapClick(manualRouteClickHandler);
 
   // These event listeners are for returning the map to the Lake District + clearing inputs
   autoHomeButton?.addEventListener("click", homeButtonFunction);

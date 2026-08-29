@@ -177,6 +177,8 @@ export async function addManualPoint(x, y) {
       const finalLonLat = toLonLat(finalClick);
       const data = await getPathSegment(lastLonLat, finalLonLat);
 
+      console.log(data);
+
       if (!data.success) {
         throw new Error(data.message || "ERROR : addManualPoint()", {cause : ERROR_MESSAGES.ROUTING.PATH_CREATION_FAILED})
       };
