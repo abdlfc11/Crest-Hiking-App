@@ -63,60 +63,11 @@ html.dark {
   left: auto;
 }
 
-/* MODE TOGGLING */
-#mode-toggle {
-  position: absolute;
-  top: 5px;
-  left: 70px;
-  z-index: 900;
-  background: var(--panel-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--panel-radius);
-  box-shadow: var(--panel-shadow);
-  border: 1px solid var(--border-alt);
-  padding: 5px;
-  font-family: var(--font-sans);
-  max-width: calc(100vw - 90px);
-}
-
-.mode-toggle-container {
-  display: flex;
-  gap: 3px;
-  flex-wrap: wrap;
-}
-
-.mode-button {
-  padding: 5px 11px;
-  background: rgb(241 245 249 / 0.75); /* --surface-subtle base color at a one-off alpha */
-  color: var(--muted-strong);
-  border: 1px solid var(--border-alt);
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.mode-button:hover {
-  background: var(--secondary-bg);
-  border-color: var(--placeholder);
-  color: var(--mode-button-hover-text);
-}
-
-.mode-button.active {
-  background: var(--blue);
-  color: white;
-  border-color: var(--blue-dark-alt);
-  box-shadow: var(--action-shadow-sm);
-}
-
 /* AUTOMATIC ROUTE GENERATION */
 #start-end {
   position: absolute;
-  top: 48px;
-  left: 70px;
+  top: 1rem;
+  left: var(--side-nav-space);
   z-index: 1000;
   background: var(--panel-glass-bg);
   backdrop-filter: blur(10px);
@@ -265,33 +216,6 @@ html.dark {
 .generate-button:active {
   transform: translateY(0);
   box-shadow: var(--generate-button-active-shadow);
-}
-
-/* MANUAL ROUTE CREATION */
-#manual-mode-content {
-  position: absolute;
-  top: 48px;
-  left: 70px;
-  z-index: 1000;
-  background: var(--panel-glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--panel-radius);
-  box-shadow: var(--panel-shadow);
-  border: 1px solid var(--border-alt);
-  min-width: 240px;
-  max-width: calc(100vw - 90px);
-  font-family: var(--font-sans);
-}
-
-.manual-instruction {
-  font-size: 12px;
-  color: var(--muted-strong);
-  margin-bottom: 8px;
-  padding: 6px 8px;
-  background: var(--surface-subtle);
-  border-radius: 4px;
-  border: 1px solid var(--border-alt);
 }
 
 /* SAVE / LOAD ROUTE PANEL */

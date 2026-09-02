@@ -10,6 +10,10 @@
 */
 
 :root {
+
+  /* Spacing of left-sided elements to prevent being under the side-nav */
+  --side-nav-space: 70px;
+
   /* Brand blue (primary action color across the whole app) */
   --blue: #2563eb;
   --blue-dark: #1d4ed8;      /* report-issue.css hover shade */

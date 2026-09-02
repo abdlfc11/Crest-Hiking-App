@@ -6,7 +6,7 @@
 #route-stats {
     position: absolute;
     bottom: 20px;
-    left: 70px;
+    left: var(--side-nav-space);
     z-index: 2;
     background: var(--panel-glass-bg);
     backdrop-filter: blur(10px);
