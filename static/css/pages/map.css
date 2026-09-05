@@ -63,7 +63,7 @@ html.dark {
   left: auto;
 }
 
-/* AUTOMATIC ROUTE GENERATION */
+/* MANUAL ROUTE CREATION */
 #start-end {
   position: absolute;
   top: 1rem;
@@ -175,7 +175,7 @@ html.dark {
 }
 
 .set-start-end-coord {
-  width: clamp(6.5rem, 7vw, 8.5rem);
+  width: clamp(4rem, 4.4vw, 6rem);
   font-size: clamp(0.75rem, 0.25vw, 1.1rem);
 }
 
@@ -183,17 +183,20 @@ html.dark {
   transform: translateY(0);
 }
 
-#auto-mode-routing-buttons {
+#routing-buttons {
   display: flex;
+  justify-content: center;
+  align-items: center;
   flex-direction: row;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   padding-top: .5rem;
+
 }
 
 .generate-button {
   position: relative;
-  width: 100%;
-  padding: 8px;
+  width: fit-content;
+  padding: .5rem;
   background: var(--blue);
   color: white;
   border: none;
@@ -207,10 +210,20 @@ html.dark {
   white-space: nowrap;
 }
 
+.routing-svg-button {
+  padding: .35rem .45rem .35rem .45rem;
+}
+
+.generate-button svg {
+  color: white;
+  height: 16px;
+  width: 16px;
+}
+
 .generate-button:hover {
   background: var(--blue-dark);
   box-shadow: var(--generate-button-hover-shadow);
-  transform: translateY(-1px);
+  transform: translateY(-1px) translate3d(0, 0, 0);
 }
 
 .generate-button:active {
@@ -337,9 +350,7 @@ html.dark {
 /* RESPONSIVE STYLES */
 
 @media (max-width: 1024px) {
-  #mode-toggle,
-  #start-end,
-  #manual-mode-content {
+  #start-end {
     left: 14px;
     max-width: calc(100vw - 28px);
   }
@@ -355,20 +366,7 @@ html.dark {
 }
 
 @media (max-width: 768px) {
-  #mode-toggle {
-    top: 6px;
-    left: 10px;
-    padding: 4px;
-    max-width: calc(100vw - 20px);
-  }
-
-  .mode-button {
-    padding: 5px 9px;
-    font-size: 11px;
-  }
-
-  #start-end,
-  #manual-mode-content {
+  #start-end {
     top: 42px;
     left: 10px;
     min-width: 0;
@@ -406,11 +404,6 @@ html.dark {
     padding: 6px 10px;
     font-size: 11px;
     text-align: center;
-  }
-
-  .set-start-end-coord {
-    width: 100%;
-    font-size: 0.8rem;
   }
 
   .generate-button {

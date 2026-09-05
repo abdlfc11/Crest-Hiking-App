@@ -19,18 +19,19 @@ button[data-tooltip]::after {
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background: rgba(49, 52, 57, 0.9);
+  background: var(--tooltip-bg);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
 
-  color: #fff;
+  color: var(--ink-strong);
   font-size: 12px;
   line-height: 1.3;
   white-space: normal;
 
   /* Buffer on the sides so corners don't flatten */
-  width: 10rem;
+  width: fit-content;
   box-sizing: border-box;
+  white-space: nowrap;
 
   padding: 6px 10px;
   border-radius: 6px;
@@ -51,7 +52,7 @@ button[data-tooltip]::before {
   left: 50%;
   transform: translateX(-50%) translateY(4px);
   border: 5px solid transparent;
-  border-top-color: #1f2937;
+  border-top-color: var(--tooltip-bg);
   margin-bottom: -2px;
   opacity: 0;
   visibility: hidden;
