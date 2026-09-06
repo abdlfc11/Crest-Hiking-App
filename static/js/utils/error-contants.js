@@ -6,5 +6,7 @@ export const ERROR_MESSAGES = {
             "Sorry, we could not find a path to that location.",
         OUTSIDE_CUMBRIA:
             "Please click on a point within Cumbria.",
+        GENERIC_ROUTE_ACTION: // e.g undo route, redo route, clear path
+            "Sorry, there was an unexpected error performing that action, please try again later"
     },
 };
