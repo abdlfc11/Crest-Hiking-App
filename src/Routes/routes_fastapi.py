@@ -814,8 +814,11 @@ async def import_route(
             ]
 
             for point in points:
-                
-                lat, lon, ele = point[0], point[1], point[2]
+
+                if len(point) > 2:
+                    lat, lon, ele = point[0], point[1], point[2]
+                else:
+                    lat, lon, ele = point[0], point[1], 0
 
                 converted_points.append([lon, lat, ele])
 
