@@ -1,4 +1,5 @@
 export {
-    calculatePath,
-    addManualPoint
+    addManualPoint,
+    replaceManualRouteEnd,
+    replaceIntermediaryPoint
 } from './routing.js'

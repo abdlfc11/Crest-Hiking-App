@@ -21,7 +21,7 @@ import { formatDistance } from "./utils/format-utils.js";
 
 import { logout, deleteAccount } from "./auth/auth.js";
 
-import { applyTheme } from "./ui.js";
+import { applyTheme } from "./ui/ui.js";
 
 import { hasActiveRouteStatsPanel } from "./routes/routeState.js";
 

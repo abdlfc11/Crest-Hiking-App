@@ -1,13 +1,7 @@
 
 import {
-    showToast,
-    addClickListener,
     createRouteCard
 } from "./utils/ui-utils.js";
-
-import {
-    calculateEta
-} from "./utils/routing-utils.js";
 
 import {
     formatDistance,
@@ -45,7 +39,6 @@ export async function processImportedRouteFile(file) {
 export function displayImportedRouteCard(data) {
 
     const routeInfo = data.route_info;
-    console.log(routeInfo)
     const today = new Date();
 
     const routeName = routeInfo.route_name

@@ -13,7 +13,6 @@ export const manualRouteState = {
   userClicks: [],
   pathCoords: [],
   manualRoutePoints: [],
-  initialElevation: 0,
   isSnapped: false,
   segmentCache: {},
   redoStack: []
@@ -87,8 +86,9 @@ export function clearManualRouteState() {
   manualRouteState.userClicks = [];
   manualRouteState.pathCoords = [];
   manualRouteState.manualRoutePoints = [];
-  manualRouteState.initialElevation = 0;
   manualRouteState.isSnapped = false;
+  manualRouteState.segmentCache = {};
+  manualRouteState.redoStack = [];
 }
 
 export function hasActiveRouteStatsPanel() {

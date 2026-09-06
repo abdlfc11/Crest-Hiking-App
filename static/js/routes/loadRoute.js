@@ -1,4 +1,4 @@
-import { getMap, getRouteLayer, getPathColour } from "../map.js";
+import { getMap, getRouteLayer } from "../map.js";
 
 import GeoJSON from "ol/format/GeoJSON.js";
 import Stroke from "ol/style/Stroke.js";
@@ -17,34 +17,17 @@ import {
 } from "../utils/format-utils.js"
 
 import {
-  getRouteStrokeStyle,
-  createManualPointStyle
+  getRouteStrokeStyle
 } from "../utils/style-utils.js"
 
 import {
   createStatsPanel
 } from "../utils/ui-utils.js"
 
-import { clearLastLoadedRouteStats, getLastLoadedRouteStats, setCurrentPathData, setLastKnownDistanceKm, setLastLoadedRouteStats, setLoadedRouteCoordinates } from "./routeState.js";
+import { getLastLoadedRouteStats, setLastKnownDistanceKm, setLastLoadedRouteStats } from "./routeState.js";
 
-import { deleteRoute, loadRoute } from "./routeApi.js";
-
-import { initChartToggleListener } from "../elevationChart.js";
 import { getSavedPointStyle } from "../saved_points/style.js";
 import { MAP_VIEW_PADDING } from "../constants.js";
-
-
-let routeList = null;
-let selectedRouteDisplay = null;
-let selectedRouteName = null;
-let selectedRouteType = null;
-let loadMessage = null;
-let loadRouteButton = null;
-let loadRouteDropdown = null;
-
-let onRouteLoaded = null;
-let updateLoadRouteVisibilityCallback = null;
-
 
 export function displayLoadedRouteOnMap(data) {
 
@@ -110,11 +93,13 @@ export function displayLoadedRouteOnMap(data) {
       // then zoom into the route
       function(complete) {
         if (complete) {
-          view.fit(vectorSource.getExtent(), {
-            size: map.getSize(),
-            padding: MAP_VIEW_PADDING,
-            duration: 1000
-          })
+          setTimeout(() => {
+            view.fit(vectorSource.getExtent(), {
+              size: map.getSize(),
+              padding: MAP_VIEW_PADDING,
+              duration: 1000
+            })
+          }, 100)
         }
       }
     );
@@ -122,11 +107,13 @@ export function displayLoadedRouteOnMap(data) {
   
   // otherwise, zoom into the route immediately
   else {
-    map.getView().fit(vectorSource.getExtent(), {
-      size: map.getSize(),
-      padding: MAP_VIEW_PADDING,
-      duration: 1000,
-    });
+    setTimeout(() => {
+      view.fit(vectorSource.getExtent(), {
+        size: map.getSize(),
+        padding: MAP_VIEW_PADDING,
+        duration: 1000
+      })
+    }, 100)
   }
   setLastLoadedRouteStats(data.route_stats)
   displayLoadedRouteStats(getLastLoadedRouteStats());

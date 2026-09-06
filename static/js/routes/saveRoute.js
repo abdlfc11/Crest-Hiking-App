@@ -1,5 +1,4 @@
 import {
-  getCurrentMode, 
   getCurrentPathData, 
   getLastKnownDistanceKm, 
   getLoadedRouteCoordinates, 
@@ -17,7 +16,7 @@ import {
   homeButtonFunction,
   updateSaveRouteContainer,
   showLoginModal
-} from "../ui.js";
+} from "../ui/ui.js";
 
 import { getMap } from "../map.js";
 
@@ -155,10 +154,9 @@ async function handleSaveRoute(e) {
  * @returns {Array<Array<number>>}
  */
 function getPathCoordinates() {
-  const mode = getCurrentMode();
   let pathCoordinates = [];
   
-  if (mode === "manual" && manualRouteState.pathCoords.length > 0) {
+  if (manualRouteState.pathCoords.length > 0) {
     const webMercatorCoords = manualRouteState.pathCoords;
 
     pathCoordinates = webMercatorCoords.map(coord => {
@@ -182,6 +180,7 @@ async function handleUnauthenticatedUser(routeName) {
     showLoginModal(true, 'save routes');
     await localforage.setItem("unauthenticated-save-route-attempt", true);
     await localforage.setItem("cachedRouteName", routeName);
+    if (! await localforage.getItem('lastRoutingMode')) await localforage.setItem("lastRoutingMode", "manual");
     return false
   }
   return true

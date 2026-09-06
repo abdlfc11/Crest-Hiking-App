@@ -5,7 +5,7 @@
 
 import { deleteRoute, downloadRoute, loadRoute } from "./routeApi.js";
 
-import { closeSavedRoutesDash } from "../ui.js"
+import { closeSavedRoutesDash } from "../ui/ui.js"
 
 import { displayLoadedRouteOnMap } from "./loadRoute.js";
 

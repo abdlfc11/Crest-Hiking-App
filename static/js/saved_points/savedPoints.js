@@ -1,7 +1,7 @@
 import { getSavedPointStyle } from "./style.js";
 import { getMap } from "../map.js";
-import { showLoginModal, showModal} from "../ui.js";
-import { showToast } from "../utils/ui-utils.js";
+import { showLoginModal} from "../ui/ui.js";
+import { showToast, showModal } from "../utils/ui-utils.js";
 import { logError } from "../utils/logError-utils.js";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { Feature } from "ol";
@@ -90,6 +90,12 @@ export function loadAndDisplaySavedPoints() {
       })
 }
 
+/**
+ * 
+ * @param {number[]} coordinate In Web Mercator or Lon Lat
+ * @param {string} name 
+ * @returns {void}
+ */
 export async function saveNewPoint(coordinate, name) {
 
   const isLoggedIn = window.appConfig.loggedIn
@@ -134,7 +140,6 @@ export async function saveNewPoint(coordinate, name) {
           return loadAndDisplaySavedPoints();
         }
       throw new Error(data.message)
-      return;
   }
   catch(error) {
     showToast(error.message || "There was an unexpected error whilst saving your point, try again later.");

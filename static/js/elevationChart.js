@@ -1,8 +1,8 @@
 // Local Imports 
 import { normaliseCoordLength, getCurrentPathData } from './routes/routeState.js';
-import { getRouteLayer } from './map.js';
+import { getManualRouteLayer, getRouteLayer } from './map.js';
 import { getTheme, getDistanceUnit } from './settingsState.js';
-import { createManualPointStyle } from './utils/style-utils.js';
+import { createElevationPointStyle, createManualPointStyle } from './utils/style-utils.js';
 
 // OpenLayers imports 
 import { fromLonLat, toLonLat } from 'ol/proj.js';
@@ -49,7 +49,7 @@ export function setHoverPointFeature(value) {
  * @returns {void}
  */
 function updateMapHoverPoint(coordinate) {
-  const routeLayer = getRouteLayer();
+  const routeLayer = getManualRouteLayer();
   if (!routeLayer) return;
   const source = routeLayer.getSource();
 
@@ -64,7 +64,7 @@ function updateMapHoverPoint(coordinate) {
       geometry: new Point(coord)
     });
 
-    hoverPointFeature.setStyle(createManualPointStyle("", "#FFFFFF", 7.5, "#0a45e7"));
+    hoverPointFeature.setStyle(createElevationPointStyle());
     source.addFeature(hoverPointFeature);
   } else {
     hoverPointFeature.getGeometry().setCoordinates(coord);
@@ -78,12 +78,12 @@ function updateMapHoverPoint(coordinate) {
  * @returns {void}
  */
 function clearMapHoverPoint() {
-  const routeLayer = getRouteLayer();
+  const routeLayer = getManualRouteLayer();
   if (!routeLayer || !hoverPointFeature) return;
   
   const source = routeLayer.getSource();
   source.removeFeature(hoverPointFeature);
-  hoverPointFeature = null; // Reset reference
+  hoverPointFeature = null; 
 };
 
 export function resetElevationChart() {
