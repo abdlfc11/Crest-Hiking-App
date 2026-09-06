@@ -35,12 +35,16 @@ import {
   LogOut,
   Coffee,
   MoveRight,
-  Keyboard
+  Keyboard,
+  Eraser,
+  Redo2,
+  Undo2
 } from 'lucide';
 
 export let map = null;
 export let tileLayer = null;
 export let routeLayer = null;
+export let manualRouteLayer = null;
 
 // Icon initialisation
 createIcons({
@@ -56,7 +60,10 @@ createIcons({
     LogOut,
     Coffee,
     MoveRight,
-    Keyboard
+    Keyboard,
+    Eraser,
+    Redo2,
+    Undo2
   }
 });
 
@@ -72,6 +79,27 @@ export function setRouteLayer(layer) {
 
 export function getRouteLayer() {
   return routeLayer;
+}
+
+export function setManualRoutelayer(layer) {
+  manualRouteLayer = layer;
+};
+
+export function getManualRouteLayer() {
+  if (manualRouteLayer === null) {
+    createManualRouteLayer();
+    return manualRouteLayer;
+  } else {
+    return manualRouteLayer;
+  }
+};
+
+export function removeManualRouteLayer() {
+  const map = getMap();
+  if (!map) return;
+
+  if (manualRouteLayer !== null) map.removeLayer(manualRouteLayer);
+  manualRouteLayer = null;
 }
 
 export function routeLayerHasFeatures() {
@@ -158,10 +186,24 @@ export function createRouteLayer() {
     zIndex: 999,
   });
 
-  const m = getMap();
-  if (m) m.addLayer(routeLayer);
+  const map = getMap();
+  if (map) map.addLayer(routeLayer);
   else console.error("Could not add routeLayer to the map");
 }
+
+export function createManualRouteLayer() {
+  manualRouteLayer = new VectorLayer({
+    source: new VectorSource(),
+    style: new Style({
+      stroke: new Stroke(getRouteStrokeStyle())
+    }),
+    zIndex: 999
+  });
+
+  const map = getMap();
+  if (map) map.addLayer(manualRouteLayer);
+  else console.error("Could not add manualRouteLayer to the map");
+};
 
 export function getPathColour() {
   return "#2563eb";
@@ -172,8 +214,10 @@ async function initApp() {
   await import("./auth/auth.js");
   const { initSettings } = await import("./settings.js");
   initSettings();
-  const { initUi } = await import("./ui.js");
+  const { initUi } = await import("./ui/ui.js");
   initUi();
+  const { initMapContextMenu } = await import('./ui/map-context-menu.js')
+  initMapContextMenu();
 }
 
 document.addEventListener("DOMContentLoaded", initApp);

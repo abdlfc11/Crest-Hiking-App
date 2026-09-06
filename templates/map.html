@@ -230,6 +230,40 @@
             </div>
         </dialog>
 
+        <!-- ##### CONTEXT MENU ##### -->
+        <div id="map-context-menu" class="map-context-menu" role="menu" aria-label="Map options" hidden>
+            <ul class="map-context-menu-options">
+                <li>
+                    <button id="map-context-save-point" class="map-context-menu-option" type="button" role="menuitem">
+                        Save point
+                    </button>
+                    <button id="map-context-copy-coordinate" class="map-context-menu-option" type="button" role="menuitem">
+                        Copy Coordinates
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ##### SAVE POINT ##### -->
+        <dialog id="save-point-dialog" class="modal-overlay">
+            <div class="modal-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Save Point</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field">
+                            <input type="text" id="save-point-dialog-name-input" name="save-point-name" class="field-input" aria-label="Input to add issue title" placeholder="Name" required>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="save-point-dialog-close" class="modal-btn modal-btn-secondary">Close</button>
+                        <button id="save-point-dialog-save" class="modal-btn modal-btn-normal">Save</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
         <!-- ##### REPORT ISSUE MODAL ##### -->
         <dialog id="report-issue-dialog" class="modal-overlay">
             <div class="modal-wrapper">
@@ -394,7 +428,6 @@
                 </div>
             </div>
         </dialog>
-
 
         <div id="map"></div>
     </div>
