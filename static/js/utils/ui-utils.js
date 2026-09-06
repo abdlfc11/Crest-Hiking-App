@@ -9,19 +9,22 @@
  *      - createNoRouteCard()
  *      - createStatsPanel(distanceDisplay, etaDisplay, elevationGain)
  *      - parseCoordString(value)
+ *      - closeModalUponOutsideClick(e, modalContent, modal)
+ *      - showModal(show, modal)
+ *      - closeModals()
  */
       
 
 
 
-// GENERAL 
+//#region GENERAL 
 
 /**
  * Parses a coordinate string in the form "X, Y" (or "X,Y").
  * Returns [x, y] as numbers or null if the format is invalid.
  * Never throws.
  * @param {String} value
- * @returns {Array<number> | null}
+ * @returns {number[] | null}
  */
 export function parseCoordString(value) {
   if (typeof value !== "string") return null;
@@ -167,7 +170,9 @@ export function showToast(message, type = "error", modal = null) {
     closeButton.addEventListener("click", removeToast);
 }
 
-// DOM RELATED 
+//#endregion
+
+//#region DOM RELATED
 
 /**
  * 
@@ -175,7 +180,7 @@ export function showToast(message, type = "error", modal = null) {
  * 
  * @param {DOMElement} element 
  * @param {function} func 
- * @param {Event} type 
+ * @param {string} type 
  */
 export function addClickListener(element, func, type) {
   if (element) element.addEventListener(type, func);
@@ -321,3 +326,60 @@ export function createStatsPanel(distanceDisplay, etaDisplay, elevationGain) {
         </div>
     `
 }
+
+//#endregion
+
+//#region MODALS
+
+/**
+ * Catches clicks outside of a modal in order to close the modal upon these clicks. 
+ * 
+ * @param {Event} e 
+ * @param {HTMLDivElement} modalContent 
+ * @param {HTMLDialogElement} modal 
+ * @returns {void}
+ */
+export function closeModalUponOutsideClick(e, modalContent, modal) {
+  if (modalContent && !modalContent.contains(e.target)) {
+      modal.close()
+    }
+};
+
+/**
+ * Toggles the provided modal
+ * @param {boolean} show true if you want to show the modal, false if you want to hide the modal
+ * @param {HTMLDialogElement} modal The modal you want to open/close
+ * @returns {void} 
+ */
+export function showModal(show, modal) {
+  if (show) {
+    modal.showModal();
+  }
+  else {
+    modal.close();
+  }
+};
+
+/**
+ * Closes all modals within the application
+ * 
+ * @returns {void}
+ */
+export function closeModals() {
+
+    const modals = [
+        document.getElementById('save-point-dialog'),
+        document.getElementById('shortcuts-dialog'),
+        document.getElementById('load-last-route-dialog'),
+        document.getElementById('donate-modal'),
+        document.getElementById('report-issue-dialog'),
+        document.getElementById('login-dialog'),
+        document.getElementById("delete-point-confirmation-dialog")
+    ]
+
+    modals.forEach(modal => {
+        modal.close();
+    })
+}
+
+//#endregion
