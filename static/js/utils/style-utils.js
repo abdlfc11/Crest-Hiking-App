@@ -13,39 +13,43 @@ import Circle from "ol/style/Circle"
 import Style from "ol/style/Style"
 
 
-
 /**
- * 
- * @param {string} label The text to be displayed above the point
- * @param {string} colour The inner (fill) colour of the point
- * @param {number} radius Radius of the point
- * @param {string} strokeBorderColor Border colour of the point + text  
- * @returns {Object} The styling to be applied to the point via OL
+ * Returns the styling to be applied to intermediary points on a route
+ * @returns {ol.style.Style}
  */
-export function createManualPointStyle(label, colour, radius=7.5, strokeBorderColor="#FFFFFF") {
+export function createManualPointStyle() {
   return new Style({
-    image : new Circle({
-      radius : radius,
-      fill : new Fill({
-        color : colour
+    image: new Circle({
+      radius: 6.5,
+      fill: new Fill({
+        color: "#000000"
       }),
-      stroke : new Stroke({
-        color : strokeBorderColor,
-        width : 3
+      stroke: new Stroke({
+        color: "#FFFFFF",
+        width: 3
       })
     }),
-    text : label ? new Text({
-      text : label,
-      font : "bold 12px sans-serif",
-      fill : new Fill({
-        color : "black"
+    zIndex: 1000
+  })
+}
+
+/**
+ * Returns the styling to be applied to dynamic points created on a route by the elevation chart 
+ * @returns {ol.style.Style} 
+ */
+export function createElevationPointStyle() {
+  return new Style({
+    image: new Circle({
+      radius: 7.5,
+      fill: new Fill({
+        color: '#FFFFFF'
       }),
-      stroke : new Stroke({
-        color : strokeBorderColor,
-        width : 3
-      }),
-      offsetY : -15
-    }) : null
+      stroke: new Stroke({
+        color: '#0a45e7',
+        width: 3
+      })
+    }),
+    zIndex: 1200
   })
 }
 
