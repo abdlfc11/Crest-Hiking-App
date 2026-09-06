@@ -57,6 +57,57 @@ html.dark {
   overflow: hidden;
 }
 
+/* RIGHT-CLICK MAP OPTIONS */
+.map-context-menu {
+  position: fixed;
+  z-index: 1200;
+  min-width: 5rem;
+  padding: var(--space-2xs);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-surface);
+  font-family: var(--font-sans);
+}
+
+.map-context-menu-options {
+  padding: 0;
+  margin: var(--space-sm) var(--space-2xs);
+  list-style: none;
+}
+
+.map-context-menu-option {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-block: var(--space-2xs);
+  margin-inline: 0;
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--ink);
+  background: var(--list-item-bg);
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.map-context-menu-option:hover {
+  background-color: var(--list-item-bg-hover);
+}
+
+.map-context-menu-option:focus {
+  outline: none;
+}
+
+.map-context-menu-option:focus-visible {
+  background-color: var(--list-item-bg-hover);
+  outline: 2px solid var(--focus-ring, currentColor);
+  outline-offset: 2px;
+}
+
 /* OpenLayers */
 .ol-control {
   right: 8px;
