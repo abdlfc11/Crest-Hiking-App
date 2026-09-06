@@ -1223,52 +1223,54 @@ export function homeButtonFunction() {
 //#endregion
 
 //#region SEARCHING FUNCTION
-function searchArea() {
 
-  if (!searchEntry) {
-    showToast("Search entry not found.");
-    return;
-  }
-
-
-  const searchValue = searchEntry.value;
-  searchEntry.value = "";
+/**
+ * Responsible for moving to a given location
+ * 
+ * @returns {void}
+ */
+async function searchArea() {
 
   const map = getMap();
   if (!map) return;
 
-  fetch(window.appConfig.apiSearchAreaUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ search_input: searchValue }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (!data.success) return;
+  try { 
+    if (!searchEntry) {
+      throw new Error("ERROR in searchArea() : Search Entry not found", {cause : ERROR_MESSAGES.SEARCH.GENERIC});
+    };
 
-      const view = map.getView();
+    const searchValue = searchEntry.value;
 
-      // this converts the received coordinates into web mercator (as search API sends coords in [lon, lat] format)
-      const searchCenter = fromLonLat(data.coordinates);
-      if (view.getZoom() >= 7) {
-        view.animate(
-          { center: view.getCenter(), duration: 1000, zoom: 10 },
-          () =>
-            view.animate({
-              center: searchCenter,
-              duration: 1000,
-              zoom: 14,
-            }),
-        );
-      } else {
-        view.animate({
-          center: searchCenter,
-          duration: 1000,
-          zoom: 14,
-        });
-      }
-    })
-    .catch((error) => showToast("There was an unexpected error, please try again later."));
+    if (!searchValue) throw new Error("ERROR in searchArea() : searchValue is empty", {cause : "Please enter a location. "})
+
+    const response = await fetch(window.appConfig.apiSearchAreaUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ search_input: searchValue }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP ERROR IN searchArea(): ${response.status}`, {cause : data.user_message || ERROR_MESSAGES.SEARCH.GENERIC});
+    };
+
+    if (!data.success) {
+      throw new Error(data.message || "Error in searchArea()", {cause : data.user_message || ERROR_MESSAGES.SEARCH.GENERIC});
+    };
+
+    const view = map.getView();
+
+    const searchCenter = fromLonLat(data.coordinates);
+
+    view.animate({
+      center: searchCenter,
+      zoom: 14,
+      duration: 1500,
+    }); 
+  } catch (error) {
+    showToast(error.cause || ERROR_MESSAGES.SEARCH.GENERIC);
+  };
 };
 //#endregion
 
